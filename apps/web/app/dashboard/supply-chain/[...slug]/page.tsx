@@ -347,7 +347,7 @@ function AcceptRejectButtons({ batch, onDone }: { batch: any; onDone: () => void
 }
 
 // ── Batch Table ──
-function BatchTable({
+export function BatchTable({
   batches,
   user,
   filterFn,
@@ -373,66 +373,87 @@ function BatchTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm text-gray-600">
-        <thead className="bg-gray-50/50 text-gray-500 font-medium text-xs uppercase tracking-wider">
-          <tr>
-            <th className="px-5 py-3">Batch ID</th>
-            <th className="px-5 py-3">Honey Type</th>
-            <th className="px-5 py-3">Qty</th>
-            <th className="px-5 py-3">Status</th>
-            <th className="px-5 py-3">Origin</th>
-            <th className="px-5 py-3">Harvested</th>
-            {showActions && <th className="px-5 py-3 text-right">Actions</th>}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {filtered.map((batch) => {
-            const events = batch.events || [];
-            const lastEvent = events[events.length - 1];
-            const isPendingForMe = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === user.id;
-            const isPendingForOther = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId !== user.id;
+    <div className="divide-y divide-gray-100">
+      {batches.map((batch: any) => {
+        const events = batch.events || [];
+        const lastEvent = events[events.length - 1];
+        const isPendingForMe = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === user.id;
+        const isPendingForOther = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId !== user.id;
 
-            return (
-              <tr key={batch.id} className="hover:bg-amber-50/30 transition-colors">
-                <td className="px-5 py-4 font-mono font-semibold text-gray-900 text-xs">{batch.batchId}</td>
-                <td className="px-5 py-4 text-xs">{batch.honeyType}</td>
-                <td className="px-5 py-4 font-semibold text-xs">{batch.quantity} KG</td>
-                <td className="px-5 py-4">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusBadge(getDisplayStatus(batch, user))}`}>
-                    {statusIcon(getDisplayStatus(batch, user))} {getDisplayStatus(batch, user)}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-xs text-gray-500">{batch.location}</td>
-                <td className="px-5 py-4 text-xs text-gray-400">
-                  {new Date(batch.harvestDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </td>
-                {showActions && (
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/verify/${batch.batchId}`}
-                        className="px-2.5 py-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-                      >
-                        Verify
-                      </Link>
-                      {isPendingForMe ? (
-                        <AcceptRejectButtons batch={batch} onDone={onRefresh} />
-                      ) : isPendingForOther ? (
-                        <span className="px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
-                          ⏳ Awaiting Acceptance
-                        </span>
-                      ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) ? (
-                        <TransferButton batch={batch} user={user} onDone={onRefresh} />
-                      ) : null}
-                    </div>
-                  </td>
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        return (
+          <div key={batch.id} className="p-5 hover:bg-amber-50/30 transition-colors">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-sm font-bold text-amber-800">
+                  {batch.batchId || batch.id}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusBadge(getDisplayStatus(batch, user))}`}>
+                  {statusIcon(getDisplayStatus(batch, user))} {getDisplayStatus(batch, user)}
+                </span>
+              </div>
+
+              {showActions && (
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/verify/${batch.batchId}`}
+                    className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                  >
+                    Verify QR 📱
+                  </Link>
+                  {isPendingForMe ? (
+                    <AcceptRejectButtons batch={batch} onDone={onRefresh} />
+                  ) : isPendingForOther ? (
+                    <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
+                      ⏳ Awaiting Acceptance
+                    </span>
+                  ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) ? (
+                    <TransferButton batch={batch} user={user} onDone={onRefresh} />
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-600 mt-3">
+              <div>
+                <span className="text-gray-400">Honey Flora:</span>
+                <p className="font-semibold text-gray-800 mt-0.5">
+                  {batch.honeyType || "Mixed Flora"}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-400">Harvest Quantity:</span>
+                <p className="font-semibold text-gray-800 mt-0.5">
+                  {batch.quantityKg || batch.quantity} KG
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-400">Source Hive:</span>
+                <p className="font-semibold text-gray-800 mt-0.5">
+                  {batch.hive?.hiveCode || batch.hiveCode || "N/A"}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-400">Location:</span>
+                <p className="font-semibold text-gray-800 mt-0.5 truncate max-w-[150px]" title={batch.location}>
+                  {batch.location || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+              <span className="font-mono truncate max-w-[280px]">
+                Tx: {batch.blockchainTx || batch.transactionHash || "Pending..."}
+              </span>
+              <span>
+                Harvested:{" "}
+                {new Date(
+                  batch.createdAt || batch.harvestDate || Date.now()
+                ).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
