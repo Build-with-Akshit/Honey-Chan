@@ -100,12 +100,14 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
       }
 
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
-      const tx = await contract.initiateTransfer(batch.batchId, selectedUser.walletAddress, blockchainStageInt);
+      // Pass lowercased address to bypass strict ethers.js checksum validation for dummy DB data
+      const recipientAddress = selectedUser.walletAddress.toLowerCase();
+      const tx = await contract.initiateTransfer(batch.batchId, recipientAddress, blockchainStageInt);
       await tx.wait();
 
       const { honeyApi } = await import("@/lib/api");
       await honeyApi.transferBatch(batch.batchId, {
-        recipientWallet: selectedUser.walletAddress,
+        recipientWallet: recipientAddress,
         txHash: tx.hash,
         stage: dbStage,
         action: "INITIATE",

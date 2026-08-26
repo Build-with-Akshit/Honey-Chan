@@ -78,15 +78,17 @@ export default function BeekeeperBatchesPage() {
       }
 
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
+      // Pass lowercased address to bypass strict ethers.js checksum validation for dummy DB data
+      const recipientAddress = selectedUser.walletAddress.toLowerCase();
       const tx = await contract.initiateTransfer(
         transferModal.batch.batchId,
-        selectedUser.walletAddress,
+        recipientAddress,
         blockchainStageInt
       );
       await tx.wait();
 
       await honeyApi.transferBatch(transferModal.batch.batchId, {
-        recipientWallet: selectedUser.walletAddress,
+        recipientWallet: recipientAddress,
         txHash: tx.hash,
         stage: dbStage,
         action: "INITIATE",
