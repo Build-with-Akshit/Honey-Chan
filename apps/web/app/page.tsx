@@ -20,9 +20,12 @@ export default function Home() {
         </div>
         <div>
           {!isLoading && user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-600">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-sm font-medium text-gray-600 hidden sm:inline">
                 Welcome, {user.name} ({user.role})
+              </span>
+              <span className="text-sm font-medium text-gray-600 sm:hidden max-w-[100px] truncate">
+                Hi, {user.name.split(' ')[0]}
               </span>
               <button 
                 onClick={logout}
