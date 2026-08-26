@@ -422,7 +422,7 @@ function BatchTable({
                         <span className="px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
                           ⏳ Awaiting Acceptance
                         </span>
-                      ) : batch.status !== "COMPLETED" ? (
+                      ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) ? (
                         <TransferButton batch={batch} user={user} onDone={onRefresh} />
                       ) : null}
                     </div>
@@ -644,6 +644,22 @@ function isPendingForUser(b: any, userId: string | number) {
   return lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === userId;
 }
 
+export function isOwner(batch: any, userId: string | number) {
+  const events = batch.events || [];
+  if (events.length === 0) return batch.beekeeperId === userId;
+  
+  const lastEvent = events[events.length - 1];
+  
+  if (lastEvent.stage === "PENDING_TRANSFER") {
+    if (events.length >= 2) {
+      return events[events.length - 2].actorId === userId;
+    }
+    return batch.beekeeperId === userId;
+  }
+  
+  return lastEvent.actorId === userId;
+}
+
 export default function SupplyChainDashboard() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -707,7 +723,7 @@ export default function SupplyChainDashboard() {
           description="Batches currently being processed in your facility."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "PROCESSING"}
+          filterFn={(b) => b.status === "PROCESSING" && isOwner(b, user.id)}
           emptyMessage="No batches in the processing queue currently."
           onRefresh={refresh}
         />
@@ -728,7 +744,7 @@ export default function SupplyChainDashboard() {
           description="Batches awaiting lab analysis and quality certification."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "PROCESSING"}
+          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "PROCESSING" && isOwner(b, user.id))}
           emptyMessage="No pending quality tests at this time."
           onRefresh={refresh}
         />
@@ -742,7 +758,7 @@ export default function SupplyChainDashboard() {
           description="Completed quality test reports."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "QUALITY_TESTED"}
+          filterFn={(b) => b.status === "QUALITY_TESTED" && isOwner(b, user.id)}
           emptyMessage="No test results available yet."
           onRefresh={refresh}
         />
@@ -774,7 +790,7 @@ export default function SupplyChainDashboard() {
           description="Batches being shipped to your warehouse."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "QUALITY_TESTED"}
+          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "QUALITY_TESTED" && isOwner(b, user.id))}
           emptyMessage="No incoming shipments at this time."
           onRefresh={refresh}
         />
@@ -788,7 +804,7 @@ export default function SupplyChainDashboard() {
           description="Batches currently in transit to retail destinations."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "DISTRIBUTED"}
+          filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id)}
           emptyMessage="No batches currently in transit."
           onRefresh={refresh}
         />
@@ -846,7 +862,7 @@ export default function SupplyChainDashboard() {
           description="Batches currently in your stock."
           batches={batches}
           user={user}
-          filterFn={(b) => !["COMPLETED"].includes(b.status)}
+          filterFn={(b) => !["COMPLETED"].includes(b.status) && isOwner(b, user.id)}
           emptyMessage="Inventory is empty."
           onRefresh={refresh}
         />
@@ -878,7 +894,7 @@ export default function SupplyChainDashboard() {
           description="Batches received in your store from distributors/wholesalers."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "RETAIL"}
+          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "RETAIL" && isOwner(b, user.id))}
           emptyMessage="No stock received yet."
           onRefresh={refresh}
         />
