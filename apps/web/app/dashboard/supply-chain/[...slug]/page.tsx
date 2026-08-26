@@ -40,6 +40,16 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedStage, setSelectedStage] = useState("2");
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && modalOpen) {
+        setModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen]);
+
   const openModal = async () => {
     setModalOpen(true);
     setSelectedUser(null);

@@ -30,6 +30,16 @@ export default function BeekeeperBatchesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTransferModal({ open: false, batch: null });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const openTransferModal = async (batch: any) => {
     setTransferModal({ open: true, batch });
     setSelectedUser(null);
