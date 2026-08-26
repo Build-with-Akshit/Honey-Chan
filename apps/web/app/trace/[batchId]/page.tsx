@@ -70,16 +70,16 @@ export default function TracePage() {
             <div className="font-mono">{decodeURIComponent(batchId as string)}</div>
             
             <div className="font-semibold text-gray-600">Beekeeper:</div>
-            <div className="font-mono text-xs truncate">{batchData?.beekeeper}</div>
+            <div className="font-mono text-xs truncate">{batchData?.[1] || batchData?.beekeeper}</div>
             
             <div className="font-semibold text-gray-600">Quantity:</div>
-            <div>{Number(batchData?.quantity)} grams</div>
+            <div>{Number(batchData?.[2] ?? batchData?.quantity)} grams</div>
             
             <div className="font-semibold text-gray-600">Status:</div>
-            <div className="font-bold text-green-600">{currentStatus}</div>
+            <div className="font-bold text-green-600">{STATUS_LABELS[Number(batchData?.[6] ?? batchData?.status)] || "Unknown"}</div>
             
             <div className="font-semibold text-gray-600">Quality Passed:</div>
-            <div>{batchData?.qualityPassed ? "✅ Yes" : "❌ No"}</div>
+            <div>{(batchData?.[8] ?? batchData?.qualityPassed) ? "✅ Yes" : "❌ No"}</div>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function TracePage() {
                 </div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
-                    <div className="font-bold text-slate-900">Stage: {Number(event.stage)}</div>
+                    <div className="font-bold text-slate-900">{STATUS_LABELS[Number(event.stage)] || `Stage: ${Number(event.stage)}`}</div>
                     <time className="text-xs text-slate-500">{date}</time>
                   </div>
                   <div className="text-slate-500 text-xs font-mono break-all mt-2">
