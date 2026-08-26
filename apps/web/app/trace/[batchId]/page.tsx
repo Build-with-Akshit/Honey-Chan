@@ -22,15 +22,16 @@ export default function TracePage() {
         setLoading(true);
         const contract = getContract();
         
+        const decodedBatchId = decodeURIComponent(batchId as string);
         // Ensure batch exists
-        const exists = await contract.doesBatchExist(batchId);
+        const exists = await contract.doesBatchExist(decodedBatchId);
         if (!exists) {
           setError("Batch not found on the blockchain.");
           return;
         }
 
-        const batch = await contract.getBatch(batchId);
-        const batchHistory = await contract.getBatchHistory(batchId);
+        const batch = await contract.getBatch(decodedBatchId);
+        const batchHistory = await contract.getBatchHistory(decodedBatchId);
 
         setBatchData(batch);
         setHistory(batchHistory);
@@ -66,7 +67,7 @@ export default function TracePage() {
           <h2 className="text-2xl font-semibold">Batch Info</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="font-semibold text-gray-600">Batch ID:</div>
-            <div className="font-mono">{batchId}</div>
+            <div className="font-mono">{decodeURIComponent(batchId as string)}</div>
             
             <div className="font-semibold text-gray-600">Beekeeper:</div>
             <div className="font-mono text-xs truncate">{batchData?.beekeeper}</div>
