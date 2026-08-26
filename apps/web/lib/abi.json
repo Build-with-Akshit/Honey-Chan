@@ -1,5 +1,5 @@
 {
-  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "address": "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb",
   "abi": [
     {
       "inputs": [],
@@ -36,17 +36,6 @@
         }
       ],
       "name": "BatchAlreadyExists",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "batchId",
-          "type": "string"
-        }
-      ],
-      "name": "BatchClosed",
       "type": "error"
     },
     {
@@ -216,31 +205,6 @@
         }
       ],
       "name": "BatchTransferred",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "string",
-          "name": "batchId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "billHash",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "ConsumerSaleCompleted",
       "type": "event"
     },
     {
@@ -540,53 +504,6 @@
           "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "batchId",
-          "type": "string"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "billHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "completeRetailSale",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "name": "consumerSales",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "billHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "saleTimestamp",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isSold",
-          "type": "bool"
         }
       ],
       "stateMutability": "view",

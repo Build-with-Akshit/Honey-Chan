@@ -60,9 +60,34 @@ export default function BeekeeperDashboard() {
             Welcome back • {liveTime.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="w-2 h-2 bg-green-500 rounded-full pulse-dot" />
-          <span className="text-green-600 font-medium">IoT Active</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
+            <span className="w-2 h-2 bg-green-500 rounded-full pulse-dot" />
+            <span className="text-green-600 font-medium">IoT Active</span>
+          </div>
+          <button 
+            onClick={async () => {
+              try {
+                const { getContractWithSigner } = await import("@/lib/blockchain");
+                const { ethers } = await import("ethers");
+                const contract = await getContractWithSigner();
+                const batchId = "HC-" + Date.now();
+                const metadataHash = ethers.id("Demo Metadata");
+                
+                alert("Please approve the transaction in MetaMask to create the batch.");
+                const tx = await contract.createBatch(batchId, metadataHash, 18500, Math.floor(Date.now() / 1000));
+                await tx.wait();
+                
+                alert("Success! Batch created on blockchain: " + batchId);
+              } catch (err: any) {
+                console.error(err);
+                alert("Failed: " + err.message);
+              }
+            }}
+            className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md transition-colors flex items-center gap-2"
+          >
+            <span>🍯</span> Harvest & Create Block
+          </button>
         </div>
       </div>
 

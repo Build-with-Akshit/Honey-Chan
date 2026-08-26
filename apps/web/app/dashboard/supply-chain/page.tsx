@@ -91,9 +91,39 @@ export default function SupplyChainDashboard() {
                   <span className="text-xs font-mono text-gray-400">✅ Verified</span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="text-amber-600 hover:text-amber-800 font-medium text-xs">
-                    View Details →
-                  </button>
+                  {user.role === "RETAILER" ? (
+                    <button 
+                      onClick={async () => {
+                        const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:");
+                        if (!confirmMsg) return;
+                        try {
+                          const { getContractWithSigner } = await import("@/lib/blockchain");
+                          const { ethers } = await import("ethers");
+                          const contract = await getContractWithSigner();
+                          
+                          const billHash = ethers.id(confirmMsg);
+                          alert("Please approve the transaction in MetaMask to finalize the sale.");
+                          
+                          // First we simulate this batch having reached retailer stage if it's just a demo
+                          // In a real flow, it would already be transferred to the retailer.
+                          // For now, let's just attempt to call the completeRetailSale
+                          const tx = await contract.completeRetailSale("HC-2026-000127", billHash);
+                          await tx.wait();
+                          alert("Consumer sale finalized on Blockchain! Batch is now locked.");
+                        } catch(err: any) {
+                          console.error(err);
+                          alert("Failed to finalize: " + (err.reason || err.message));
+                        }
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm"
+                    >
+                      Finalize Sale
+                    </button>
+                  ) : (
+                    <button className="text-amber-600 hover:text-amber-800 font-medium text-xs">
+                      View Details →
+                    </button>
+                  )}
                 </td>
               </tr>
               <tr className="hover:bg-amber-50/30 transition-colors">
