@@ -3,9 +3,41 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWallet";
 
+import { useState } from "react";
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const wallet = useWallet();
+  const [isEditing, setIsEditing] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize form when user loads or edit starts
+  const handleEditClick = () => {
+    setPhoneInput(user?.phone || "");
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const res = await fetch("/api/auth/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phoneInput }),
+      });
+      if (res.ok) {
+        setIsEditing(false);
+        window.location.reload(); // Refresh to get new user data
+      } else {
+        alert("Failed to update profile.");
+      }
+    } catch (err) {
+      alert("Error saving profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -50,15 +82,46 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Phone Number</label>
-                <div className="text-gray-900 font-medium px-4 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                  {user.phone || <span className="text-gray-400 italic">Not provided</span>}
-                </div>
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    value={phoneInput} 
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                    className="w-full text-gray-900 font-medium px-4 py-2 bg-white rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    placeholder="+91 98765 43210"
+                  />
+                ) : (
+                  <div className="text-gray-900 font-medium px-4 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                    {user.phone || <span className="text-gray-400 italic">Not provided</span>}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="mt-4 flex justify-end">
-              <button className="text-sm font-semibold text-amber-600 hover:text-amber-800">
-                Edit Details
-              </button>
+            <div className="mt-4 flex justify-end gap-3">
+              {isEditing ? (
+                <>
+                  <button 
+                    onClick={() => setIsEditing(false)} 
+                    className="text-sm font-semibold text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className="text-sm font-semibold bg-amber-600 text-white px-4 py-1.5 rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                  >
+                    {isSaving ? "Saving..." : "Save Details"}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={handleEditClick}
+                  className="text-sm font-semibold text-amber-600 hover:text-amber-800"
+                >
+                  Edit Details
+                </button>
+              )}
             </div>
           </div>
 
