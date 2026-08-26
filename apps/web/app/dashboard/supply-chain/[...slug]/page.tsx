@@ -408,7 +408,7 @@ export function BatchTable({
                     <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
                       ⏳ Awaiting Acceptance
                     </span>
-                  ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) ? (
+                  ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) && user.role !== "RETAILER" ? (
                     <TransferButton batch={batch} user={user} onDone={onRefresh} />
                   ) : null}
                 </div>
