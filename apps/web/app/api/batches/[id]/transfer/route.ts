@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   try {
+    const { user, errorResponse } = await requireAuth(["PROCESSOR", "LAB", "DISTRIBUTOR", "RETAILER", "ADMIN"]);
+    if (errorResponse) return errorResponse;
+
     const params = await props.params;
     const data = await req.json();
-    const { stage, actor, location, notes, txHash } = data;
+    const { stage, location, notes, txHash } = data;
     
     // In our system, params.id could be the DB ID (int) or the batchId (string)
     const batchId = params.id;
@@ -44,7 +48,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         location: location || "India",
         notes: notes || `Transferred to ${stage}`,
         txHash: generatedTx,
-        actorId: 3, // Mock actor for transfer
+        actorId: user!.id, // Use authenticated user instead of hardcoded ID
       }
     });
 

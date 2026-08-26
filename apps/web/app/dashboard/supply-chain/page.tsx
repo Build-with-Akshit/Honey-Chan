@@ -63,12 +63,12 @@ export default function SupplyChainDashboard() {
       {/* Example Table Section (Common for all, just with different titles) */}
       <div className="mt-8">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
-          {user.role === "WHOLESALER" ? "My Purchased Batches" : 
-           user.role === "RETAILER" ? "My Inventory" : "Recent Activity"}
+          {user.role === "WHOLESALER" ? "My Purchased Batches" :
+            user.role === "RETAILER" ? "My Inventory" : "Recent Activity"}
         </h2>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600 whitespace-nowrap">
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-left text-sm text-gray-600">
             <thead className="bg-gray-50/50 text-gray-500 font-medium">
               <tr>
                 <th className="px-6 py-4">Batch ID</th>

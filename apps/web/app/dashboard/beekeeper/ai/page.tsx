@@ -48,7 +48,7 @@ export default function BeekeeperAIPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gray-900">AI Hive Intelligence & Disease Detection</h1>
-            <span className="badge badge-info text-xs whitespace-nowrap shrink-0">AI-ASSISTED</span>
+            <span className="badge badge-info text-xs">AI-ASSISTED</span>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
             Micro-climate analytics, harvest yield forecasting, and comb health screening
@@ -179,12 +179,12 @@ export default function BeekeeperAIPage() {
           <div className="card p-6 bg-gradient-to-r from-purple-50/50 via-white to-purple-50/50 border-purple-200">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
-                <div className="flex items-start sm:items-center gap-2">
+                <div className="flex items-center gap-2">
                   <span className="text-xl">📸</span>
                   <h3 className="font-bold text-sm text-gray-900">
                     Computer Vision Honeycomb Disease Screening
                   </h3>
-                  <span className="badge badge-tested text-[10px] whitespace-nowrap shrink-0 mt-0.5 sm:mt-0">CV PROTOTYPE</span>
+                  <span className="badge badge-tested text-[10px]">CV PROTOTYPE</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Scan honeycomb frame photography to detect Varroa destructor mites, Queen cup regularity & brood diseases

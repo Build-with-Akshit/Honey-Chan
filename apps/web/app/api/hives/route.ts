@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function GET() {
   try {
+    const { user, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
+    // Beekeepers see only their own hives
+    const whereClause = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+
     const hives = await prisma.hive.findMany({
+      where: whereClause,
       include: {
         cluster: true,
         beekeeper: true,
@@ -22,6 +30,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const { user, errorResponse } = await requireAuth(["BEEKEEPER", "ADMIN"]);
+    if (errorResponse) return errorResponse;
+
     const data = await req.json();
     const { hiveCode, location, flowerSource, colonyType, clusterId } = data;
     
@@ -29,14 +40,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "hiveCode and location are required" }, { status: 400 });
     }
 
+    // Use authenticated user's ID as beekeeper
+    const beekeeperId = user!.role === "ADMIN" && data.beekeeperId ? data.beekeeperId : user!.id;
+
     const newHive = await prisma.hive.create({
       data: {
         hiveCode,
         location,
         flowerSource: flowerSource || "Mustard Flower",
         beeColonyType: colonyType || "Apis mellifera",
-        clusterId: clusterId || 1, // Default fallback
-        beekeeperId: 2, // Assuming Ramesh Kumar is ID 2
+        clusterId: clusterId || 1,
+        beekeeperId: beekeeperId,
       },
       include: {
         cluster: true,

@@ -28,16 +28,16 @@ export default function AdminBeekeepersPage() {
                 <div>
                   <h3 className="font-bold text-sm text-gray-900">{b.name}</h3>
                   <p className="text-xs text-gray-400">{b.cluster} • {b.district}</p>
-                  <p className="font-mono text-[10px] text-gray-400 mt-0.5 truncate max-w-[200px] sm:max-w-[400px]">{b.wallet}</p>
+                  <p className="font-mono text-[10px] text-gray-400 mt-0.5">{b.wallet}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-4 text-xs w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-0 border-gray-50 pt-2 sm:pt-0">
-                <div className="text-left sm:text-right">
+              <div className="flex items-center gap-4 text-xs">
+                <div className="text-right">
                   <span className="text-gray-400 block text-[10px]">Active Hives</span>
                   <span className="font-bold text-gray-800">{b.hives} Hives</span>
                 </div>
-                <div className="text-left sm:text-right">
+                <div className="text-right">
                   <span className="text-gray-400 block text-[10px]">Total Production</span>
                   <span className="font-bold text-amber-700">{b.honey}</span>
                 </div>

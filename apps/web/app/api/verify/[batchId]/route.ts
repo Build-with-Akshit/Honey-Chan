@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getOnChainBatch, verifyBatchHash, computeMetadataHash, isBlockchainReachable } from "@/lib/blockchain";
+import { BATCH_STATUS_MAP, SUPPLY_CHAIN_STAGE_MAP } from "@/lib/contracts";
 
 export async function GET(req: Request, props: { params: Promise<{ batchId: string }> }) {
   try {
@@ -26,9 +28,57 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       }, { status: 404 });
     }
 
-    const hashMatch = true; // Placeholder for actual hash integrity check
+    // ── Blockchain Hash Verification ──────────────────────────────────
+    // Compute current hash from DB data
+    const currentDataHash = computeMetadataHash({
+      batchId: batch.batchId,
+      beekeeperName: batch.beekeeper?.name || "Unknown",
+      hiveCode: batch.hive?.hiveCode || "UNKNOWN",
+      quantity: Number(batch.quantity) || 0,
+      honeyType: batch.honeyType || "Natural Honey",
+      location: batch.location || "India",
+    });
+
+    // Try to verify against blockchain
+    let hashMatch = false;
+    let onChainHash = batch.metadataHash || "0x" + "0".repeat(64);
+    let blockchainReachable = false;
+    let onChainBatch = null;
+    let onChainStatus = null;
+
+    try {
+      blockchainReachable = await isBlockchainReachable();
+
+      if (blockchainReachable) {
+        // Fetch on-chain data
+        onChainBatch = await getOnChainBatch(params.batchId);
+
+        if (onChainBatch) {
+          onChainHash = onChainBatch.metadataHash;
+          onChainStatus = BATCH_STATUS_MAP[onChainBatch.status] || "Unknown";
+
+          // Compare hashes
+          const verifyResult = await verifyBatchHash(params.batchId, currentDataHash);
+          hashMatch = verifyResult.verified;
+          onChainHash = verifyResult.onChainHash;
+        } else {
+          // Batch exists in DB but not on-chain — could be pre-blockchain or not yet recorded
+          // Fall back to comparing stored metadataHash
+          hashMatch = batch.metadataHash === currentDataHash;
+        }
+      } else {
+        // Blockchain unreachable — fall back to DB-stored hash comparison
+        hashMatch = batch.metadataHash === currentDataHash;
+      }
+    } catch (bcError) {
+      console.warn("[Verify] Blockchain verification failed, using DB fallback:", bcError);
+      hashMatch = batch.metadataHash === currentDataHash;
+    }
+
+    // ── Quality Test Data ─────────────────────────────────────────────
     const qualityTest = batch.qualityTests[0];
 
+    // ── Trust Score Calculation ───────────────────────────────────────
     const trustFactors = [
       { label: "Traceability Completeness", score: 20, max: 20, passed: true },
       { label: "Lab FSSAI Certification", score: qualityTest ? 20 : 0, max: 20, passed: !!qualityTest },
@@ -40,6 +90,18 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
 
     const totalTrustScore = trustFactors.reduce((acc, f) => acc + f.score, 0);
 
+    // ── Hive Health (fetch latest AI prediction if available) ─────────
+    let hiveHealth = 92; // Default
+    if (batch.hive) {
+      const latestPrediction = await prisma.aiPrediction.findFirst({
+        where: { hiveId: batch.hive.id },
+        orderBy: { createdAt: "desc" },
+      });
+      if (latestPrediction?.healthScore) {
+        hiveHealth = latestPrediction.healthScore;
+      }
+    }
+
     return NextResponse.json({
       batchId: batch.batchId,
       producer: batch.beekeeper?.name,
@@ -48,17 +110,25 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       quantity: `${batch.quantity} KG`,
       harvestDate: batch.harvestDate?.toISOString().split('T')[0],
       hiveId: batch.hive?.hiveCode,
-      hiveHealth: 92, // Mock
+      hiveHealth,
       trustScore: hashMatch ? totalTrustScore : 35,
-      blockchainVerified: true,
+      blockchainVerified: !!onChainBatch,
+      blockchainReachable,
       hashMatch,
-      onChainHash: batch.metadataHash,
+      onChainHash,
+      currentDataHash,
+      onChainStatus,
+      dbStatus: batch.status,
       isTampered: !hashMatch,
       labVerified: !!qualityTest,
       labResult: qualityTest?.result || "PENDING",
       labMoisture: qualityTest ? `${qualityTest.moisture}%` : "Pending",
       labDate: qualityTest?.testedAt || "In testing queue",
       txHash: batch.blockchainTx,
+      etherscanUrl: batch.blockchainTx
+        ? `https://sepolia.etherscan.io/tx/${batch.blockchainTx}`
+        : null,
+      contractAddress: "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb",
       journey: batch.events.map((e) => ({
         stage: e.stage,
         icon: e.stage === "HARVEST" ? "🐝" : e.stage === "PROCESSING" ? "🏭" : e.stage === "LAB_TESTING" ? "🧪" : e.stage === "DISTRIBUTION" ? "🚚" : "🏪",
@@ -72,6 +142,7 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       trustFactors,
     });
   } catch (error) {
+    console.error("[Verify Route] Error:", error);
     return NextResponse.json({ error: "Failed to verify batch" }, { status: 500 });
   }
 }

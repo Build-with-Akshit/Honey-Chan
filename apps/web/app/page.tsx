@@ -20,14 +20,11 @@ export default function Home() {
         </div>
         <div>
           {!isLoading && user ? (
-            <div className="flex items-center gap-2 sm:gap-4">
-              <span className="text-sm font-medium text-gray-600 hidden sm:inline">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-600">
                 Welcome, {user.name} ({user.role})
               </span>
-              <span className="text-sm font-medium text-gray-600 sm:hidden max-w-[100px] truncate">
-                Hi, {user.name.split(' ')[0]}
-              </span>
-              <button 
+              <button
                 onClick={logout}
                 className="text-sm text-amber-700 hover:text-amber-900 font-medium"
               >
@@ -36,14 +33,14 @@ export default function Home() {
             </div>
           ) : !isLoading ? (
             <div className="flex gap-3">
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="px-4 py-2 text-sm font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
               >
                 Log In
               </Link>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm transition-colors"
               >
                 Sign Up
@@ -67,11 +64,11 @@ export default function Home() {
         {/* Dashboard Access */}
         {!isLoading && user ? (
           <div className="text-center mb-16">
-            <Link 
+            <Link
               href={
-                user.role === "BEEKEEPER" ? "/dashboard/beekeeper" : 
-                user.role === "ADMIN" ? "/dashboard/admin" : 
-                "/dashboard/supply-chain"
+                user.role === "BEEKEEPER" ? "/dashboard/beekeeper" :
+                  user.role === "ADMIN" ? "/dashboard/admin" :
+                    "/dashboard/supply-chain"
               }
               className="inline-flex flex-col items-center p-8 bg-white border border-amber-200 rounded-2xl shadow-xl hover:-translate-y-1 hover:shadow-2xl hover:border-amber-400 transition-all group"
             >
@@ -87,9 +84,9 @@ export default function Home() {
           </div>
         ) : !isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-            
+
             {/* Beekeeper Portal */}
-            <Link 
+            <Link
               href="/login"
               className="card p-8 border-amber-200 bg-white hover:border-amber-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
             >
@@ -108,7 +105,7 @@ export default function Home() {
             </Link>
 
             {/* Supply Chain Portal */}
-            <Link 
+            <Link
               href="/login"
               className="card p-8 border-orange-200 bg-white hover:border-orange-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
             >
@@ -129,7 +126,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="h-64 flex items-center justify-center mb-16">
-             <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
+            <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
           </div>
         )}
 
@@ -142,7 +139,7 @@ export default function Home() {
             <p className="text-xs text-gray-500 mb-4 max-w-sm">
               Consumers can instantly verify the authenticity and entire supply chain journey of their honey. No account needed.
             </p>
-            <Link 
+            <Link
               href="/verify/HC-2026-000127"
               className="btn-primary inline-flex items-center gap-2 px-6 py-3"
             >

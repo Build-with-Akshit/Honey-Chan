@@ -44,7 +44,7 @@ export default function BeekeeperHivesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Apiary Hives</h1>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -52,13 +52,13 @@ export default function BeekeeperHivesPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/beekeeper/iot" className="btn-outline text-xs py-2 px-3 whitespace-nowrap">
+        <div className="flex gap-2">
+          <Link href="/dashboard/beekeeper/iot" className="btn-outline text-xs py-2 px-3">
             📡 Live IoT Stream
           </Link>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-primary text-xs py-2 px-4 shadow-sm whitespace-nowrap"
+            className="btn-primary text-xs py-2 px-4 shadow-sm"
           >
             + Register New Hive
           </button>

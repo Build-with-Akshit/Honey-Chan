@@ -58,13 +58,13 @@ export default function AdminDashboard() {
                   </div>
                   <span className="text-sm font-medium text-amber-700">{cluster.production}</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                  <div className="flex flex-col gap-1"><span className="text-gray-400">Beekeepers</span><span className="font-medium text-gray-700">{cluster.beekeepers}</span></div>
-                  <div className="flex flex-col gap-1"><span className="text-gray-400">Hives</span><span className="font-medium text-gray-700">{cluster.hives.toLocaleString()}</span></div>
-                  <div className="flex flex-col gap-1"><span className="text-gray-400">Batches</span><span className="font-medium text-gray-700">{cluster.batches}</span></div>
-                  <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-4 gap-4 text-xs">
+                  <div><span className="text-gray-400">Beekeepers</span><p className="font-medium text-gray-700">{cluster.beekeepers}</p></div>
+                  <div><span className="text-gray-400">Hives</span><p className="font-medium text-gray-700">{cluster.hives.toLocaleString()}</p></div>
+                  <div><span className="text-gray-400">Batches</span><p className="font-medium text-gray-700">{cluster.batches}</p></div>
+                  <div>
                     <span className="text-gray-400">Health</span>
-                    <span className={`font-medium ${cluster.health >= 85 ? "text-green-600" : "text-amber-600"}`}>{cluster.health}%</span>
+                    <p className={`font-medium ${cluster.health >= 85 ? "text-green-600" : "text-amber-600"}`}>{cluster.health}%</p>
                   </div>
                 </div>
               </div>

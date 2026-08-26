@@ -142,13 +142,15 @@ export default function VerifyPage() {
             </div>
           </div>
 
-          {!isVerified && (
-            <div className="mt-4 p-3 bg-red-100/70 border border-red-300 rounded-lg text-left text-[11px] font-mono space-y-1">
-              <p className="text-red-800 font-bold">SHA-256 Hash Comparison:</p>
-              <p className="text-gray-700 break-all">On-Chain: {data?.onChainHash}</p>
-              <p className="text-red-700 break-all">Computed: {data?.currentDataHash}</p>
-            </div>
-          )}
+          {/* Always show hash comparison for transparency */}
+          <div className={`mt-4 p-3 ${!isVerified ? "bg-red-100/70 border border-red-300" : "bg-green-50/70 border border-green-200"} rounded-lg text-left text-[11px] font-mono space-y-1`}>
+            <p className={`${!isVerified ? "text-red-800" : "text-green-800"} font-bold`}>Keccak-256 Hash Comparison:</p>
+            <p className="text-gray-700 break-all">On-Chain: {data?.onChainHash || "N/A"}</p>
+            <p className={`${!isVerified ? "text-red-700" : "text-green-700"} break-all`}>Computed: {data?.currentDataHash || "N/A"}</p>
+            {data?.onChainStatus && (
+              <p className="text-gray-500 mt-1">Blockchain Status: <span className="font-bold text-gray-800">{data.onChainStatus}</span> | DB Status: <span className="font-bold text-gray-800">{data.dbStatus}</span></p>
+            )}
+          </div>
         </div>
 
         {/* Honey Trust Score Card */}
@@ -279,9 +281,24 @@ export default function VerifyPage() {
         <div className="card p-4 bg-gray-50 border-gray-200 text-xs">
           <div className="flex items-center justify-between mb-1">
             <span className="font-bold text-gray-700">Immutable Ledger Anchor</span>
-            <span className="badge badge-verified text-[10px]">VERIFIED ON-CHAIN</span>
+            <span className={`badge ${data?.blockchainVerified ? "badge-verified" : "bg-gray-200 text-gray-600"} text-[10px]`}>
+              {data?.blockchainVerified ? "VERIFIED ON-CHAIN" : "PENDING ON-CHAIN"}
+            </span>
           </div>
           <p className="font-mono text-[10px] text-gray-500 break-all">{data?.txHash}</p>
+          {data?.etherscanUrl && (
+            <a
+              href={data.etherscanUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              🔗 View on Sepolia Etherscan →
+            </a>
+          )}
+          {data?.contractAddress && (
+            <p className="font-mono text-[9px] text-gray-400 mt-1">Contract: {data.contractAddress}</p>
+          )}
         </div>
 
         {/* Footer */}
