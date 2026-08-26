@@ -4,6 +4,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
   const url = `${API_BASE}${endpoint}`;
   try {
     const res = await fetch(url, {
+      cache: 'no-store', // Prevent aggressive Next.js caching on Vercel
       ...options,
       headers: {
         "Content-Type": "application/json",

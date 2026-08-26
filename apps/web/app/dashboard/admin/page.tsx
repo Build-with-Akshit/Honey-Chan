@@ -15,9 +15,11 @@ export default function AdminDashboard() {
   
   const [clusters, setClusters] = useState<any[]>([]);
 
+  const [loading, setLoading] = useState(true);
+  
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/stats');
+      const res = await fetch('/api/stats', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data.admin) setStats(data.admin);
@@ -29,7 +31,7 @@ export default function AdminDashboard() {
 
   const fetchClusters = async () => {
     try {
-      const res = await fetch('/api/clusters');
+      const res = await fetch('/api/clusters', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setClusters(data);
@@ -40,14 +42,23 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
-    fetchClusters();
-    // Real-time polling every 3 seconds
-    const interval = setInterval(() => {
-      fetchStats();
-      fetchClusters();
-    }, 3000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
+    const pollData = async () => {
+      await Promise.all([fetchStats(), fetchClusters()]);
+      if (isMounted) {
+        setLoading(false);
+        timer = setTimeout(pollData, 10000); // Poll every 10s AFTER previous request finishes
+      }
+    };
+
+    pollData();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   const adminStatsDisplay = [

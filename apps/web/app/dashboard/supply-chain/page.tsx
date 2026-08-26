@@ -21,7 +21,7 @@ export default function SupplyChainDashboard() {
     try {
       const [batchesRes, statsRes] = await Promise.all([
         honeyApi.getBatches(),
-        fetch('/api/stats').then(res => res.json())
+        fetch('/api/stats', { cache: 'no-store' }).then(res => res.json())
       ]);
       setBatches(batchesRes);
       if (statsRes.supplyChain) setStats(statsRes.supplyChain);
@@ -33,10 +33,24 @@ export default function SupplyChainDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-    // Real-time polling every 3 seconds
-    const interval = setInterval(fetchData, 3000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
+    const pollData = async () => {
+      await fetchData();
+      if (isMounted) {
+        timer = setTimeout(pollData, 10000); // Poll every 10s AFTER previous request finishes
+      }
+    };
+
+    if (user) {
+      pollData();
+    }
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [user]);
 
   if (!user) return null;
