@@ -21,8 +21,9 @@ export const HONEY_CHAIN_ABI = [
   // ─── Lab Functions ───
   "function submitQualityTest(string batchId, bytes32 reportHash, bool passed)",
 
-  // ─── Transfer Functions ───
+  // ─── Transfer & Retail Functions ───
   "function transferBatch(string batchId, address newOwner, uint8 stage)",
+  "function completeRetailSale(string batchId, bytes32 billHash)",
 
   // ─── View Functions ───
   "function getBatch(string batchId) view returns (string, address, uint256, uint256, bytes32, address, uint8, bytes32, bool, uint256)",

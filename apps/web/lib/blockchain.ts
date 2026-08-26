@@ -13,19 +13,30 @@ import { HONEY_CHAIN_ABI, CONTRACT_ADDRESS, NETWORK_CONFIG } from "./contracts";
 let _provider: JsonRpcProvider | null = null;
 let _contract: Contract | null = null;
 
-function getProvider(): JsonRpcProvider {
+export function getProvider(): JsonRpcProvider {
   if (!_provider) {
     _provider = new JsonRpcProvider(NETWORK_CONFIG.rpcUrl);
   }
   return _provider;
 }
 
-function getContract(): Contract {
+export function getContract(): Contract {
   if (!_contract) {
     const provider = getProvider();
     _contract = new Contract(CONTRACT_ADDRESS, HONEY_CHAIN_ABI, provider);
   }
   return _contract;
+}
+
+export async function getContractWithSigner(): Promise<Contract> {
+  if (typeof window !== "undefined" && (window as any).ethereum) {
+    await (window as any).ethereum.request({ method: "eth_requestAccounts" });
+    const { BrowserProvider } = await import("ethers");
+    const browserProvider = new BrowserProvider((window as any).ethereum);
+    const signer = await browserProvider.getSigner();
+    return new Contract(CONTRACT_ADDRESS, HONEY_CHAIN_ABI, signer);
+  }
+  throw new Error("No crypto wallet found. Please connect MetaMask.");
 }
 
 /**
