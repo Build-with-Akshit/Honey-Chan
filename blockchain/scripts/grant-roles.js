@@ -4,7 +4,7 @@ const fs = require("fs");
 async function main() {
     const provider = new ethers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/alch_NjOgwXx5A-WCqKXRTXSfP");
     const wallet = new ethers.Wallet("64b11ed451d6826acd4f23a2811324b01effcbb24df115c02d7226b29686feb1", provider);
-    const contractAddress = "0xdb9b15802a433cd158e6e584fdb6a8b16c247db3";
+    const contractAddress = "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
 
     const artifact = JSON.parse(fs.readFileSync("artifacts/contracts/HoneyChain.sol/HoneyChain.json", "utf8"));
     const contract = new ethers.Contract(contractAddress, artifact.abi, wallet);
