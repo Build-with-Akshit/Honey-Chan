@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
 import Link from "next/link";
 
+import { useAuth } from "@/hooks/useAuth";
+
 export default function BeekeeperBatchesPage() {
+  const { user } = useAuth();
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -150,7 +153,13 @@ export default function BeekeeperBatchesPage() {
       ) : (
         <div className="card overflow-hidden bg-white">
           <div className="divide-y divide-gray-100">
-            {batches.map((batch) => (
+            {batches.map((batch) => {
+              const events = batch.events || [];
+              const lastEvent = events[events.length - 1];
+              const isPendingForMe = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === user?.id;
+              const isPendingForOther = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId !== user?.id;
+
+              return (
               <div key={batch.id} className="p-5 hover:bg-amber-50/30 transition-colors">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-3">
@@ -161,14 +170,20 @@ export default function BeekeeperBatchesPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {batch.status !== "RETAIL" && batch.status !== "COMPLETED" && (
-                      <button
-                        onClick={() => openTransferModal(batch)}
-                        className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
-                      >
-                        Initiate Transfer 📤
-                      </button>
-                    )}
+                    {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
+                      isPendingForOther ? (
+                        <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
+                          ⏳ Awaiting Acceptance
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => openTransferModal(batch)}
+                          className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                        >
+                          Initiate Transfer 📤
+                        </button>
+                      )
+                    ) : null}
                     <Link
                       href={`/verify/${batch.batchId || batch.id}`}
                       className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
@@ -217,7 +232,8 @@ export default function BeekeeperBatchesPage() {
                   </span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
