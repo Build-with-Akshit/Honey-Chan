@@ -1,13 +1,7 @@
 "use client";
 
-const ADMIN_STATS = [
-  { label: "Registered Beekeepers", value: "1,248", icon: "🐝", color: "text-amber-700" },
-  { label: "Active Hives", value: "8,492", icon: "🏠", color: "text-green-700" },
-  { label: "Honey Batches", value: "4,832", icon: "🍯", color: "text-blue-700" },
-  { label: "Verified Batches", value: "4,721", icon: "✅", color: "text-emerald-700" },
-  { label: "Flagged Batches", value: "31", icon: "⚠️", color: "text-red-600" },
-  { label: "Total Honey Tracked", value: "182.4 T", icon: "⚖️", color: "text-purple-700" },
-];
+import { useEffect, useState } from "react";
+import { honeyApi } from "@/lib/api";
 
 const CLUSTERS = [
   { name: "Sonipat Honey Cluster", state: "Haryana", beekeepers: 84, hives: 1200, batches: 184, health: 87, production: "4.8 T" },
@@ -24,16 +18,53 @@ const RECENT_ACTIVITY = [
 ];
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    beekeepers: 0,
+    activeHives: 0,
+    batches: 0,
+    verifiedBatches: 0,
+    flaggedBatches: 0,
+    totalHoneyTons: "0.0"
+  });
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/stats');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.admin) setStats(data.admin);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin stats", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    // Real-time polling every 3 seconds
+    const interval = setInterval(fetchStats, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const adminStatsDisplay = [
+    { label: "Registered Beekeepers", value: stats.beekeepers.toLocaleString(), icon: "🐝", color: "text-amber-700" },
+    { label: "Active Hives", value: stats.activeHives.toLocaleString(), icon: "🏠", color: "text-green-700" },
+    { label: "Honey Batches", value: stats.batches.toLocaleString(), icon: "🍯", color: "text-blue-700" },
+    { label: "Verified Batches", value: stats.verifiedBatches.toLocaleString(), icon: "✅", color: "text-emerald-700" },
+    { label: "Flagged Batches", value: stats.flaggedBatches.toLocaleString(), icon: "⚠️", color: "text-red-600" },
+    { label: "Total Honey Tracked", value: `${stats.totalHoneyTons} T`, icon: "⚖️", color: "text-purple-700" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-        <p className="text-gray-400 text-sm mt-1">Honey Chain platform overview</p>
+        <p className="text-gray-400 text-sm mt-1">Real-time Honey Chain platform overview</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {ADMIN_STATS.map((stat) => (
+        {adminStatsDisplay.map((stat) => (
           <div key={stat.label} className="card p-4 text-center">
             <span className="text-2xl">{stat.icon}</span>
             <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>

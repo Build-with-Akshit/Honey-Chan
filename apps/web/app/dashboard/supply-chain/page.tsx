@@ -9,15 +9,34 @@ export default function SupplyChainDashboard() {
   const { user } = useAuth();
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalBatches: 0,
+    pendingAction: 0,
+    completed: 0,
+    totalKg: "0.0"
+  });
+
+  const fetchData = async () => {
+    if (!user) return;
+    try {
+      const [batchesRes, statsRes] = await Promise.all([
+        honeyApi.getBatches(),
+        fetch('/api/stats').then(res => res.json())
+      ]);
+      setBatches(batchesRes);
+      if (statsRes.supplyChain) setStats(statsRes.supplyChain);
+    } catch (err) {
+      console.error("Error fetching data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (user) {
-      honeyApi
-        .getBatches()
-        .then(setBatches)
-        .catch((err) => console.error("Error fetching batches", err))
-        .finally(() => setLoading(false));
-    }
+    fetchData();
+    // Real-time polling every 3 seconds
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
   }, [user]);
 
   if (!user) return null;
@@ -35,42 +54,42 @@ export default function SupplyChainDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {user.role === "PROCESSOR" && (
           <>
-            <Widget title="Incoming Raw Honey" value="12 Batches" />
-            <Widget title="Processing Queue" value="3 Batches" />
-            <Widget title="Processed Batches" value="45 Batches" />
-            <Widget title="Quality Status" value="98% Pass" />
+            <Widget title="Total Batches" value={stats.totalBatches.toString()} />
+            <Widget title="Pending Actions" value={stats.pendingAction.toString()} />
+            <Widget title="Processed" value={stats.completed.toString()} />
+            <Widget title="Total Volume" value={`${stats.totalKg} kg`} />
           </>
         )}
         {user.role === "LAB" && (
           <>
-            <Widget title="Pending Tests" value="8 Samples" />
-            <Widget title="Tests Completed" value="156" />
-            <Widget title="Certificates Issued" value="142" />
-            <Widget title="Average Turnaround" value="2.4 days" />
+            <Widget title="Total Tests" value={stats.totalBatches.toString()} />
+            <Widget title="Pending Lab Review" value={stats.pendingAction.toString()} />
+            <Widget title="Tests Completed" value={stats.completed.toString()} />
+            <Widget title="Volume Tested" value={`${stats.totalKg} kg`} />
           </>
         )}
         {user.role === "DISTRIBUTOR" && (
           <>
-            <Widget title="Incoming Shipments" value="5 Active" />
-            <Widget title="In Transit" value="12 Trucks" />
-            <Widget title="Warehouse Stock" value="850 kg" />
-            <Widget title="Dispatched Today" value="2 Shipments" />
+            <Widget title="Total Shipments" value={stats.totalBatches.toString()} />
+            <Widget title="In Transit" value={stats.pendingAction.toString()} />
+            <Widget title="Delivered" value={stats.completed.toString()} />
+            <Widget title="Volume Handled" value={`${stats.totalKg} kg`} />
           </>
         )}
         {user.role === "WHOLESALER" && (
           <>
-            <Widget title="My Purchases" value="18 Batches" />
-            <Widget title="Inventory" value="420 kg" />
-            <Widget title="Incoming" value="2 Shipments" />
-            <Widget title="Retailer Transfers" value="15 Completed" />
+            <Widget title="My Purchases" value={stats.totalBatches.toString()} />
+            <Widget title="Pending Receipt" value={stats.pendingAction.toString()} />
+            <Widget title="Inventory Ready" value={stats.completed.toString()} />
+            <Widget title="Total Volume" value={`${stats.totalKg} kg`} />
           </>
         )}
         {user.role === "RETAILER" && (
           <>
-            <Widget title="Received Stock" value="45 Batches" />
-            <Widget title="Store Inventory" value="120 kg" />
-            <Widget title="Products Sold" value="85 kg" />
-            <Widget title="QR Verifications" value="342 Scans" />
+            <Widget title="Total Stock" value={stats.totalBatches.toString()} />
+            <Widget title="Pending Delivery" value={stats.pendingAction.toString()} />
+            <Widget title="Finalized Sales" value={stats.completed.toString()} />
+            <Widget title="Volume Received" value={`${stats.totalKg} kg`} />
           </>
         )}
       </div>
