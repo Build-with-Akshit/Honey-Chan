@@ -77,12 +77,34 @@ export default function GenericSupplyChainPage() {
                   const { ethers } = await import("ethers");
                   const contract = await getContractWithSigner();
                   
+                  const exists = await contract.doesBatchExist(batchId);
+                  if (!exists) {
+                    alert(`❌ Batch "${batchId}" not found on blockchain!\n\nPlease first create this batch from the Beekeeper Dashboard.`);
+                    return;
+                  }
+
+                  const batch = await contract.getBatch(batchId);
+                  const signerAddress = await (await (new ethers.BrowserProvider((window as any).ethereum))).getSigner().then(s => s.getAddress());
+
+                  if (Number(batch.status) === 6) {
+                    alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked on the blockchain!`);
+                    return;
+                  }
+
+                  if (Number(batch.status) < 5) {
+                    if (batch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
+                      alert(`Batch is currently in stage ${Number(batch.status)}. Advancing to Retail stage on blockchain...`);
+                      const transferTx = await contract.transferBatch(batchId, signerAddress, 5); // 5 = SupplyChainStage.Retail
+                      await transferTx.wait();
+                    }
+                  }
+
                   const billHash = ethers.id(billNo);
-                  alert("Please approve the transaction in MetaMask to finalize the sale.");
+                  alert("Please approve the final sale transaction in MetaMask to permanently lock the batch.");
                   
                   const tx = await contract.completeRetailSale(batchId, billHash);
                   await tx.wait();
-                  alert("Consumer sale finalized on Blockchain! Batch is now permanently locked.");
+                  alert("🎉 Success! Consumer sale finalized on Blockchain. This batch is now permanently locked.");
                 } catch(err: any) {
                   console.error(err);
                   alert("Failed to finalize: " + (err.reason || err.message));

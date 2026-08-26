@@ -94,22 +94,45 @@ export default function SupplyChainDashboard() {
                   {user.role === "RETAILER" ? (
                     <button 
                       onClick={async () => {
-                        const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:");
+                        const batchId = prompt("Enter Batch ID to finalize on Blockchain:", "HC-2026-000127");
+                        if (!batchId) return;
+                        const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:", "INV-" + Date.now().toString().slice(-6));
                         if (!confirmMsg) return;
                         try {
                           const { getContractWithSigner } = await import("@/lib/blockchain");
                           const { ethers } = await import("ethers");
                           const contract = await getContractWithSigner();
                           
-                          const billHash = ethers.id(confirmMsg);
-                          alert("Please approve the transaction in MetaMask to finalize the sale.");
+                          const exists = await contract.doesBatchExist(batchId);
+                          if (!exists) {
+                            alert(`❌ Batch "${batchId}" not found on blockchain!\n\nPlease first create this batch from the Beekeeper Dashboard using "Harvest & Create Block".`);
+                            return;
+                          }
+
+                          const batch = await contract.getBatch(batchId);
+                          const signerAddress = await (await (new ethers.BrowserProvider((window as any).ethereum))).getSigner().then(s => s.getAddress());
+
+                          // Status 5 is Retail, 6 is Completed
+                          if (Number(batch.status) === 6) {
+                            alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked on the blockchain!`);
+                            return;
+                          }
+
+                          // If batch is not in Retail stage yet (e.g. still in Harvest/Created stage), transition to Retail first if owned
+                          if (Number(batch.status) < 5) {
+                            if (batch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
+                              alert(`Batch is currently in stage ${Number(batch.status)}. Advancing to Retail stage on blockchain...`);
+                              const transferTx = await contract.transferBatch(batchId, signerAddress, 5); // 5 = SupplyChainStage.Retail
+                              await transferTx.wait();
+                            }
+                          }
                           
-                          // First we simulate this batch having reached retailer stage if it's just a demo
-                          // In a real flow, it would already be transferred to the retailer.
-                          // For now, let's just attempt to call the completeRetailSale
-                          const tx = await contract.completeRetailSale("HC-2026-000127", billHash);
+                          const billHash = ethers.id(confirmMsg);
+                          alert("Please approve the final sale transaction in MetaMask to lock the batch.");
+                          
+                          const tx = await contract.completeRetailSale(batchId, billHash);
                           await tx.wait();
-                          alert("Consumer sale finalized on Blockchain! Batch is now locked.");
+                          alert("🎉 Success! Consumer sale finalized on Blockchain. This batch is now permanently locked.");
                         } catch(err: any) {
                           console.error(err);
                           alert("Failed to finalize: " + (err.reason || err.message));
