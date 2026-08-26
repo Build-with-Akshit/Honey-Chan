@@ -288,13 +288,26 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
 }
 
 // ── Accept/Reject Buttons ──
-function AcceptRejectButtons({ batch, onDone }: { batch: any; onDone: () => void }) {
+function AcceptRejectButtons({ batch, user, onDone }: { batch: any; user: any; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
 
   const handleAction = async (action: "ACCEPT" | "REJECT") => {
     setBusy(true);
     try {
       const { getContractWithSigner } = await import("@/lib/blockchain");
+      const { ethers } = await import("ethers");
+      
+      // Verify wallet address
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const connectedWallet = await signer.getAddress();
+      
+      if (user?.walletAddress && connectedWallet.toLowerCase() !== user.walletAddress.toLowerCase()) {
+        alert(`❌ Wallet Mismatch!\n\nYou are logged in as ${user.name}, but MetaMask is connected to a different wallet.\n\nPlease switch MetaMask to: ${user.walletAddress}`);
+        setBusy(false);
+        return;
+      }
+
       const contract = await getContractWithSigner();
 
       if (action === "ACCEPT") {
@@ -403,7 +416,7 @@ export function BatchTable({
                     Verify QR 📱
                   </Link>
                   {isPendingForMe ? (
-                    <AcceptRejectButtons batch={batch} onDone={onRefresh} />
+                    <AcceptRejectButtons batch={batch} user={user} onDone={onRefresh} />
                   ) : isPendingForOther ? (
                     <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
                       ⏳ Awaiting Acceptance
