@@ -37,6 +37,12 @@ export default function BeekeeperDashboard() {
   const honeyProduced = batches.reduce((acc, b) => acc + Number(b.quantity || 0), 0);
   const avgHealth = hives.length ? Math.round(hives.reduce((acc, h) => acc + (h.healthScore || 85), 0) / hives.length) : 0;
 
+  const iotActive = hives.some(h => {
+    if (!h.latestReading?.timestamp) return false;
+    const diff = Date.now() - new Date(h.latestReading.timestamp).getTime();
+    return diff < 5 * 60 * 1000; // 5 minutes
+  });
+
   const alerts = hives
     .filter(h => h.latestReading?.temperature > 35 || (h.healthScore && h.healthScore < 80))
     .map(h => ({
@@ -56,9 +62,9 @@ export default function BeekeeperDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
-            <span className="w-2 h-2 bg-green-500 rounded-full pulse-dot" />
-            <span className="text-green-600 font-medium">IoT Active</span>
+          <div className={`flex items-center gap-2 text-sm bg-white border px-3 py-1.5 rounded-full shadow-sm ${iotActive ? 'border-green-200' : 'border-gray-200'}`}>
+            <span className={`w-2 h-2 rounded-full ${iotActive ? 'bg-green-500 pulse-dot' : 'bg-gray-400'}`} />
+            <span className={`font-medium ${iotActive ? 'text-green-600' : 'text-gray-500'}`}>{iotActive ? 'IoT Active' : 'IoT Offline'}</span>
           </div>
           <Link 
             href="/batches/create"
