@@ -53,7 +53,7 @@ export const HONEY_CHAIN_ABI = [
 ] as const;
 
 // Contract address - Force hardcoded to ignore Vercel env variable for now
-export const CONTRACT_ADDRESS = "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
+export const CONTRACT_ADDRESS: string = "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
 
 // Network config
 export const NETWORK_CONFIG = {
