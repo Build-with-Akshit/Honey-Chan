@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const { user, errorResponse } = await requireAuth();
@@ -19,10 +21,21 @@ export async function GET() {
           take: 1,
           orderBy: { timestamp: "desc" },
         },
+        aiPredictions: {
+          take: 1,
+          orderBy: { createdAt: "desc" }
+        }
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(hives);
+
+    const mappedHives = hives.map(hive => ({
+      ...hive,
+      latestReading: hive.sensorReadings?.[0] || null,
+      healthScore: hive.aiPredictions?.[0]?.healthScore || 85,
+    }));
+
+    return NextResponse.json(mappedHives);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch hives" }, { status: 500 });
   }
