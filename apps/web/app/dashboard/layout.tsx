@@ -81,6 +81,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, isLoading, router]);
 
+  useEffect(() => {
+    // Auto-close sidebar on mobile when navigating
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, [pathname]);
+
   // If user connects wallet and they don't have one linked in DB, link it automatically
   useEffect(() => {
     if (wallet.isConnected && wallet.address && user && !user.walletAddress) {
@@ -103,9 +110,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex bg-amber-50/20">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-20 md:hidden" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? "w-64" : "w-[72px]"} transition-all duration-300 sidebar flex flex-col shrink-0 bg-white border-r border-amber-100 shadow-sm`}
+        className={`${
+          sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64 md:translate-x-0 md:w-[72px]"
+        } fixed md:relative z-30 h-full transition-all duration-300 sidebar flex flex-col shrink-0 bg-white border-r border-amber-100 shadow-sm`}
       >
         {/* Logo */}
         <div className="p-4 border-b border-amber-100/50 flex items-center gap-3">
@@ -194,10 +211,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="h-14 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-20 flex items-center justify-between px-6">
+        <header className="h-14 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-20 flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
+            <button 
+              className="md:hidden p-1 mr-2 text-gray-600 hover:text-amber-600 transition-colors" 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
             {/* Status indicator */}
-            <span className="text-sm font-semibold text-gray-700">HoneyChain Net:</span>
+            <span className="text-sm font-semibold text-gray-700 hidden sm:inline-block">HoneyChain Net:</span>
           </div>
           
           <div className="flex items-center gap-4">
