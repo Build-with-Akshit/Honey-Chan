@@ -7,8 +7,24 @@ export async function GET() {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Role-based filtering: beekeepers see only their own batches
-    const whereClause = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    // Role-based filtering:
+    // 1. BEEKEEPER: Sees only batches they harvested
+    // 2. ADMIN: Sees all batches
+    // 3. SUPPLY CHAIN (Processor, Lab, Distributor, Retailer, Wholesaler): Sees batches where they are the current custodian or involved in the events
+    let whereClause = {};
+    if (user!.role === "BEEKEEPER") {
+      whereClause = { beekeeperId: user!.id };
+    } else if (user!.role === "ADMIN") {
+      whereClause = {};
+    } else {
+      // Supply chain roles: batches they own or interacted with
+      whereClause = {
+        OR: [
+          { events: { some: { actorId: user!.id } } },
+          { beekeeperId: user!.id }
+        ]
+      };
+    }
 
     const batches = await prisma.honeyBatch.findMany({
       where: whereClause,
