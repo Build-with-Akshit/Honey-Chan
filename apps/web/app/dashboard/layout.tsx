@@ -18,7 +18,6 @@ const NAV_ITEMS: Record<UserRole, { label: string; path: string; icon: string }[
   BEEKEEPER: [
     { label: "Overview", path: "/dashboard/beekeeper", icon: "📊" },
     { label: "My Hives", path: "/dashboard/beekeeper/hives", icon: "🐝" },
-    { label: "Create Batch", path: "/dashboard/beekeeper/create", icon: "➕" },
     { label: "My Batches", path: "/dashboard/beekeeper/batches", icon: "🍯" },
     { label: "IoT Monitor", path: "/dashboard/beekeeper/iot", icon: "📡" },
     { label: "AI Insights", path: "/dashboard/beekeeper/ai", icon: "🧠" },
