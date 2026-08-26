@@ -577,6 +577,11 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                   .getSigner()
                   .then((s: any) => s.getAddress());
 
+                if (user?.walletAddress && signerAddress.toLowerCase() !== user.walletAddress.toLowerCase()) {
+                  alert(`❌ Wallet Mismatch!\n\nYou are logged in as ${user.name}, but MetaMask is connected to a different wallet.\n\nPlease switch MetaMask to: ${user.walletAddress}`);
+                  return;
+                }
+
                 if (Number(batch.status) === 6) {
                   alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked!`);
                   return;
