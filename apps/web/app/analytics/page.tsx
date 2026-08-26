@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
         <div className="card p-6 bg-white space-y-4">
           <h2 className="font-bold text-sm text-gray-800">📍 Regional Production & Quality Compliance</h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-gray-200 text-gray-400">
                   <th className="pb-3 font-semibold">State / Region</th>
