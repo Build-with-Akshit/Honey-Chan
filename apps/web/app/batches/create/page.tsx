@@ -260,20 +260,55 @@ export default function CreateBatchPage() {
         ) : (
           /* Success Screen with Printable QR Card */
           <div className="card p-8 bg-white border-green-200 text-center space-y-6 page-enter">
-            <div className="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-3xl mx-auto">
-              ✓
-            </div>
+            <style type="text/css" media="print">
+              {`
+                @page { size: auto; margin: 0; }
+                body * { visibility: hidden; }
+                #printable-qr-label, #printable-qr-label * { visibility: visible; }
+                #printable-qr-label {
+                  position: absolute;
+                  left: 50%;
+                  top: 50%;
+                  transform: translate(-50%, -50%);
+                  width: 350px;
+                  margin: 0;
+                  padding: 24px;
+                  background: white !important;
+                  border: 2px solid #f59e0b !important;
+                  border-radius: 16px;
+                }
+                .print-only { display: none; }
+                @media print {
+                  .print-only { display: block !important; }
+                  .no-print { display: none !important; }
+                  body { background: white !important; }
+                }
+              `}
+            </style>
+            
+            <div className="no-print space-y-6">
+              <div className="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-3xl mx-auto">
+                ✓
+              </div>
 
-            <div>
-              <span className="badge badge-verified mb-2">BLOCKCHAIN TRANSACTION CONFIRMED</span>
-              <h2 className="text-2xl font-bold text-gray-900 mt-1">
-                Honey Batch Created Successfully!
-              </h2>
-              <p className="text-xs text-gray-500 font-mono mt-1">{createdBatch.batchId}</p>
+              <div>
+                <span className="badge badge-verified mb-2">BLOCKCHAIN TRANSACTION CONFIRMED</span>
+                <h2 className="text-2xl font-bold text-gray-900 mt-1">
+                  Honey Batch Created Successfully!
+                </h2>
+                <p className="text-xs text-gray-500 font-mono mt-1">{createdBatch.batchId}</p>
+              </div>
             </div>
 
             {/* QR Card Container */}
-            <div className="max-w-xs mx-auto p-6 bg-amber-50/60 border-2 border-dashed border-amber-300 rounded-2xl space-y-4">
+            <div id="printable-qr-label" className="max-w-xs mx-auto p-6 bg-amber-50/60 border-2 border-dashed border-amber-300 rounded-2xl space-y-4">
+              <div className="print-only text-center mb-4 pb-4 border-b border-amber-200">
+                <h1 className="text-2xl font-bold text-amber-900 flex items-center justify-center gap-2">
+                  <span>🍯</span> Honey-Chan
+                </h1>
+                <p className="text-[10px] text-amber-700 uppercase tracking-widest font-bold mt-1">100% Pure • Blockchain Verified</p>
+              </div>
+
               <div className="flex justify-center bg-white p-4 rounded-xl shadow-sm border border-amber-100">
                 <QRCodeSVG
                   value={verificationUrl}
@@ -295,13 +330,13 @@ export default function CreateBatchPage() {
                 <p className="text-gray-400 text-[10px] truncate">Hash: {createdBatch.metadataHash}</p>
               </div>
 
-              <p className="text-[11px] text-amber-800 font-semibold">
+              <p className="text-[11px] text-amber-800 font-semibold text-center">
                 Scan with any phone camera to verify authenticity
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center no-print">
               <Link
                 href={`/verify/${createdBatch.batchId}`}
                 className="btn-primary py-2.5 px-5 text-xs font-semibold"
