@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { honeyApi } from "@/lib/api";
 import { QRCodeSVG } from "qrcode.react";
