@@ -67,8 +67,8 @@ export default function SupplyChainDashboard() {
            user.role === "RETAILER" ? "My Inventory" : "Recent Activity"}
         </h2>
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full text-left text-sm text-gray-600">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-600 whitespace-nowrap">
             <thead className="bg-gray-50/50 text-gray-500 font-medium">
               <tr>
                 <th className="px-6 py-4">Batch ID</th>
