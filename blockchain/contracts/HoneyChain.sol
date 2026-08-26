@@ -66,10 +66,17 @@ contract HoneyChain is AccessControl {
         bytes32 dataHash;         // Hash of full IoT payload
     }
 
+    struct ConsumerSale {
+        bytes32 billHash;
+        uint256 saleTimestamp;
+        bool isSold;
+    }
+
     // ─── State ───────────────────────────────────────────────────────────
     mapping(string => HoneyBatch) private batches;
     mapping(string => SupplyChainEvent[]) private supplyChainHistory;
     mapping(string => HiveDataRecord[]) private hiveDataHistory;
+    mapping(string => ConsumerSale) public consumerSales;
     mapping(string => bool) private batchExists;
     mapping(address => string) public participantNames;
 
@@ -134,6 +141,12 @@ contract HoneyChain is AccessControl {
         uint256 timestamp
     );
 
+    event ConsumerSaleCompleted(
+        string indexed batchId,
+        bytes32 billHash,
+        uint256 timestamp
+    );
+
     // ─── Custom Errors ───────────────────────────────────────────────────
     error BatchAlreadyExists(string batchId);
     error BatchNotFound(string batchId);
@@ -142,6 +155,13 @@ contract HoneyChain is AccessControl {
     error InvalidBatchId();
     error InvalidTransition(BatchStatus current, BatchStatus target);
     error QualityNotVerified(string batchId);
+    error BatchClosed(string batchId);
+
+    // ─── Modifiers ───────────────────────────────────────────────────────
+    modifier notCompleted(string calldata batchId) {
+        if (batches[batchId].status == BatchStatus.Completed) revert BatchClosed(batchId);
+        _;
+    }
 
     // ─── Constructor ─────────────────────────────────────────────────────
     constructor() {
@@ -258,7 +278,7 @@ contract HoneyChain is AccessControl {
         string calldata batchId,
         bytes32 reportHash,
         bool passed
-    ) external onlyRole(LAB_ROLE) {
+    ) external onlyRole(LAB_ROLE) notCompleted(batchId) {
         if (!batchExists[batchId]) revert BatchNotFound(batchId);
 
         HoneyBatch storage batch = batches[batchId];
@@ -289,7 +309,7 @@ contract HoneyChain is AccessControl {
         string calldata batchId,
         address newOwner,
         SupplyChainStage stage
-    ) external {
+    ) external notCompleted(batchId) {
         if (!batchExists[batchId]) revert BatchNotFound(batchId);
 
         HoneyBatch storage batch = batches[batchId];
@@ -318,6 +338,43 @@ contract HoneyChain is AccessControl {
 
         emit BatchTransferred(batchId, previousOwner, newOwner, stage, block.timestamp);
         emit BatchReceived(batchId, newOwner, stage, block.timestamp);
+    }
+
+    /**
+     * @dev Retailer records the final consumer sale, locking the batch permanently
+     * @param batchId Batch that was sold
+     * @param billHash SHA-256 hash of the consumer bill / receipt details
+     */
+    function completeRetailSale(
+        string calldata batchId,
+        bytes32 billHash
+    ) external onlyRole(RETAILER_ROLE) notCompleted(batchId) {
+        if (!batchExists[batchId]) revert BatchNotFound(batchId);
+
+        HoneyBatch storage batch = batches[batchId];
+        if (batch.currentOwner != msg.sender) revert NotBatchOwner(batchId, msg.sender);
+        if (batch.status != BatchStatus.Retail) revert InvalidTransition(batch.status, BatchStatus.Completed);
+
+        // Lock the batch
+        batch.status = BatchStatus.Completed;
+        batch.lastUpdated = block.timestamp;
+
+        // Record the sale
+        consumerSales[batchId] = ConsumerSale({
+            billHash: billHash,
+            saleTimestamp: block.timestamp,
+            isSold: true
+        });
+
+        // Add final supply chain event
+        supplyChainHistory[batchId].push(SupplyChainEvent({
+            stage: SupplyChainStage.Retail, // Final stage
+            actor: msg.sender,
+            timestamp: block.timestamp,
+            dataHash: billHash
+        }));
+
+        emit ConsumerSaleCompleted(batchId, billHash, block.timestamp);
     }
 
     // ─── View Functions ──────────────────────────────────────────────────
