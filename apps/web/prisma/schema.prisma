@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique @db.VarChar(255)
+  password       String    @db.VarChar(255)
+  name           String    @db.VarChar(255)
+  role           String    @db.VarChar(50)
+  phone          String?   @db.VarChar(20)
+  walletAddress  String?   @unique @map("wallet_address") @db.VarChar(42)
+  isVerified     Boolean   @default(false) @map("is_verified")
+  createdAt      DateTime? @default(now()) @map("created_at")
+  updatedAt      DateTime? @default(now()) @map("updated_at")
+
+  hives          Hive[]
+  honeyBatches   HoneyBatch[]
+  qualityTests   QualityTest[]
+  supplyEvents   SupplyChainEvent[]
+
+  @@map("users")
+}
+
+model Cluster {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(255)
+  district         String    @db.VarChar(255)
+  state            String    @db.VarChar(255)
+  totalBeekeepers  Int?      @default(0) @map("total_beekeepers")
+  totalHives       Int?      @default(0) @map("total_hives")
+  createdAt        DateTime? @default(now()) @map("created_at")
+
+  hives            Hive[]
+
+  @@map("clusters")
+}
+
+model Hive {
+  id              Int       @id @default(autoincrement())
+  hiveCode        String    @unique @map("hive_code") @db.VarChar(50)
+  beekeeperId     Int?      @map("beekeeper_id")
+  clusterId       Int?      @map("cluster_id")
+  location        String?   @db.VarChar(255)
+  latitude        Decimal?  @db.Decimal(10, 8)
+  longitude       Decimal?  @db.Decimal(11, 8)
+  flowerSource    String?   @map("flower_source") @db.VarChar(255)
+  beeColonyType   String?   @default("Apis mellifera") @map("bee_colony_type") @db.VarChar(100)
+  installationDate DateTime? @map("installation_date") @db.Date
+  status          String?   @default("ACTIVE") @db.VarChar(20)
+  createdAt       DateTime? @default(now()) @map("created_at")
+
+  beekeeper       User?     @relation(fields: [beekeeperId], references: [id])
+  cluster         Cluster?  @relation(fields: [clusterId], references: [id])
+  sensorReadings  SensorReading[]
+  honeyBatches    HoneyBatch[]
+  aiPredictions   AiPrediction[]
+
+  @@map("hives")
+}
+
+model SensorReading {
+  id          Int       @id @default(autoincrement())
+  hiveId      Int?      @map("hive_id")
+  temperature Decimal?  @db.Decimal(5, 2)
+  humidity    Decimal?  @db.Decimal(5, 2)
+  weight      Decimal?  @db.Decimal(8, 2)
+  beeActivity Decimal?  @map("bee_activity") @db.Decimal(3, 2)
+  battery     Decimal?  @db.Decimal(5, 2)
+  timestamp   DateTime? @default(now())
+
+  hive        Hive?     @relation(fields: [hiveId], references: [id])
+
+  @@index([hiveId, timestamp(sort: Desc)], map: "idx_sensor_readings_hive")
+  @@map("sensor_readings")
+}
+
+model HoneyBatch {
+  id            Int       @id @default(autoincrement())
+  batchId       String    @unique @map("batch_id") @db.VarChar(50)
+  hiveId        Int?      @map("hive_id")
+  beekeeperId   Int?      @map("beekeeper_id")
+  honeyType     String?   @map("honey_type") @db.VarChar(100)
+  quantity      Decimal?  @db.Decimal(10, 2)
+  harvestDate   DateTime? @map("harvest_date") @db.Date
+  location      String?   @db.VarChar(255)
+  notes         String?
+  metadataHash  String?   @map("metadata_hash") @db.VarChar(66)
+  blockchainTx  String?   @map("blockchain_tx") @db.VarChar(66)
+  status        String?   @default("CREATED") @db.VarChar(20)
+  createdAt     DateTime? @default(now()) @map("created_at")
+  updatedAt     DateTime? @default(now()) @map("updated_at")
+
+  hive          Hive?     @relation(fields: [hiveId], references: [id])
+  beekeeper     User?     @relation(fields: [beekeeperId], references: [id])
+  qualityTests  QualityTest[]
+  events        SupplyChainEvent[]
+
+  @@index([beekeeperId], map: "idx_honey_batches_beekeeper")
+  @@index([batchId], map: "idx_honey_batches_batch_id")
+  @@map("honey_batches")
+}
+
+model QualityTest {
+  id                Int       @id @default(autoincrement())
+  batchId           Int?      @map("batch_id")
+  labId             Int?      @map("lab_id")
+  moisture          Decimal?  @db.Decimal(5, 2)
+  sucrose           Decimal?  @db.Decimal(5, 2)
+  fructose          Decimal?  @db.Decimal(5, 2)
+  glucose           Decimal?  @db.Decimal(5, 2)
+  hfmContent        Decimal?  @map("hfm_content") @db.Decimal(5, 2)
+  result            String?   @db.VarChar(10)
+  reportHash        String?   @map("report_hash") @db.VarChar(66)
+  reportUrl         String?   @map("report_url")
+  testedAt          DateTime? @default(now()) @map("tested_at")
+
+  batch             HoneyBatch? @relation(fields: [batchId], references: [id])
+  lab               User?       @relation(fields: [labId], references: [id])
+
+  @@map("quality_tests")
+}
+
+model SupplyChainEvent {
+  id        Int       @id @default(autoincrement())
+  batchId   Int?      @map("batch_id")
+  actorId   Int?      @map("actor_id")
+  stage     String    @db.VarChar(20)
+  location  String?   @db.VarChar(255)
+  notes     String?
+  txHash    String?   @map("tx_hash") @db.VarChar(66)
+  timestamp DateTime? @default(now())
+
+  batch     HoneyBatch? @relation(fields: [batchId], references: [id])
+  actor     User?       @relation(fields: [actorId], references: [id])
+
+  @@index([batchId, timestamp], map: "idx_supply_chain_batch")
+  @@map("supply_chain_events")
+}
+
+model AiPrediction {
+  id                     Int       @id @default(autoincrement())
+  hiveId                 Int?      @map("hive_id")
+  healthScore            Int?      @map("health_score")
+  riskLevel              String?   @map("risk_level") @db.VarChar(10)
+  productivityPrediction Decimal?  @map("productivity_prediction") @db.Decimal(8, 2)
+  productivityConfidence Decimal?  @map("productivity_confidence") @db.Decimal(3, 2)
+  predictionWindowDays   Int?      @map("prediction_window_days")
+  explanation            String?
+  recommendation         String?
+  createdAt              DateTime? @default(now()) @map("created_at")
+
+  hive                   Hive?     @relation(fields: [hiveId], references: [id])
+
+  @@index([hiveId, createdAt(sort: Desc)], map: "idx_ai_predictions_hive")
+  @@map("ai_predictions")
+}
