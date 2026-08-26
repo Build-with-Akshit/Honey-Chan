@@ -5,6 +5,7 @@ import { honeyApi } from "@/lib/api";
 import Link from "next/link";
 
 import { useAuth } from "@/hooks/useAuth";
+import { getDisplayStatus } from "@/app/dashboard/supply-chain/[...slug]/page";
 
 export default function BeekeeperBatchesPage() {
   const { user } = useAuth();
@@ -176,7 +177,7 @@ export default function BeekeeperBatchesPage() {
                     <span className="font-mono text-sm font-bold text-amber-800">
                       {batch.batchId || batch.id}
                     </span>
-                    <span className="badge badge-verified text-[10px]">{batch.status}</span>
+                    <span className="badge badge-verified text-[10px]">{getDisplayStatus(batch, user)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">

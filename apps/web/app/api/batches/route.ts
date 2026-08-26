@@ -32,7 +32,8 @@ export async function GET() {
         hive: true,
         beekeeper: true,
         events: {
-          orderBy: { timestamp: "asc" }
+          orderBy: { timestamp: "asc" },
+          include: { actor: { select: { id: true, name: true, role: true } } }
         },
         qualityTests: true,
       },

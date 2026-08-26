@@ -35,7 +35,7 @@ export const honeyApi = {
     fetchApi<any>("/hives", { method: "POST", body: JSON.stringify(data) }),
   postReading: (data: any) =>
     fetchApi<any>("/iot/readings", { method: "POST", body: JSON.stringify(data) }),
-  getBatches: () => fetchApi<any[]>("/batches"),
+  getBatches: () => fetchApi<any[]>(`/batches?t=${Date.now()}`),
   getBatch: (id: string) => fetchApi<any>(`/batches/${id}`),
   createBatch: (data: any) =>
     fetchApi<any>("/batches", { method: "POST", body: JSON.stringify(data) }),

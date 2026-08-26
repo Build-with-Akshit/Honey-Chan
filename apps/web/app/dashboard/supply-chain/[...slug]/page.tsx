@@ -7,10 +7,22 @@ import { honeyApi } from "@/lib/api";
 import Link from "next/link";
 
 // ── Batch Status Helpers ──
-function statusBadge(status: string) {
+export function getDisplayStatus(batch: any, user: any) {
+  if (batch.status === "PROCESSING") {
+    const lastEvent = batch.events?.[batch.events.length - 1];
+    if (lastEvent?.actor?.role === "LAB" || user?.role === "LAB") {
+      return "TESTING";
+    }
+  }
+  if (batch.status === "TESTED") return "QUALITY_TESTED";
+  return batch.status;
+}
+
+export function statusBadge(status: string) {
   const map: Record<string, string> = {
     HARVESTED: "bg-amber-100 text-amber-800",
     PROCESSING: "bg-blue-100 text-blue-800",
+    TESTING: "bg-pink-100 text-pink-800",
     QUALITY_TESTED: "bg-purple-100 text-purple-800",
     DISTRIBUTED: "bg-indigo-100 text-indigo-800",
     RETAIL: "bg-emerald-100 text-emerald-800",
@@ -19,10 +31,11 @@ function statusBadge(status: string) {
   return map[status] || "bg-gray-100 text-gray-800";
 }
 
-function statusIcon(status: string) {
+export function statusIcon(status: string) {
   const map: Record<string, string> = {
     HARVESTED: "🍯",
     PROCESSING: "🏭",
+    TESTING: "🔬",
     QUALITY_TESTED: "🧪",
     DISTRIBUTED: "🚚",
     RETAIL: "🏪",
@@ -386,8 +399,8 @@ function BatchTable({
                 <td className="px-5 py-4 text-xs">{batch.honeyType}</td>
                 <td className="px-5 py-4 font-semibold text-xs">{batch.quantity} KG</td>
                 <td className="px-5 py-4">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusBadge(batch.status)}`}>
-                    {statusIcon(batch.status)} {batch.status}
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusBadge(getDisplayStatus(batch, user))}`}>
+                    {statusIcon(getDisplayStatus(batch, user))} {getDisplayStatus(batch, user)}
                   </span>
                 </td>
                 <td className="px-5 py-4 text-xs text-gray-500">{batch.location}</td>
