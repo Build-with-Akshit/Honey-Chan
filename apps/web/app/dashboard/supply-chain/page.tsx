@@ -1,9 +1,24 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { honeyApi } from "@/lib/api";
+import Link from "next/link";
 
 export default function SupplyChainDashboard() {
   const { user } = useAuth();
+  const [batches, setBatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      honeyApi
+        .getBatches()
+        .then(setBatches)
+        .catch((err) => console.error("Error fetching batches", err))
+        .finally(() => setLoading(false));
+    }
+  }, [user]);
 
   if (!user) return null;
 
@@ -60,7 +75,6 @@ export default function SupplyChainDashboard() {
         )}
       </div>
 
-      {/* Example Table Section (Common for all, just with different titles) */}
       <div className="mt-8">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           {user.role === "WHOLESALER" ? "My Purchased Batches" :
@@ -68,106 +82,176 @@ export default function SupplyChainDashboard() {
         </h2>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50/50 text-gray-500 font-medium">
-              <tr>
-                <th className="px-6 py-4">Batch ID</th>
-                <th className="px-6 py-4">Quantity</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Blockchain</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              <tr className="hover:bg-amber-50/30 transition-colors">
-                <td className="px-6 py-4 font-semibold text-gray-900">HC-2026-000127</td>
-                <td className="px-6 py-4">18.5 kg</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Received
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-xs font-mono text-gray-400">✅ Verified</span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  {user.role === "RETAILER" ? (
-                    <button 
-                      onClick={async () => {
-                        const batchId = prompt("Enter Batch ID to finalize on Blockchain:", "HC-2026-000127");
-                        if (!batchId) return;
-                        const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:", "INV-" + Date.now().toString().slice(-6));
-                        if (!confirmMsg) return;
-                        try {
-                          const { getContractWithSigner } = await import("@/lib/blockchain");
-                          const { ethers } = await import("ethers");
-                          const contract = await getContractWithSigner();
-                          
-                          const exists = await contract.doesBatchExist(batchId);
-                          if (!exists) {
-                            alert(`❌ Batch "${batchId}" not found on blockchain!\n\nPlease first create this batch from the Beekeeper Dashboard using "Harvest & Create Block".`);
-                            return;
-                          }
+          {loading ? (
+            <div className="p-12 text-center text-gray-500">
+              <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
+              <p className="text-xs">Syncing with Blockchain Ledger...</p>
+            </div>
+          ) : batches.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              <p className="text-sm">No batches in your custody yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-600">
+                <thead className="bg-gray-50/50 text-gray-500 font-medium">
+                  <tr>
+                    <th className="px-6 py-4">Batch ID</th>
+                    <th className="px-6 py-4">Quantity</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Hash Provenance</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {batches.map((batch) => {
+                    // Find previous hash (the hash of the event before the current one, or genesis hash)
+                    const events = batch.events || [];
+                    const currentEvent = events[events.length - 1];
+                    const previousEvent = events.length > 1 ? events[events.length - 2] : null;
+                    
+                    const previousHash = previousEvent ? previousEvent.txHash : batch.metadataHash;
+                    const currentHash = currentEvent ? currentEvent.txHash : batch.blockchainTx;
 
-                          const batch = await contract.getBatch(batchId);
-                          const signerAddress = await (await (new ethers.BrowserProvider((window as any).ethereum))).getSigner().then(s => s.getAddress());
+                    return (
+                      <tr key={batch.id} className="hover:bg-amber-50/30 transition-colors">
+                        <td className="px-6 py-4 font-semibold text-gray-900">{batch.batchId}</td>
+                        <td className="px-6 py-4">{batch.quantityKg || batch.quantity} kg</td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            {batch.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1 text-[10px] font-mono text-gray-500">
+                            <span title="The transaction hash that brought this product to you">
+                              Prev: {previousHash?.slice(0, 10)}...{previousHash?.slice(-8)}
+                            </span>
+                            <span className="text-green-600 font-semibold" title="The current transaction hash">
+                              New: {currentHash?.slice(0, 10)}...{currentHash?.slice(-8)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link
+                              href={`/verify/${batch.batchId}`}
+                              className="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                            >
+                              Verify
+                            </Link>
 
-                          // Status 5 is Retail, 6 is Completed
-                          if (Number(batch.status) === 6) {
-                            alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked on the blockchain!`);
-                            return;
-                          }
+                            {user.role === "RETAILER" && batch.status !== "COMPLETED" ? (
+                              <button 
+                                onClick={async () => {
+                                  const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:", "INV-" + Date.now().toString().slice(-6));
+                                  if (!confirmMsg) return;
+                                  try {
+                                    const { getContractWithSigner } = await import("@/lib/blockchain");
+                                    const { ethers } = await import("ethers");
+                                    const contract = await getContractWithSigner();
+                                    
+                                    const exists = await contract.doesBatchExist(batch.batchId);
+                                    if (!exists) {
+                                      alert(`❌ Batch "${batch.batchId}" not found on blockchain!\n\nPlease first create this batch from the Beekeeper Dashboard using "Harvest & Create Block".`);
+                                      return;
+                                    }
 
-                          // If batch is not in Retail stage yet (e.g. still in Harvest/Created stage), transition to Retail first if owned
-                          if (Number(batch.status) < 5) {
-                            if (batch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
-                              alert(`Batch is currently in stage ${Number(batch.status)}. Advancing to Retail stage on blockchain...`);
-                              const transferTx = await contract.transferBatch(batchId, signerAddress, 5); // 5 = SupplyChainStage.Retail
-                              await transferTx.wait();
-                            }
-                          }
-                          
-                          const billHash = ethers.id(confirmMsg);
-                          alert("Please approve the final sale transaction in MetaMask to lock the batch.");
-                          
-                          const tx = await contract.completeRetailSale(batchId, billHash);
-                          await tx.wait();
-                          alert("🎉 Success! Consumer sale finalized on Blockchain. This batch is now permanently locked.");
-                        } catch(err: any) {
-                          console.error(err);
-                          alert("Failed to finalize: " + (err.reason || err.message));
-                        }
-                      }}
-                      className="bg-green-600 hover:bg-green-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm"
-                    >
-                      Finalize Sale
-                    </button>
-                  ) : (
-                    <button className="text-amber-600 hover:text-amber-800 font-medium text-xs">
-                      View Details →
-                    </button>
-                  )}
-                </td>
-              </tr>
-              <tr className="hover:bg-amber-50/30 transition-colors">
-                <td className="px-6 py-4 font-semibold text-gray-900">HC-2026-000128</td>
-                <td className="px-6 py-4">30.0 kg</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    In Transit
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-xs font-mono text-gray-400">✅ Verified</span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-amber-600 hover:text-amber-800 font-medium text-xs">
-                    View Details →
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                                    const onChainBatch = await contract.getBatch(batch.batchId);
+                                    const signerAddress = await (await (new ethers.BrowserProvider((window as any).ethereum))).getSigner().then(s => s.getAddress());
+
+                                    // Status 5 is Retail, 6 is Completed
+                                    if (Number(onChainBatch.status) === 6) {
+                                      alert(`⚠️ Batch "${batch.batchId}" is ALREADY Completed/Locked on the blockchain!`);
+                                      return;
+                                    }
+
+                                    // If batch is not in Retail stage yet (e.g. still in Harvest/Created stage), transition to Retail first if owned
+                                    if (Number(onChainBatch.status) < 5) {
+                                      if (onChainBatch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
+                                        alert(`Batch is currently in stage ${Number(onChainBatch.status)}. Advancing to Retail stage on blockchain...`);
+                                        const transferTx = await contract.transferBatch(batch.batchId, signerAddress, 5); // 5 = SupplyChainStage.Retail
+                                        await transferTx.wait();
+                                      }
+                                    }
+                                    
+                                    const billHash = ethers.id(confirmMsg);
+                                    alert("Please approve the final sale transaction in MetaMask to lock the batch.");
+                                    
+                                    const tx = await contract.completeRetailSale(batch.batchId, billHash);
+                                    await tx.wait();
+                                    
+                                    await honeyApi.transferBatch(batch.batchId, {
+                                      recipientWallet: signerAddress,
+                                      txHash: tx.hash,
+                                      stage: "COMPLETED",
+                                      location: "Retail Store",
+                                      notes: "Consumer Sale Completed"
+                                    });
+
+                                    alert("🎉 Success! Consumer sale finalized on Blockchain. This batch is now permanently locked.");
+                                    window.location.reload();
+                                  } catch(err: any) {
+                                    console.error(err);
+                                    alert("Failed to finalize: " + (err.reason || err.message));
+                                  }
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm"
+                              >
+                                Finalize Sale
+                              </button>
+                            ) : batch.status !== "COMPLETED" ? (
+                              <button 
+                                onClick={async () => {
+                                  const recipient = prompt("Enter Recipient Wallet Address (Next Stage):", "0x...");
+                                  if (!recipient) return;
+                                  
+                                  const stages = ["PROCESSING", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL"];
+                                  const stageInput = prompt(`Enter next stage number:\n1. Processing\n2. Quality Tested\n3. Distributed\n4. Retail`, "2");
+                                  if (!stageInput) return;
+                                  
+                                  const stageInt = parseInt(stageInput);
+                                  if (isNaN(stageInt) || stageInt < 1 || stageInt > 4) return;
+                                  
+                                  const blockchainStageInt = stageInt + 1; 
+                                  const dbStage = stages[stageInt - 1];
+
+                                  try {
+                                    const { getContractWithSigner } = await import("@/lib/blockchain");
+                                    const contract = await getContractWithSigner();
+                                    alert("Please approve the transfer transaction in MetaMask.");
+                                    const tx = await contract.transferBatch(batch.batchId, recipient, blockchainStageInt);
+                                    await tx.wait();
+                                    
+                                    await honeyApi.transferBatch(batch.batchId, {
+                                      recipientWallet: recipient,
+                                      txHash: tx.hash,
+                                      stage: dbStage,
+                                      location: "Transferred on-chain",
+                                      notes: `Transferred by ${user.role}`
+                                    });
+                                    
+                                    alert(`🎉 Success! Batch transferred to ${recipient}`);
+                                    window.location.reload();
+                                  } catch (err: any) {
+                                    console.error(err);
+                                    alert("Transfer failed: " + (err.reason || err.message));
+                                  }
+                                }}
+                                className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                              >
+                                Transfer 📤
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

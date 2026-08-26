@@ -1,8 +1,8 @@
 {
-  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  "network": "localhost",
-  "chainId": "1337",
-  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "deployedAt": "2026-08-26T14:15:33.205Z",
-  "blockNumber": 1
+  "contractAddress": "0x775E69b9084Bf453C6bF6eD436471A3FD47ffD51",
+  "network": "sepolia",
+  "chainId": "11155111",
+  "deployer": "0xB36465C84c124EF7BBD40952A0A5897f7D7a4ab5",
+  "deployedAt": "2026-08-26T16:45:37.708Z",
+  "blockNumber": 11572118
 }

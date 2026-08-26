@@ -49,6 +49,50 @@ export default function BeekeeperBatchesPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {batch.status !== "RETAIL" && batch.status !== "COMPLETED" && (
+                      <button
+                        onClick={async () => {
+                          const recipient = prompt("Enter Recipient Wallet Address (e.g., Processor):", "0xB36465C84c124EF7BBD40952A0A5897f7D7a4ab5");
+                          if (!recipient) return;
+                          
+                          const stages = ["PROCESSING", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL"];
+                          const stageInput = prompt(`Enter next stage number:\n1. Processing\n2. Quality Tested\n3. Distributed\n4. Retail`, "1");
+                          if (!stageInput) return;
+                          
+                          const stageInt = parseInt(stageInput);
+                          if (isNaN(stageInt) || stageInt < 1 || stageInt > 4) return;
+                          
+                          // Smart contract stage enum offset: Harvested=1, Processing=2, QualityTested=3, Distributed=4, Retail=5
+                          const blockchainStageInt = stageInt + 1; 
+                          const dbStage = stages[stageInt - 1];
+
+                          try {
+                            const { getContractWithSigner } = await import("@/lib/blockchain");
+                            const contract = await getContractWithSigner();
+                            alert("Please approve the transfer transaction in MetaMask.");
+                            const tx = await contract.transferBatch(batch.batchId, recipient, blockchainStageInt);
+                            await tx.wait();
+                            
+                            await honeyApi.transferBatch(batch.batchId, {
+                              recipientWallet: recipient,
+                              txHash: tx.hash,
+                              stage: dbStage,
+                              location: "Transferred on-chain",
+                              notes: "Transferred from Beekeeper"
+                            });
+                            
+                            alert(`🎉 Success! Batch transferred to ${recipient}`);
+                            window.location.reload();
+                          } catch (err: any) {
+                            console.error(err);
+                            alert("Transfer failed: " + (err.reason || err.message));
+                          }
+                        }}
+                        className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                      >
+                        Transfer 📤
+                      </button>
+                    )}
                     <Link
                       href={`/verify/${batch.batchId}`}
                       className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
