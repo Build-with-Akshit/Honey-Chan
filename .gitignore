@@ -1,0 +1,26 @@
+# node
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# hardhat
+blockchain/cache/
+blockchain/artifacts/
+blockchain/typechain-types/
+
+# next.js
+apps/web/.next/
+apps/web/out/
+
+# build
+dist/
+build/
+
+# misc
+.DS_Store
+*.log
+coverage/
+
+# Video
+Videos/

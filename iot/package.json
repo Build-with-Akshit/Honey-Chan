@@ -1,0 +1,12 @@
+{
+  "name": "honey-chain-iot-simulator",
+  "version": "1.0.0",
+  "description": "Realistic Multi-Hive IoT Telemetry Simulator for Honey Chain",
+  "main": "simulator/index.js",
+  "scripts": {
+    "start": "tsx simulator/index.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2"
+  }
+}
