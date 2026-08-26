@@ -225,7 +225,7 @@ export default function CreateBatchPage() {
                 <h3 className="font-semibold text-sm text-amber-900">Cryptographic Integrity Mechanism</h3>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed">
-                When you submit, Honey Chain will generate a deterministic <strong>SHA-256 hash</strong> of this exact
+                When you submit, Honey-Chan will generate a deterministic <strong>SHA-256 hash</strong> of this exact
                 metadata. This hash is anchored on the blockchain. Any subsequent alteration of the quantity or location
                 will immediately cause a hash mismatch and trigger a <strong>TAMPER WARNING</strong> for consumers.
               </p>
