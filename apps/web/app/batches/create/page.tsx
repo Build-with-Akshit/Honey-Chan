@@ -21,9 +21,45 @@ export default function CreateBatchPage() {
   const [loading, setLoading] = useState(false);
   const [createdBatch, setCreatedBatch] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hives, setHives] = useState<any[]>([]);
+  const [hivesLoading, setHivesLoading] = useState(true);
+
+  useEffect(() => {
+    honeyApi.getHives()
+      .then(data => {
+        setHives(data);
+        if (data.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            hiveCode: data[0].hiveCode,
+            honeyType: data[0].flowerSource || prev.honeyType,
+            originLocation: data[0].location || prev.originLocation,
+          }));
+        } else {
+          setFormData(prev => ({ ...prev, hiveCode: "" }));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setHivesLoading(false));
+  }, []);
+
+  const handleHiveChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const code = e.target.value;
+    const selectedHive = hives.find(h => h.hiveCode === code);
+    setFormData(prev => ({
+      ...prev,
+      hiveCode: code,
+      honeyType: selectedHive?.flowerSource || prev.honeyType,
+      originLocation: selectedHive?.location || prev.originLocation,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.hiveCode) {
+      setError("Please register a hive first before creating a batch.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -95,13 +131,22 @@ export default function CreateBatchPage() {
                   </label>
                   <select
                     value={formData.hiveCode}
-                    onChange={(e) => setFormData({ ...formData, hiveCode: e.target.value })}
-                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
+                    onChange={handleHiveChange}
+                    required
+                    disabled={hivesLoading}
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400 disabled:opacity-60"
                   >
-                    <option value="HIVE-007">HIVE-007 (Sonipat • Mustard • Health 91%)</option>
-                    <option value="HIVE-001">HIVE-001 (Sonipat • Mustard • Health 94%)</option>
-                    <option value="HIVE-018">HIVE-018 (Panipat • Sunflower • Health 96%)</option>
-                    <option value="HIVE-012">HIVE-012 (Murthal • Litchi • Health 72%)</option>
+                    {hivesLoading ? (
+                      <option value="">Loading your hives...</option>
+                    ) : hives.length === 0 ? (
+                      <option value="">No hives found - Register a hive first</option>
+                    ) : (
+                      hives.map(hive => (
+                        <option key={hive.id} value={hive.hiveCode}>
+                          {hive.hiveCode} ({hive.location} • {hive.flowerSource} • Health {hive.healthScore || 85}%)
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
