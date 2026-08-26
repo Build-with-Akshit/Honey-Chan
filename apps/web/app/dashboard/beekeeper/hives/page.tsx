@@ -46,7 +46,7 @@ export default function BeekeeperHivesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Apiary Hives</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Beehives</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             KVIC registered smart bee boxes equipped with IoT micro-climate sensors
           </p>
