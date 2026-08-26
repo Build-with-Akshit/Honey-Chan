@@ -577,18 +577,21 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                   .getSigner()
                   .then((s: any) => s.getAddress());
 
-                if (Number(batch.status) === 6) {
+                const currentOwner = batch[2];
+                const status = batch[5];
+
+                if (Number(status) === 6) {
                   alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked!`);
                   return;
                 }
                 
-                if (batch.currentOwner.toLowerCase() !== signerAddress.toLowerCase()) {
+                if (currentOwner.toLowerCase() !== signerAddress.toLowerCase()) {
                   alert(`❌ You are not the current owner of this batch on the blockchain.\nPlease accept the pending transfer first!`);
                   return;
                 }
 
-                if (Number(batch.status) !== 4) { // 4 is Retail
-                   alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(batch.status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
+                if (Number(status) !== 4) { // 4 is Retail
+                   alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
                    return;
                 }
 
