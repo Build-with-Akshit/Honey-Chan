@@ -32,11 +32,9 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
     // Compute current hash from DB data
     const currentDataHash = computeMetadataHash({
       batchId: batch.batchId,
-      beekeeperName: batch.beekeeper?.name || "Unknown",
       hiveCode: batch.hive?.hiveCode || "UNKNOWN",
-      quantity: Number(batch.quantity) || 0,
+      quantity: batch.quantity.toString(),
       honeyType: batch.honeyType || "Natural Honey",
-      location: batch.location || "India",
     });
 
     // Try to verify against blockchain

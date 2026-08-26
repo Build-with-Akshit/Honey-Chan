@@ -131,19 +131,15 @@ export async function verifyBatchHash(
  */
 export function computeMetadataHash(data: {
   batchId: string;
-  beekeeperName: string;
   hiveCode: string;
-  quantity: number;
+  quantity: string;
   honeyType: string;
-  location: string;
 }): string {
   const payload = JSON.stringify({
     batchId: data.batchId,
-    beekeeper: data.beekeeperName,
     hive: data.hiveCode,
-    quantity: data.quantity,
     type: data.honeyType,
-    location: data.location,
+    quantity: data.quantity
   });
   return keccak256(toUtf8Bytes(payload));
 }
