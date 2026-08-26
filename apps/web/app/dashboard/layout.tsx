@@ -222,7 +222,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             ) : (
               <button
-                onClick={wallet.connect}
+                onClick={() => {
+                  if (!wallet.hasMetaMask) {
+                    alert(
+                      "🦊 MetaMask is required to use HoneyChain Blockchain features!\n\n" +
+                      "Please follow these steps:\n" +
+                      "1. Go to https://metamask.io/ and install the browser extension.\n" +
+                      "2. Create a new wallet or import an existing one.\n" +
+                      "3. Refresh this page once installed.\n\n" +
+                      "Optional (for Hackathon Testing):\n" +
+                      "If you are testing multiple roles (Beekeeper, Processor, Lab, etc.), it is recommended to create a separate 'Account' in MetaMask for each role so that you don't link the same wallet address to multiple users."
+                    );
+                  } else {
+                    wallet.connect();
+                  }
+                }}
                 className="text-xs font-bold text-white bg-gray-800 hover:bg-gray-900 px-4 py-1.5 rounded-full shadow-sm transition-all flex items-center gap-1.5 hover:scale-105"
               >
                 <span>🦊</span> Connect Wallet
