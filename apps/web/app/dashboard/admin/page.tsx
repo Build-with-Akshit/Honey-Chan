@@ -3,20 +3,6 @@
 import { useEffect, useState } from "react";
 import { honeyApi } from "@/lib/api";
 
-const CLUSTERS = [
-  { name: "Sonipat Honey Cluster", state: "Haryana", beekeepers: 84, hives: 1200, batches: 184, health: 87, production: "4.8 T" },
-  { name: "Moradabad Cluster", state: "UP", beekeepers: 62, hives: 890, batches: 142, health: 82, production: "3.6 T" },
-  { name: "Alwar Cluster", state: "Rajasthan", beekeepers: 95, hives: 1450, batches: 210, health: 90, production: "5.2 T" },
-  { name: "Pune Cluster", state: "Maharashtra", beekeepers: 48, hives: 680, batches: 98, health: 85, production: "2.8 T" },
-];
-
-const RECENT_ACTIVITY = [
-  { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: "✅" },
-  { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: "🐝" },
-  { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: "⚠️" },
-  { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: "📊" },
-];
-
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     beekeepers: 0,
@@ -26,6 +12,8 @@ export default function AdminDashboard() {
     flaggedBatches: 0,
     totalHoneyTons: "0.0"
   });
+  
+  const [clusters, setClusters] = useState<any[]>([]);
 
   const fetchStats = async () => {
     try {
@@ -39,10 +27,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchClusters = async () => {
+    try {
+      const res = await fetch('/api/clusters');
+      if (res.ok) {
+        const data = await res.json();
+        setClusters(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch clusters", err);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchClusters();
     // Real-time polling every 3 seconds
-    const interval = setInterval(fetchStats, 3000);
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchClusters();
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -53,6 +57,13 @@ export default function AdminDashboard() {
     { label: "Verified Batches", value: stats.verifiedBatches.toLocaleString(), icon: "✅", color: "text-emerald-700" },
     { label: "Flagged Batches", value: stats.flaggedBatches.toLocaleString(), icon: "⚠️", color: "text-red-600" },
     { label: "Total Honey Tracked", value: `${stats.totalHoneyTons} T`, icon: "⚖️", color: "text-purple-700" },
+  ];
+
+  const RECENT_ACTIVITY = [
+    { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: "✅" },
+    { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: "🐝" },
+    { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: "⚠️" },
+    { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: "📊" },
   ];
 
   return (
@@ -80,22 +91,24 @@ export default function AdminDashboard() {
             <h2 className="font-semibold text-gray-700">📍 KVIC Beekeeping Clusters</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            {CLUSTERS.map((cluster) => (
+            {clusters.length === 0 ? (
+              <div className="p-4 text-gray-400 text-sm text-center">Loading clusters...</div>
+            ) : clusters.map((cluster) => (
               <div key={cluster.name} className="p-4 hover:bg-amber-50/40 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <span className="font-semibold text-gray-700">{cluster.name}</span>
                     <span className="text-xs text-gray-400 ml-2">{cluster.state}</span>
                   </div>
-                  <span className="text-sm font-medium text-amber-700">{cluster.production}</span>
+                  <span className="text-sm font-medium text-amber-700">{cluster.totalProductionTons} T</span>
                 </div>
                 <div className="grid grid-cols-4 gap-4 text-xs">
-                  <div><span className="text-gray-400">Beekeepers</span><p className="font-medium text-gray-700">{cluster.beekeepers}</p></div>
-                  <div><span className="text-gray-400">Hives</span><p className="font-medium text-gray-700">{cluster.hives.toLocaleString()}</p></div>
+                  <div><span className="text-gray-400">Beekeepers</span><p className="font-medium text-gray-700">{cluster.totalBeekeepers}</p></div>
+                  <div><span className="text-gray-400">Hives</span><p className="font-medium text-gray-700">{cluster.totalHives?.toLocaleString()}</p></div>
                   <div><span className="text-gray-400">Batches</span><p className="font-medium text-gray-700">{cluster.batches}</p></div>
                   <div>
                     <span className="text-gray-400">Health</span>
-                    <p className={`font-medium ${cluster.health >= 85 ? "text-green-600" : "text-amber-600"}`}>{cluster.health}%</p>
+                    <p className={`font-medium ${cluster.avgHealth >= 85 ? "text-green-600" : "text-amber-600"}`}>{cluster.avgHealth}%</p>
                   </div>
                 </div>
               </div>
