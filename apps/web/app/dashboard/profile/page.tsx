@@ -149,25 +149,57 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {!user.walletAddress && (
+            {!user.walletAddress ? (
               <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
                 <h4 className="text-sm font-bold text-amber-900 mb-1">High-Trust Actions Locked</h4>
                 <p className="text-xs text-amber-700 mb-3">
                   You must bind a MetaMask wallet to your account to sign off on shipments or verify quality results.
                 </p>
                 <button 
-                  onClick={wallet.connect}
+                  onClick={async () => {
+                    await wallet.connect();
+                    if (wallet.address) {
+                      const res = await fetch("/api/auth/link-wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ walletAddress: wallet.address }),
+                      });
+                      if (res.ok) window.location.reload();
+                      else alert("Failed to link wallet: " + (await res.json()).error);
+                    }
+                  }}
                   className="w-full py-2 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
                 >
                   <span>🦊</span> Bind MetaMask Wallet
                 </button>
               </div>
-            )}
-            
-            {user.walletAddress && (
-              <p className="text-xs text-gray-500 mt-2">
-                This wallet is permanently bound to your Web2 identity for signing high-trust supply chain events on the HoneyChain smart contract.
-              </p>
+            ) : (
+              <div className="mt-4">
+                <button 
+                  onClick={async () => {
+                    await wallet.connect();
+                    if (wallet.address) {
+                      const res = await fetch("/api/auth/link-wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ walletAddress: wallet.address }),
+                      });
+                      if (res.ok) {
+                        alert("Wallet synced successfully!");
+                        window.location.reload();
+                      } else {
+                        alert("Failed to sync wallet: " + (await res.json()).error);
+                      }
+                    }
+                  }}
+                  className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🔄</span> Sync Currently Active MetaMask Wallet
+                </button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Click to re-sync if you switched accounts in MetaMask.
+                </p>
+              </div>
             )}
           </div>
           
