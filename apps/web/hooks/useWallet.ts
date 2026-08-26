@@ -37,6 +37,8 @@ export function useWallet() {
   const connect = useCallback(async () => {
     if (typeof window === "undefined" || !window.ethereum) {
       setState((s) => ({ ...s, error: "MetaMask not found. Please install MetaMask." }));
+      alert("🦊 MetaMask extension not found!\n\nPlease install MetaMask to connect your wallet and interact with the HoneyChain.");
+      window.open("https://metamask.io/download/", "_blank");
       return;
     }
 
