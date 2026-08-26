@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Home } from "lucide-react";
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -11,10 +12,10 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push("/dashboard")}
               className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
             >
-              ←
+              <Home size={18} />
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
