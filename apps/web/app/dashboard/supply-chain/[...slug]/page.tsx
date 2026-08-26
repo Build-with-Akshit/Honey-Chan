@@ -626,7 +626,12 @@ function FilteredListPage({
 }
 
 // ── MAIN PAGE ──
-export default function SupplyChainSubPage() {
+function isPendingForUser(b: any, userId: string | number) {
+  const lastEvent = b.events?.[b.events.length - 1];
+  return lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === userId;
+}
+
+export default function SupplyChainDashboard() {
   const pathname = usePathname();
   const { user } = useAuth();
   const [batches, setBatches] = useState<any[]>([]);
@@ -675,7 +680,7 @@ export default function SupplyChainSubPage() {
           description="Batches received from beekeepers awaiting processing."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "HARVESTED"}
+          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "HARVESTED"}
           emptyMessage="No incoming raw honey batches at this time."
           onRefresh={refresh}
         />
@@ -710,7 +715,7 @@ export default function SupplyChainSubPage() {
           description="Batches awaiting lab analysis and quality certification."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "PROCESSING"}
+          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "PROCESSING"}
           emptyMessage="No pending quality tests at this time."
           onRefresh={refresh}
         />
@@ -756,7 +761,7 @@ export default function SupplyChainSubPage() {
           description="Batches being shipped to your warehouse."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "QUALITY_TESTED"}
+          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "QUALITY_TESTED"}
           emptyMessage="No incoming shipments at this time."
           onRefresh={refresh}
         />
@@ -860,7 +865,7 @@ export default function SupplyChainSubPage() {
           description="Batches received in your store from distributors/wholesalers."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "RETAIL"}
+          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "RETAIL"}
           emptyMessage="No stock received yet."
           onRefresh={refresh}
         />
