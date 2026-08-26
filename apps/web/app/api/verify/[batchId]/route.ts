@@ -33,7 +33,7 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
     const currentDataHash = computeMetadataHash({
       batchId: batch.batchId,
       hiveCode: batch.hive?.hiveCode || "UNKNOWN",
-      quantity: batch.quantity.toString(),
+      quantity: (batch.quantity || 0).toString(),
       honeyType: batch.honeyType || "Natural Honey",
     });
 
