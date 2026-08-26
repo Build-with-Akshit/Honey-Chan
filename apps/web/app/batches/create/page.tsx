@@ -326,8 +326,8 @@ export default function CreateBatchPage() {
 
               <div className="text-left text-xs space-y-1 bg-white p-3 rounded-lg border border-amber-100">
                 <p className="font-bold text-gray-800">{createdBatch.honeyType}</p>
-                <p className="text-gray-500">Qty: {createdBatch.quantityKg} KG • Hive: {createdBatch.hiveCode}</p>
-                <p className="text-gray-400 text-[10px] truncate">Hash: {createdBatch.metadataHash}</p>
+                <p className="text-gray-500">Qty: {createdBatch.quantity} KG • Hive: {createdBatch.hive?.hiveCode || formData.hiveCode}</p>
+                <p className="text-gray-400 text-[10px] truncate">Hash: {createdBatch.blockchainTx}</p>
               </div>
 
               <p className="text-[11px] text-amber-800 font-semibold text-center">
