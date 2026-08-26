@@ -475,6 +475,12 @@ function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; us
             placeholder="Enter Batch ID (e.g. HC-2026-000127)"
             className="border border-gray-200 rounded-lg px-4 py-2.5 flex-1 text-sm focus:outline-none focus:border-amber-400"
             id="batchIdInput"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const batchId = (e.target as HTMLInputElement).value;
+                if (batchId) window.open(`/trace/${batchId}`, "_blank");
+              }
+            }}
           />
           <button
             onClick={() => {
