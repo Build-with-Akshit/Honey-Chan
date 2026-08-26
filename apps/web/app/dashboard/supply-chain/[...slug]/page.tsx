@@ -599,6 +599,18 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                 alert("Please approve the final sale transaction in MetaMask to lock the batch.");
                 const tx = await contract.completeRetailSale(batchId, billHash);
                 await tx.wait();
+
+                // Sync status with backend database
+                try {
+                  await fetch(`/api/batches/${batchId}/complete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ billHash }),
+                  });
+                } catch (e) {
+                  console.error("Failed to sync completion to backend database", e);
+                }
+
                 alert("🎉 Consumer sale finalized on Blockchain. Batch is now permanently locked.");
                 onRefresh();
               } catch (err: any) {
