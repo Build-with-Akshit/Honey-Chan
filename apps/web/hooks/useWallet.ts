@@ -130,6 +130,15 @@ export function useWallet() {
   useEffect(() => {
     if (typeof window === "undefined" || !window.ethereum) return;
 
+    // Auto-connect if already authorized
+    window.ethereum.request({ method: "eth_accounts" })
+      .then((accounts) => {
+        if (Array.isArray(accounts) && accounts.length > 0) {
+          connect();
+        }
+      })
+      .catch(console.error);
+
     const handleAccountsChanged = (...args: unknown[]) => {
       const accounts = args[0] as string[];
       if (accounts.length === 0) {
