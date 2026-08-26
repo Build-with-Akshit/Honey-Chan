@@ -61,7 +61,7 @@ export const NETWORK_CONFIG = {
 };
 
 // Role types
-export type UserRole = "ADMIN" | "BEEKEEPER" | "PROCESSOR" | "LAB" | "DISTRIBUTOR" | "RETAILER" | "NONE";
+export type UserRole = "ADMIN" | "BEEKEEPER" | "PROCESSOR" | "LAB" | "DISTRIBUTOR" | "WHOLESALER" | "RETAILER" | "NONE";
 
 // Batch status mapping
 export const BATCH_STATUS_MAP: Record<number, string> = {
