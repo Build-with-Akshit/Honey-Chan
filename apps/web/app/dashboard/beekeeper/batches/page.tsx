@@ -69,28 +69,30 @@ export default function BeekeeperBatchesPage() {
                           try {
                             const { getContractWithSigner } = await import("@/lib/blockchain");
                             const contract = await getContractWithSigner();
-                            alert("Please approve the transfer transaction in MetaMask.");
-                            const tx = await contract.transferBatch(batch.batchId, recipient, blockchainStageInt);
+                            alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
+                            // Step 1 of Two-Step Handshake: Initiate Transfer
+                            const tx = await contract.initiateTransfer(batch.batchId, recipient, blockchainStageInt);
                             await tx.wait();
                             
                             await honeyApi.transferBatch(batch.batchId, {
                               recipientWallet: recipient,
                               txHash: tx.hash,
                               stage: dbStage,
+                              action: "INITIATE",
                               location: "Transferred on-chain",
-                              notes: "Transferred from Beekeeper"
+                              notes: "Transfer initiated by Beekeeper"
                             });
                             
-                            alert(`🎉 Success! Batch transferred to ${recipient}`);
+                            alert(`⏳ Success! Transfer initiated to ${recipient}. Waiting for their acceptance.`);
                             window.location.reload();
                           } catch (err: any) {
                             console.error(err);
-                            alert("Transfer failed: " + (err.reason || err.message));
+                            alert("Transfer initiation failed: " + (err.reason || err.message));
                           }
                         }}
                         className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
                       >
-                        Transfer 📤
+                        Initiate Transfer 📤
                       </button>
                     )}
                     <Link

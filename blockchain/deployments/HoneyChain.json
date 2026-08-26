@@ -1,5 +1,5 @@
 {
-  "address": "0x775E69b9084Bf453C6bF6eD436471A3FD47ffD51",
+  "address": "0x8a518a619fD9A9d040d1f47b9dD789420d648167",
   "abi": [
     {
       "inputs": [],
@@ -92,6 +92,17 @@
           "internalType": "string",
           "name": "batchId",
           "type": "string"
+        }
+      ],
+      "name": "NoTransferPending",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
         },
         {
           "internalType": "address",
@@ -108,9 +119,36 @@
           "internalType": "string",
           "name": "batchId",
           "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "NotPendingOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
         }
       ],
       "name": "QualityNotVerified",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        }
+      ],
+      "name": "TransferAlreadyPending",
       "type": "error"
     },
     {
@@ -468,6 +506,74 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pendingTo",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum HoneyChain.SupplyChainStage",
+          "name": "pendingStage",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "TransferInitiated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pendingTo",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "TransferRejected",
+      "type": "event"
+    },
+    {
       "inputs": [],
       "name": "BEEKEEPER_ROLE",
       "outputs": [
@@ -543,6 +649,19 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        }
+      ],
+      "name": "acceptTransfer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -711,6 +830,16 @@
           "internalType": "uint256",
           "name": "createdAt",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "pendingOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "isTransferPending",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -911,6 +1040,29 @@
     {
       "inputs": [
         {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "enum HoneyChain.SupplyChainStage",
+          "name": "stage",
+          "type": "uint8"
+        }
+      ],
+      "name": "initiateTransfer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "",
           "type": "address"
@@ -979,6 +1131,19 @@
         }
       ],
       "name": "registerParticipant",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "batchId",
+          "type": "string"
+        }
+      ],
+      "name": "rejectTransfer",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1090,29 +1255,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "batchId",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "newOwner",
-          "type": "address"
-        },
-        {
-          "internalType": "enum HoneyChain.SupplyChainStage",
-          "name": "stage",
-          "type": "uint8"
-        }
-      ],
-      "name": "transferBatch",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

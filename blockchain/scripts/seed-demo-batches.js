@@ -1,7 +1,8 @@
 const hre = require("hardhat");
 
 async function main() {
-  const contractAddress = "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb";
+  const userAddress = hre.ethers.getAddress("0xb36465c84c124ef7bbd40952a0a5897f7d7a4ab5");
+  const contractAddress = hre.ethers.getAddress("0x8a518a619fD9A9d040d1f47b9dD789420d648167");
   console.log(`Seeding demo batches on Sepolia contract: ${contractAddress}...`);
 
   const HoneyChain = await hre.ethers.getContractFactory("HoneyChain");

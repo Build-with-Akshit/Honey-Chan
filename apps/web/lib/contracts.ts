@@ -22,11 +22,13 @@ export const HONEY_CHAIN_ABI = [
   "function submitQualityTest(string batchId, bytes32 reportHash, bool passed)",
 
   // ─── Transfer & Retail Functions ───
-  "function transferBatch(string batchId, address newOwner, uint8 stage)",
+  "function initiateTransfer(string batchId, address newOwner, uint8 stage)",
+  "function acceptTransfer(string batchId)",
+  "function rejectTransfer(string batchId)",
   "function completeRetailSale(string batchId, bytes32 billHash)",
 
   // ─── View Functions ───
-  "function getBatch(string batchId) view returns (string, address, uint256, uint256, bytes32, address, uint8, bytes32, bool, uint256)",
+  "function getBatch(string batchId) view returns (string, address, uint256, uint256, bytes32, address, uint8, bytes32, bool, uint256, address, bool)",
   "function getBatchHistory(string batchId) view returns (tuple(uint8 stage, address actor, uint256 timestamp, bytes32 dataHash)[])",
   "function getHiveDataHistory(string batchId) view returns (tuple(uint256 temperature, uint256 humidity, uint256 weight, uint256 timestamp, bytes32 dataHash)[])",
   "function verifyBatch(string batchId, bytes32 currentHash) view returns (bool verified, bytes32 onChainHash)",
@@ -43,13 +45,15 @@ export const HONEY_CHAIN_ABI = [
   "event HarvestRecorded(string indexed batchId, uint256 quantity, uint256 timestamp)",
   "event HiveDataRecorded(string indexed batchId, uint256 temperature, uint256 humidity, uint256 weight, uint256 timestamp)",
   "event QualityVerified(string indexed batchId, address indexed lab, bool passed, bytes32 reportHash, uint256 timestamp)",
+  "event TransferInitiated(string indexed batchId, address indexed from, address indexed pendingTo, uint8 pendingStage, uint256 timestamp)",
+  "event TransferRejected(string indexed batchId, address indexed from, address indexed pendingTo, uint256 timestamp)",
   "event BatchTransferred(string indexed batchId, address indexed from, address indexed to, uint8 stage, uint256 timestamp)",
   "event ProcessingCompleted(string indexed batchId, address indexed processor, uint256 timestamp)",
   "event BatchReceived(string indexed batchId, address indexed receiver, uint8 stage, uint256 timestamp)",
 ] as const;
 
 // Contract address - updated after deployment
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
 
 // Network config
 export const NETWORK_CONFIG = {

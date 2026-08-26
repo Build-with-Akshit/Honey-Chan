@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 async function main() {
   const userAddress = hre.ethers.getAddress("0xb36465c84c124ef7bbd40952a0a5897f7d7a4ab5");
-  const contractAddress = hre.ethers.getAddress("0xad1c7532ba300b59b5e83778debd9fd7720b7ecb");
+  const contractAddress = hre.ethers.getAddress("0x8a518a619fD9A9d040d1f47b9dD789420d648167");
 
   console.log(`Assigning roles to ${userAddress} on Sepolia contract ${contractAddress}...`);
 

@@ -141,7 +141,67 @@ export default function SupplyChainDashboard() {
                               Verify
                             </Link>
 
-                            {user.role === "RETAILER" && batch.status !== "COMPLETED" ? (
+                            {currentEvent?.stage === "PENDING_TRANSFER" ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const { getContractWithSigner } = await import("@/lib/blockchain");
+                                      const contract = await getContractWithSigner();
+                                      alert("Please approve the ACCEPT TRANSFER transaction in MetaMask.");
+                                      const tx = await contract.acceptTransfer(batch.batchId);
+                                      await tx.wait();
+                                      
+                                      // Get the stage from the pending event's note or default to PROCESSING for demo
+                                      // Ideally we'd fetch it from the smart contract `getBatch` tuple
+                                      const onChainBatch = await contract.getBatch(batch.batchId);
+                                      const stages = ["Created", "Harvested", "PROCESSING", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL"];
+                                      const stageName = stages[Number(onChainBatch[6])]; // Status is index 6
+
+                                      await honeyApi.transferBatch(batch.batchId, {
+                                        txHash: tx.hash,
+                                        stage: stageName,
+                                        action: "ACCEPT"
+                                      });
+                                      
+                                      alert("✅ Transfer Accepted successfully!");
+                                      window.location.reload();
+                                    } catch (err: any) {
+                                      console.error(err);
+                                      alert("Failed to accept transfer: " + (err.reason || err.message));
+                                    }
+                                  }}
+                                  className="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700"
+                                >
+                                  Accept ✅
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const { getContractWithSigner } = await import("@/lib/blockchain");
+                                      const contract = await getContractWithSigner();
+                                      alert("Please approve the REJECT TRANSFER transaction in MetaMask.");
+                                      const tx = await contract.rejectTransfer(batch.batchId);
+                                      await tx.wait();
+                                      
+                                      await honeyApi.transferBatch(batch.batchId, {
+                                        txHash: tx.hash,
+                                        action: "REJECT"
+                                      });
+                                      
+                                      alert("❌ Transfer Rejected.");
+                                      window.location.reload();
+                                    } catch (err: any) {
+                                      console.error(err);
+                                      alert("Failed to reject transfer: " + (err.reason || err.message));
+                                    }
+                                  }}
+                                  className="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg shadow-sm hover:bg-red-600"
+                                >
+                                  Reject ❌
+                                </button>
+                              </div>
+                            ) : user.role === "RETAILER" && batch.status !== "COMPLETED" ? (
                               <button 
                                 onClick={async () => {
                                   const confirmMsg = prompt("Enter Consumer Bill Number to finalize on Blockchain:", "INV-" + Date.now().toString().slice(-6));
@@ -160,19 +220,9 @@ export default function SupplyChainDashboard() {
                                     const onChainBatch = await contract.getBatch(batch.batchId);
                                     const signerAddress = await (await (new ethers.BrowserProvider((window as any).ethereum))).getSigner().then(s => s.getAddress());
 
-                                    // Status 5 is Retail, 6 is Completed
-                                    if (Number(onChainBatch.status) === 6) {
+                                    if (Number(onChainBatch[6]) === 6) { // status is at index 6
                                       alert(`⚠️ Batch "${batch.batchId}" is ALREADY Completed/Locked on the blockchain!`);
                                       return;
-                                    }
-
-                                    // If batch is not in Retail stage yet (e.g. still in Harvest/Created stage), transition to Retail first if owned
-                                    if (Number(onChainBatch.status) < 5) {
-                                      if (onChainBatch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
-                                        alert(`Batch is currently in stage ${Number(onChainBatch.status)}. Advancing to Retail stage on blockchain...`);
-                                        const transferTx = await contract.transferBatch(batch.batchId, signerAddress, 5); // 5 = SupplyChainStage.Retail
-                                        await transferTx.wait();
-                                      }
                                     }
                                     
                                     const billHash = ethers.id(confirmMsg);
@@ -185,6 +235,7 @@ export default function SupplyChainDashboard() {
                                       recipientWallet: signerAddress,
                                       txHash: tx.hash,
                                       stage: "COMPLETED",
+                                      action: "ACCEPT",
                                       location: "Retail Store",
                                       notes: "Consumer Sale Completed"
                                     });
@@ -219,28 +270,29 @@ export default function SupplyChainDashboard() {
                                   try {
                                     const { getContractWithSigner } = await import("@/lib/blockchain");
                                     const contract = await getContractWithSigner();
-                                    alert("Please approve the transfer transaction in MetaMask.");
-                                    const tx = await contract.transferBatch(batch.batchId, recipient, blockchainStageInt);
+                                    alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
+                                    const tx = await contract.initiateTransfer(batch.batchId, recipient, blockchainStageInt);
                                     await tx.wait();
                                     
                                     await honeyApi.transferBatch(batch.batchId, {
                                       recipientWallet: recipient,
                                       txHash: tx.hash,
                                       stage: dbStage,
+                                      action: "INITIATE",
                                       location: "Transferred on-chain",
-                                      notes: `Transferred by ${user.role}`
+                                      notes: `Transfer initiated by ${user.role}`
                                     });
                                     
-                                    alert(`🎉 Success! Batch transferred to ${recipient}`);
+                                    alert(`⏳ Success! Transfer initiated to ${recipient}. Waiting for their acceptance.`);
                                     window.location.reload();
                                   } catch (err: any) {
                                     console.error(err);
-                                    alert("Transfer failed: " + (err.reason || err.message));
+                                    alert("Transfer initiation failed: " + (err.reason || err.message));
                                   }
                                 }}
                                 className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
                               >
-                                Transfer 📤
+                                Initiate Transfer 📤
                               </button>
                             ) : null}
                           </div>
