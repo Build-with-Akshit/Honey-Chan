@@ -154,17 +154,13 @@ export default function CreateBatchPage() {
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
                     Honey Flora / Botanical Origin
                   </label>
-                  <select
+                  <input
+                    type="text"
+                    required
                     value={formData.honeyType}
                     onChange={(e) => setFormData({ ...formData, honeyType: e.target.value })}
                     className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
-                  >
-                    <option value="Mustard Flower Honey (Sarson)">Mustard Flower Honey (Sarson)</option>
-                    <option value="Eucalyptus Honey">Eucalyptus Honey</option>
-                    <option value="Litchi Blossom Honey">Litchi Blossom Honey</option>
-                    <option value="Sunflower & Multi-flora Honey">Sunflower & Multi-flora Honey</option>
-                    <option value="Acacia / Kashmir White Honey">Acacia / Kashmir White Honey</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
