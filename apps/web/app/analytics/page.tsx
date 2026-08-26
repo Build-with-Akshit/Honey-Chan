@@ -1,19 +1,21 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AnalyticsPage() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
+            <button
+              onClick={() => router.back()}
               className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
             >
               ←
-            </Link>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
               <p className="text-xs text-gray-500">Smart Automation & Authenticity Metrics</p>
