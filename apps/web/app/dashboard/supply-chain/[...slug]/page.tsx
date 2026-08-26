@@ -577,21 +577,19 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                   .getSigner()
                   .then((s: any) => s.getAddress());
 
-                if (user?.walletAddress && signerAddress.toLowerCase() !== user.walletAddress.toLowerCase()) {
-                  alert(`❌ Wallet Mismatch!\n\nYou are logged in as ${user.name}, but MetaMask is connected to a different wallet.\n\nPlease switch MetaMask to: ${user.walletAddress}`);
-                  return;
-                }
-
                 if (Number(batch.status) === 6) {
                   alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked!`);
                   return;
                 }
+                
+                if (batch.currentOwner.toLowerCase() !== signerAddress.toLowerCase()) {
+                  alert(`❌ You are not the current owner of this batch on the blockchain.\nPlease accept the pending transfer first!`);
+                  return;
+                }
 
-                if (Number(batch.status) < 5) {
-                  if (batch.currentOwner.toLowerCase() === signerAddress.toLowerCase()) {
-                    const transferTx = await contract.transferBatch(batchId, signerAddress, 5);
-                    await transferTx.wait();
-                  }
+                if (Number(batch.status) !== 4) { // 4 is Retail
+                   alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(batch.status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
+                   return;
                 }
 
                 const billHash = ethers.id(billNo);
@@ -602,7 +600,13 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                 onRefresh();
               } catch (err: any) {
                 console.error(err);
-                alert("Failed to finalize: " + (err.reason || err.message));
+                if (err.message.includes("AccessControlUnauthorizedAccount")) {
+                  alert("❌ Your MetaMask wallet does not have the 'Retailer' role on the smart contract.");
+                } else if (err.message.includes("InvalidTransition")) {
+                  alert("❌ Batch cannot be locked because it was transferred with the wrong stage (e.g. Processing instead of Retail).");
+                } else {
+                  alert("Failed to finalize: " + (err.reason || err.message));
+                }
               }
             }}
             className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg w-full text-sm transition-colors shadow-sm"
