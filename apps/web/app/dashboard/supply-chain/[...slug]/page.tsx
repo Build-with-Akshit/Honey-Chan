@@ -193,7 +193,13 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
                     {users.map((u) => (
                       <button
                         key={u.id}
-                        onClick={() => setSelectedUser(u)}
+                        onClick={() => {
+                          setSelectedUser(u);
+                          if (u.role === "PROCESSOR") setSelectedStage("1");
+                          else if (u.role === "LAB") setSelectedStage("2");
+                          else if (u.role === "DISTRIBUTOR" || u.role === "WHOLESALER") setSelectedStage("3");
+                          else if (u.role === "RETAILER") setSelectedStage("4");
+                        }}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                           selectedUser?.id === u.id
                             ? "border-amber-400 bg-amber-50 shadow-sm"
