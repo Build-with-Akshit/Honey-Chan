@@ -17,35 +17,32 @@ export async function GET() {
       include: {
         cluster: true,
         beekeeper: true,
+        sensorReadings: {
+          orderBy: { timestamp: "desc" },
+          take: 12
+        },
+        aiPredictions: {
+          orderBy: { createdAt: "desc" },
+          take: 1
+        }
       },
       orderBy: { createdAt: "desc" },
     });
 
-    // Fix Prisma LATERAL JOIN performance bug by fetching latest readings separately
-    const mappedHives = await Promise.all(hives.map(async (hive) => {
-      const latestReading = await prisma.sensorReading.findFirst({
-        where: { hiveId: hive.id },
-        orderBy: { timestamp: "desc" }
-      });
+    const mappedHives = hives.map((hive) => {
+      const readingsHistory = hive.sensorReadings || [];
+      const latestReading = readingsHistory.length > 0 ? readingsHistory[0] : null;
+      const latestPrediction = hive.aiPredictions && hive.aiPredictions.length > 0 ? hive.aiPredictions[0] : null;
       
-      const readingsHistory = await prisma.sensorReading.findMany({
-        where: { hiveId: hive.id },
-        orderBy: { timestamp: "desc" },
-        take: 12
-      });
-
-      const latestPrediction = await prisma.aiPrediction.findFirst({
-        where: { hiveId: hive.id },
-        orderBy: { createdAt: "desc" }
-      });
-
       return {
         ...hive,
         latestReading,
         readingsHistory,
         healthScore: latestPrediction?.healthScore || 85,
+        sensorReadings: undefined, // remove from response to keep payload small
+        aiPredictions: undefined,
       };
-    }));
+    });
 
     return NextResponse.json(mappedHives);
   } catch (error) {
