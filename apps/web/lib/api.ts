@@ -11,7 +11,12 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
       },
     });
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status} ${res.statusText}`);
+      let errorMessage = `API Error: ${res.status} ${res.statusText}`;
+      try {
+        const errorData = await res.json();
+        if (errorData.error) errorMessage = errorData.error;
+      } catch (e) {}
+      throw new Error(errorMessage);
     }
     return await res.json();
   } catch (err: any) {
