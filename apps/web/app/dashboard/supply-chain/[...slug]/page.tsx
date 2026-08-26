@@ -367,7 +367,8 @@ function BatchTable({
           {filtered.map((batch) => {
             const events = batch.events || [];
             const lastEvent = events[events.length - 1];
-            const isPending = lastEvent?.stage === "PENDING_TRANSFER";
+            const isPendingForMe = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId === user.id;
+            const isPendingForOther = lastEvent?.stage === "PENDING_TRANSFER" && lastEvent.actorId !== user.id;
 
             return (
               <tr key={batch.id} className="hover:bg-amber-50/30 transition-colors">
@@ -392,8 +393,12 @@ function BatchTable({
                       >
                         Verify
                       </Link>
-                      {isPending ? (
+                      {isPendingForMe ? (
                         <AcceptRejectButtons batch={batch} onDone={onRefresh} />
+                      ) : isPendingForOther ? (
+                        <span className="px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
+                          ⏳ Awaiting Acceptance
+                        </span>
                       ) : batch.status !== "COMPLETED" ? (
                         <TransferButton batch={batch} user={user} onDone={onRefresh} />
                       ) : null}
