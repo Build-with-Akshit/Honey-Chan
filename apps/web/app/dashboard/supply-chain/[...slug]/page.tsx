@@ -34,21 +34,33 @@ function statusIcon(status: string) {
 // ── Transfer Button Component ──
 function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedStage, setSelectedStage] = useState("2");
+
+  const openModal = async () => {
+    setModalOpen(true);
+    setSelectedUser(null);
+    setUsersLoading(true);
+    try {
+      const { honeyApi } = await import("@/lib/api");
+      const data = await honeyApi.getUsers();
+      setUsers(data || []);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+      setUsers([]);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const handleTransfer = async () => {
-    const recipient = prompt("Enter Recipient Wallet Address (e.g., Processor):");
-    if (!recipient) return;
+    if (!selectedUser) return;
 
     const stages = ["PROCESSING", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL"];
-    const stageInput = prompt(
-      `Enter next stage number:\n1. Processing\n2. Quality Tested\n3. Distributed\n4. Retail`,
-      "2"
-    );
-    if (!stageInput) return;
-
-    const stageInt = parseInt(stageInput);
-    if (isNaN(stageInt) || stageInt < 1 || stageInt > 4) return;
-
+    const stageInt = parseInt(selectedStage);
     const blockchainStageInt = stageInt + 1;
     const dbStage = stages[stageInt - 1];
 
@@ -65,19 +77,21 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
       }
 
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
-      const tx = await contract.initiateTransfer(batch.batchId, recipient, blockchainStageInt);
+      const tx = await contract.initiateTransfer(batch.batchId, selectedUser.walletAddress, blockchainStageInt);
       await tx.wait();
 
+      const { honeyApi } = await import("@/lib/api");
       await honeyApi.transferBatch(batch.batchId, {
-        recipientWallet: recipient,
+        recipientWallet: selectedUser.walletAddress,
         txHash: tx.hash,
         stage: dbStage,
         action: "INITIATE",
         location: "Transferred on-chain",
-        notes: `Transfer initiated by ${user.role}`,
+        notes: `Transfer initiated to ${selectedUser.name} (${selectedUser.role})`,
       });
 
-      alert(`⏳ Transfer initiated to ${recipient}. Waiting for acceptance.`);
+      alert(`⏳ Transfer initiated to ${selectedUser.name}. Waiting for their acceptance.`);
+      setModalOpen(false);
       onDone();
     } catch (err: any) {
       console.error(err);
@@ -87,14 +101,164 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
     }
   };
 
+  const roleIcon = (role: string) => {
+    const map: Record<string, string> = {
+      PROCESSOR: "🏭", LAB: "🧪", DISTRIBUTOR: "🚚", WHOLESALER: "🛒", RETAILER: "🏪", BEEKEEPER: "🐝", ADMIN: "👑",
+    };
+    return map[role] || "👤";
+  };
+
+  const roleColor = (role: string) => {
+    const map: Record<string, string> = {
+      PROCESSOR: "bg-blue-50 text-blue-700 border-blue-200",
+      LAB: "bg-purple-50 text-purple-700 border-purple-200",
+      DISTRIBUTOR: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      WHOLESALER: "bg-teal-50 text-teal-700 border-teal-200",
+      RETAILER: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    };
+    return map[role] || "bg-gray-50 text-gray-700 border-gray-200";
+  };
+
   return (
-    <button
-      onClick={handleTransfer}
-      disabled={busy}
-      className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-50"
-    >
-      {busy ? "Processing..." : "Initiate Transfer 📤"}
-    </button>
+    <>
+      <button
+        onClick={openModal}
+        disabled={busy}
+        className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-50"
+      >
+        {busy ? "Processing..." : "Initiate Transfer 📤"}
+      </button>
+
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">📤 Transfer Batch</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Select recipient for <span className="font-mono font-bold text-amber-700">{batch.batchId}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5 text-left">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Select Buyer / Next Custodian</label>
+                {usersLoading ? (
+                  <div className="p-6 text-center">
+                    <div className="animate-spin h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-2" />
+                    <p className="text-xs text-gray-400">Loading registered users...</p>
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="p-6 text-center border-2 border-dashed border-gray-200 rounded-xl">
+                    <p className="text-sm text-gray-500">No registered users with wallets found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                    {users.map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => setSelectedUser(u)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                          selectedUser?.id === u.id
+                            ? "border-amber-400 bg-amber-50 shadow-sm"
+                            : "border-gray-100 hover:border-amber-200 hover:bg-amber-50/30"
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg shrink-0">
+                          {roleIcon(u.role)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-800 truncate">{u.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${roleColor(u.role)}`}>
+                              {u.role}
+                            </span>
+                            <span className="text-[10px] font-mono text-gray-400 truncate">
+                              {u.walletAddress?.slice(0, 6)}...{u.walletAddress?.slice(-4)}
+                            </span>
+                          </div>
+                        </div>
+                        {selectedUser?.id === u.id && <span className="text-amber-500 text-lg">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Transfer to Stage</label>
+                <div className="relative">
+                  <select
+                    value={selectedStage}
+                    onChange={(e) => setSelectedStage(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 appearance-none focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                  >
+                    <option value="1">🏭 Processing</option>
+                    <option value="2">🧪 Quality Tested</option>
+                    <option value="3">🚚 Distributed</option>
+                    <option value="4">🏪 Retail</option>
+                  </select>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">📊</span>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {selectedUser && (
+                <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+                  <p className="text-xs text-green-800 font-semibold">
+                    Transferring to: {selectedUser.name} ({selectedUser.role})
+                  </p>
+                  <p className="text-[10px] text-green-600 font-mono mt-0.5 truncate">Wallet: {selectedUser.walletAddress}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="flex-1 py-3 px-4 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleTransfer}
+                  disabled={busy || !selectedUser}
+                  className="flex-1 py-3 px-4 text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {busy ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Initiate Transfer</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
