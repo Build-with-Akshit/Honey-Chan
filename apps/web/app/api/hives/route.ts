@@ -17,22 +17,27 @@ export async function GET() {
       include: {
         cluster: true,
         beekeeper: true,
-        sensorReadings: {
-          take: 1,
-          orderBy: { timestamp: "desc" },
-        },
-        aiPredictions: {
-          take: 1,
-          orderBy: { createdAt: "desc" }
-        }
       },
       orderBy: { createdAt: "desc" },
     });
 
-    const mappedHives = hives.map(hive => ({
-      ...hive,
-      latestReading: hive.sensorReadings?.[0] || null,
-      healthScore: hive.aiPredictions?.[0]?.healthScore || 85,
+    // Fix Prisma LATERAL JOIN performance bug by fetching latest readings separately
+    const mappedHives = await Promise.all(hives.map(async (hive) => {
+      const latestReading = await prisma.sensorReading.findFirst({
+        where: { hiveId: hive.id },
+        orderBy: { timestamp: "desc" }
+      });
+      
+      const latestPrediction = await prisma.aiPrediction.findFirst({
+        where: { hiveId: hive.id },
+        orderBy: { createdAt: "desc" }
+      });
+
+      return {
+        ...hive,
+        latestReading,
+        healthScore: latestPrediction?.healthScore || 85,
+      };
     }));
 
     return NextResponse.json(mappedHives);
