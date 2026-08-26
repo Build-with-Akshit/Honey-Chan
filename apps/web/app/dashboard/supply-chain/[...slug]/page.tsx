@@ -590,7 +590,7 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                   return;
                 }
 
-                if (Number(status) !== 4) { // 4 is Retail
+                if (Number(status) !== 5) { // 5 is Retail
                    alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
                    return;
                 }
