@@ -103,9 +103,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex bg-amber-50/20">
+      {/* Sidebar Overlay (Mobile) */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? "w-64" : "w-[72px]"} transition-all duration-300 sidebar flex flex-col shrink-0 bg-white border-r border-amber-100 shadow-sm`}
+        className={`${
+          sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64 md:translate-x-0 md:w-[72px]"
+        } fixed inset-y-0 left-0 z-40 md:relative md:z-0 transition-all duration-300 sidebar flex flex-col shrink-0 bg-white border-r border-amber-100 shadow-sm`}
       >
         {/* Logo */}
         <div className="p-4 border-b border-amber-100/50 flex items-center gap-3">
@@ -193,19 +203,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="h-14 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-20 flex items-center justify-between px-6">
-          <div className="flex items-center gap-2">
+        <header className="h-14 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Mobile Toggle Button */}
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1.5 text-gray-500 hover:text-amber-900 hover:bg-amber-50 rounded-lg md:hidden transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {sidebarOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+            
             {/* Status indicator */}
-            <span className="text-sm font-semibold text-gray-700">HoneyChain Net:</span>
+            <span className="text-sm font-semibold text-gray-700 hidden sm:inline-block">HoneyChain Net:</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {wallet.isConnected ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {wallet.isCorrectNetwork ? (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 shadow-sm">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full border border-green-200 shadow-sm">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                    Sepolia Linked
+                    <span className="hidden sm:inline">Sepolia Linked</span>
+                    <span className="sm:hidden">Sepolia</span>
                   </div>
                 ) : (
                   <button
