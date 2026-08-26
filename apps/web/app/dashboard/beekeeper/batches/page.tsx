@@ -55,6 +55,14 @@ export default function BeekeeperBatchesPage() {
     try {
       const { getContractWithSigner } = await import("@/lib/blockchain");
       const contract = await getContractWithSigner();
+      
+      const exists = await contract.doesBatchExist(transferModal.batch.batchId);
+      if (!exists) {
+        alert("❌ This batch is not registered on the blockchain! (It was either created before Web3 integration, or your wallet lacks the BEEKEEPER_ROLE to register batches).\n\nPlease Create a New Batch from the dashboard.");
+        setTransferring(false);
+        return;
+      }
+
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
       const tx = await contract.initiateTransfer(
         transferModal.batch.batchId,

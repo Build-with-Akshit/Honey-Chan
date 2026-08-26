@@ -56,6 +56,14 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
     try {
       const { getContractWithSigner } = await import("@/lib/blockchain");
       const contract = await getContractWithSigner();
+      
+      const exists = await contract.doesBatchExist(batch.batchId);
+      if (!exists) {
+        alert("❌ This batch is not registered on the blockchain! (It was either created before Web3 integration, or the creator lacked the necessary role).\n\nPlease Create a New Batch.");
+        setBusy(false);
+        return;
+      }
+
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
       const tx = await contract.initiateTransfer(batch.batchId, recipient, blockchainStageInt);
       await tx.wait();

@@ -64,8 +64,57 @@ export default function CreateBatchPage() {
     setError(null);
 
     try {
-      // Create batch via API (which handles metadata hash generation & DB storage)
-      const res = await honeyApi.createBatch(formData);
+      let txHash = "";
+
+      // 1. Try to register on blockchain first
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        try {
+          const { getContractWithSigner } = await import("@/lib/blockchain");
+          const { ethers } = await import("ethers");
+          const contract = await getContractWithSigner();
+          
+          // Generate a deterministic metadata hash for the blockchain
+          const metadataPayload = JSON.stringify({
+            batchId: formData.batchId,
+            hive: formData.hiveCode,
+            type: formData.honeyType,
+            quantity: formData.quantityKg
+          });
+          const metadataHash = ethers.keccak256(ethers.toUtf8Bytes(metadataPayload));
+          
+          // Quantity is stored in grams on the smart contract (18.5 KG = 18500)
+          const quantityGrams = Math.floor(Number(formData.quantityKg) * 1000);
+          const harvestTimestamp = Math.floor(new Date(formData.harvestDate || Date.now()).getTime() / 1000);
+
+          alert("Please approve the CREATE BATCH transaction in MetaMask to register this on the blockchain.");
+          
+          const tx = await contract.createBatch(
+            formData.batchId,
+            metadataHash,
+            quantityGrams,
+            harvestTimestamp
+          );
+          
+          await tx.wait();
+          txHash = tx.hash;
+          console.log("Blockchain transaction successful:", txHash);
+        } catch (blockchainErr: any) {
+          console.error("Blockchain error:", blockchainErr);
+          // Only stop if the user rejected the transaction
+          if (blockchainErr.code === 'ACTION_REJECTED' || blockchainErr.code === 4001) {
+             throw new Error("Transaction rejected by user.");
+          }
+          // If it's a role error, we might want to warn them, but for this demo, we can just alert
+          alert("Blockchain registration failed: " + (blockchainErr.reason || blockchainErr.message) + "\n\nBatch will still be saved to the database.");
+        }
+      }
+
+      // 2. Create batch via API (DB storage)
+      const res = await honeyApi.createBatch({
+        ...formData,
+        blockchainTx: txHash || undefined // API will generate a mock hash if undefined
+      });
+      
       setCreatedBatch(res);
     } catch (err: any) {
       setError(err.message || "Failed to create honey batch");
