@@ -33,7 +33,14 @@ export default function BeekeeperIoTPage() {
     if (!currentHive) return;
     setStreaming(true);
     try {
-      const base = currentHive.latestReading;
+      const base = currentHive.latestReading || {
+        temperature: 34.2,
+        humidity: 65.4,
+        weight: 38.4,
+        beeActivity: 0.88,
+        battery: 92,
+      };
+      
       await honeyApi.postReading({
         hiveCode: currentHive.hiveCode,
         temperature: Number((base.temperature + tempMod + (Math.random() * 0.4 - 0.2)).toFixed(1)),

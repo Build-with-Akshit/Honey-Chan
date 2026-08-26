@@ -28,6 +28,12 @@ export async function GET() {
         orderBy: { timestamp: "desc" }
       });
       
+      const readingsHistory = await prisma.sensorReading.findMany({
+        where: { hiveId: hive.id },
+        orderBy: { timestamp: "desc" },
+        take: 12
+      });
+
       const latestPrediction = await prisma.aiPrediction.findFirst({
         where: { hiveId: hive.id },
         orderBy: { createdAt: "desc" }
@@ -36,6 +42,7 @@ export async function GET() {
       return {
         ...hive,
         latestReading,
+        readingsHistory,
         healthScore: latestPrediction?.healthScore || 85,
       };
     }));
