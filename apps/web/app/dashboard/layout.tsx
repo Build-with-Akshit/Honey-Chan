@@ -220,19 +220,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             
             {/* Status indicator */}
-            <span className="text-sm font-semibold text-gray-700 hidden sm:inline-block">HoneyChain Net:</span>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-700">Network:</span>
+              {wallet.isConnected ? (
+                wallet.isCorrectNetwork ? (
+                  <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">Sepolia</span>
+                ) : (
+                  <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-200">Invalid</span>
+                )
+              ) : (
+                <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">Disconnected</span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
             {wallet.isConnected ? (
               <div className="flex items-center gap-2 sm:gap-3">
-                {wallet.isCorrectNetwork ? (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full border border-green-200 shadow-sm">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span className="hidden sm:inline">Sepolia Linked</span>
-                    <span className="sm:hidden">Sepolia</span>
-                  </div>
-                ) : (
+                {!wallet.isCorrectNetwork && (
                   <button
                     onClick={wallet.switchNetwork}
                     className="flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200 hover:bg-red-100 transition-colors shadow-sm"
