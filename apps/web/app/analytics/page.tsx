@@ -6,20 +6,20 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
             <Link
               href="/"
-              className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
+              className="w-9 h-9 shrink-0 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
             >
               ←
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
-              <p className="text-xs text-gray-500">Smart Automation & Authenticity Metrics</p>
+              <p className="text-xs text-gray-500 mt-1 sm:mt-0">Smart Automation & Authenticity Metrics</p>
             </div>
           </div>
-          <span className="badge badge-info">EXECUTIVE DASHBOARD</span>
+          <span className="badge badge-info whitespace-nowrap shrink-0 w-fit">EXECUTIVE DASHBOARD</span>
         </div>
 
         {/* 4 Big KPI Cards */}
