@@ -577,8 +577,8 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                   .getSigner()
                   .then((s: any) => s.getAddress());
 
-                const currentOwner = batch[2];
-                const status = batch[5];
+                const currentOwner = batch[5];
+                const status = batch[6];
 
                 if (Number(status) === 6) {
                   alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked!`);
