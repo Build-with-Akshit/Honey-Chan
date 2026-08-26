@@ -52,8 +52,8 @@ export const HONEY_CHAIN_ABI = [
   "event BatchReceived(string indexed batchId, address indexed receiver, uint8 stage, uint256 timestamp)",
 ] as const;
 
-// Contract address - updated after deployment
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
+// Contract address - Force hardcoded to ignore Vercel env variable for now
+export const CONTRACT_ADDRESS = "0x8a518a619fD9A9d040d1f47b9dD789420d648167";
 
 // Network config
 export const NETWORK_CONFIG = {
