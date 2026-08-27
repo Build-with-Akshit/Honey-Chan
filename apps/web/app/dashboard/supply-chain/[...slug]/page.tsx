@@ -809,18 +809,8 @@ export default function SupplyChainDashboard() {
   // ── LAB TABS ──
   if (user.role === "LAB") {
     if (slug === "pending") {
-      return (
-        <FilteredListPage
-          title="Pending Quality Tests"
-          icon="🧪"
-          description="Batches awaiting lab analysis and quality certification."
-          batches={batches}
-          user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "PROCESSING" && isOwner(b, user.id))}
-          emptyMessage="No pending quality tests at this time."
-          onRefresh={refresh}
-        />
-      );
+      const { LabTestingPage } = require("../LabTestingPage");
+      return <LabTestingPage batches={batches} user={user} onRefresh={refresh} />;
     }
     if (slug === "results") {
       return (

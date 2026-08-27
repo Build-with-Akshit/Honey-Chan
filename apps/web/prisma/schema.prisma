@@ -101,6 +101,7 @@ model HoneyBatch {
   beekeeper     User?     @relation(fields: [beekeeperId], references: [id])
   qualityTests  QualityTest[]
   events        SupplyChainEvent[]
+  qrScans       QRScan[]
 
   @@index([beekeeperId], map: "idx_honey_batches_beekeeper")
   @@index([batchId], map: "idx_honey_batches_batch_id")
@@ -161,3 +162,18 @@ model AiPrediction {
   @@index([hiveId, createdAt(sort: Desc)], map: "idx_ai_predictions_hive")
   @@map("ai_predictions")
 }
+
+model QRScan {
+  id        Int       @id @default(autoincrement())
+  batchId   Int?      @map("batch_id")
+  ipAddress String?   @map("ip_address") @db.VarChar(50)
+  location  String?   @db.VarChar(255) // Geolocation based on IP
+  userAgent String?   @map("user_agent")
+  scannedAt DateTime? @default(now()) @map("scanned_at")
+
+  batch     HoneyBatch? @relation(fields: [batchId], references: [id])
+
+  @@index([batchId], map: "idx_qr_scans_batch")
+  @@map("qr_scans")
+}
+

@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { honeyApi } from "@/lib/api";
+import dynamic from "next/dynamic";
+
+const AdminMap = dynamic(() => import("./AdminMap"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">Loading Map Component...</div>
+});
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -107,11 +113,16 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Clusters */}
-        <div className="lg:col-span-2 card overflow-hidden">
-          <div className="p-4 border-b border-amber-100">
-            <h2 className="font-semibold text-gray-700">📍 KVIC Beekeeping Clusters</h2>
+        <div className="lg:col-span-2 card overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-amber-100 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-700">📍 KVIC Beekeeping Clusters & Geospatial Map</h2>
           </div>
-          <div className="divide-y divide-gray-100">
+          
+          <div className="p-4 bg-gray-50 border-b border-gray-100">
+            <AdminMap clusters={clusters} />
+          </div>
+
+          <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
             {clusters.length === 0 ? (
               <div className="p-4 text-gray-400 text-sm text-center">Loading clusters...</div>
             ) : clusters.map((cluster) => (

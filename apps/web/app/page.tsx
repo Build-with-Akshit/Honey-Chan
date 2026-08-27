@@ -30,9 +30,14 @@ export default function Home() {
               >
                 Logout
               </button>
-            </div>
           ) : !isLoading ? (
             <div className="flex gap-3">
+              <Link
+                href="/marketplace"
+                className="px-4 py-2 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
+              >
+                Marketplace
+              </Link>
               <Link
                 href="/login"
                 className="px-4 py-2 text-sm font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"

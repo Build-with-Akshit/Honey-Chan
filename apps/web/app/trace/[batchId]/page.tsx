@@ -8,6 +8,7 @@ export default function TracePage() {
   const { batchId } = useParams();
   const [batchData, setBatchData] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [anomalyWarning, setAnomalyWarning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
@@ -30,6 +31,7 @@ export default function TracePage() {
         const data = await res.json();
         setBatchData(data.batch);
         setHistory(data.history || []);
+        setAnomalyWarning(data.anomalyWarning || false);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to fetch blockchain data.");
@@ -52,6 +54,22 @@ export default function TracePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {anomalyWarning && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md mb-6 shadow-sm">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <span className="text-red-500 text-xl">🚨</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Anti-Counterfeit Warning</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>This QR code has been scanned from multiple distinct locations recently. This physical bottle may be counterfeit. Please verify the seller.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="text-center">
         <h1 className="text-4xl font-bold text-yellow-600 mb-2">Honey Traceability</h1>
         <p className="text-gray-500">Transparent Supply Chain Verification</p>
