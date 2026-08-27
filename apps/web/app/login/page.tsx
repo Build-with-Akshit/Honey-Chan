@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ethers } from "ethers";
 
 export default function Login() {
   const { login, user, isLoading } = useAuth();
@@ -14,6 +15,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [web3Loading, setWeb3Loading] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -22,6 +24,37 @@ export default function Login() {
       else router.push('/dashboard/supply-chain');
     }
   }, [user, isLoading, router]);
+
+  const handleWeb3Login = async () => {
+    setError("");
+    setWeb3Loading(true);
+
+    if (typeof window === "undefined" || !window.ethereum) {
+      setError("MetaMask is not installed. Please install it to use Web3 login.");
+      setWeb3Loading(false);
+      return;
+    }
+
+    try {
+      // 1. Connect to MetaMask
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const walletAddress = await signer.getAddress();
+
+      // 2. Sign a message
+      const message = `Please sign this message to authenticate with HoneyChain.\n\nTimestamp: ${Date.now()}`;
+      const signature = await signer.signMessage(message);
+
+      // 3. Send to our backend
+      await login({ walletAddress, signature, message });
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Web3 Login failed");
+    } finally {
+      setWeb3Loading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +84,21 @@ export default function Login() {
             {error}
           </div>
         )}
+
+        <button 
+          type="button" 
+          onClick={handleWeb3Login}
+          disabled={web3Loading || loading}
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center gap-2 transition-colors mb-6"
+        >
+          {web3Loading ? "Connecting..." : "🦊 Login with MetaMask"}
+        </button>
+
+        <div className="relative flex py-2 items-center mb-6">
+          <div className="flex-grow border-t border-gray-200"></div>
+          <span className="flex-shrink-0 mx-4 text-gray-400 text-sm">Or continue with Email</span>
+          <div className="flex-grow border-t border-gray-200"></div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -84,7 +132,7 @@ export default function Login() {
           </div>
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || web3Loading}
             className="w-full btn-primary py-2.5 mt-2 flex justify-center items-center"
           >
             {loading ? "Logging in..." : "Log In"}
@@ -96,7 +144,7 @@ export default function Login() {
         </div>
 
         <div className="mt-4 p-4 bg-amber-50/50 rounded-lg text-xs text-gray-500 space-y-2">
-          <p className="font-semibold text-gray-700 mb-1">Test Accounts:</p>
+          <p className="font-semibold text-gray-700 mb-1">Test Accounts (Demo Fallback):</p>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => {setEmail('ramesh.sonipat@gmail.com'); setPassword('password123');}} className="text-left hover:text-amber-700">🐝 Beekeeper</button>
             <button onClick={() => {setEmail('contact@abchoney.in'); setPassword('password123');}} className="text-left hover:text-amber-700">🏭 Processor</button>
@@ -109,3 +157,4 @@ export default function Login() {
     </div>
   );
 }
+

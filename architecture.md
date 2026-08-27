@@ -68,7 +68,16 @@ All detailed data lives in PostgreSQL via Prisma ORM:
 - users, clusters, hives, sensor_readings
 - honey_batches, quality_tests, supply_chain_events, ai_predictions
 
-## API Endpoints
+## Unified Serverless Architecture (Next.js App Router)
+
+Honey Chain abandons the traditional Express.js monolithic server in favor of a modern **Serverless API Architecture** using the Next.js App Router (`apps/web/app/api/*`). 
+
+**Why this approach for SIH?**
+1. **Deployment Efficiency (Vercel):** Seamless deployment where each API route becomes an isolated, automatically scaling serverless function without managing servers.
+2. **Type Safety:** Shared Prisma schema and TypeScript interfaces tightly bind frontend and backend.
+3. **Reduced Latency:** Frontend UI and backend APIs are co-located in the same execution environment.
+
+## Serverless API Endpoints
 
 | Route | Purpose |
 |-------|---------|

@@ -34,23 +34,28 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js + TypeScript + Tailwind CSS |
+| Full-Stack App | **Next.js App Router** (React UI + Serverless APIs) |
+| UI & Styling | Tailwind CSS + TypeScript |
 | Blockchain | Solidity + Hardhat + ethers.js + OpenZeppelin |
 | Wallet | MetaMask |
-| Backend | Node.js + Express + TypeScript + Prisma |
-| Database | PostgreSQL |
+| Database | PostgreSQL + Prisma ORM |
 | AI | Python + FastAPI |
-| IoT | Simulator → ESP32 (same API) |
+| IoT | Simulator → ESP32 (HTTP POST to Serverless API) |
+
+## 🚀 Why Next.js Serverless API? (Modern Architecture)
+Instead of a traditional monolithic Express.js backend, Honey Chain utilizes the **Next.js App Router** (`apps/web/app/api`).
+* **Vercel-Deployment Ready:** APIs deploy as globally distributed serverless functions. Infinite scalability with zero server management.
+* **Unified Codebase:** Frontend and backend logic live in one repository, sharing TypeScript types and utilities.
+* **Performance:** Reduced network latency between UI and API, and seamless integration with Prisma ORM.
 
 ## Project Structure
 
 ```
 honey-chain/
-├── apps/web/          # Next.js frontend
+├── apps/web/          # Next.js App (Frontend + Serverless API Backend)
 ├── blockchain/        # Solidity contracts + Hardhat
-├── backend/           # Express API server
 ├── ai/                # Python FastAPI AI service
-├── iot/               # IoT simulator + ESP32
+├── iot/               # IoT simulator + ESP32 code
 ├── database/          # SQL schema reference
 └── docs/              # Architecture docs
 ```
@@ -67,22 +72,17 @@ npx hardhat node                    # Start local blockchain
 npx hardhat run scripts/deploy.js --network localhost
 ```
 
-### 2. Frontend
+### 2. Full-Stack Web App (Frontend + Serverless API)
+> **Note:** There is no separate Express `backend/` folder. The Next.js app handles both the UI and backend APIs.
+
 ```bash
 cd apps/web
 npm install
+npx prisma generate
 npm run dev
 ```
 
-### 3. Backend
-```bash
-cd backend
-npm install
-npx prisma migrate dev
-npm run dev
-```
-
-### 4. AI Service
+### 3. AI Service
 ```bash
 cd ai
 pip install -r requirements.txt
