@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
 import Link from "next/link";
+import { LabTestingPage } from "../LabTestingPage";
 
 // ── Batch Status Helpers ──
 export function getDisplayStatus(batch: any, user: any) {
@@ -809,7 +810,6 @@ export default function SupplyChainDashboard() {
   // ── LAB TABS ──
   if (user.role === "LAB") {
     if (slug === "pending") {
-      const { LabTestingPage } = require("../LabTestingPage");
       return <LabTestingPage batches={batches} user={user} onRefresh={refresh} />;
     }
     if (slug === "results") {

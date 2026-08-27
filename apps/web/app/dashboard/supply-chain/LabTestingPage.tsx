@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { honeyApi } from "@/lib/api";
-import { BatchTable } from "./page"; // Reusing the table from [...slug]/page.tsx
+
 
 export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
   const [testModal, setTestModal] = useState<{ open: boolean; batch: any }>({ open: false, batch: null });

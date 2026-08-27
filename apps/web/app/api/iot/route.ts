@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 
 // Secret key to verify the request is coming from a real ESP32 device
 const IOT_DEVICE_KEY = process.env.IOT_DEVICE_KEY || "secret_device_key_123";

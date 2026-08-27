@@ -1,9 +1,8 @@
 import { login } from "@/lib/auth";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ethers } from "ethers";
 
-const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {

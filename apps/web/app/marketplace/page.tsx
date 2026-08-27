@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-const prisma = new PrismaClient();
 
 export const dynamic = "force-dynamic";
 
@@ -65,12 +64,9 @@ export default async function MarketplacePage() {
               <div key={batch.id} className="bg-white rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                 <div className="h-48 bg-amber-100 relative">
                   {/* Decorative Image */}
-                  <img 
-                    src={`https://source.unsplash.com/600x400/?honey,bee,apiary&sig=${batch.id}`} 
-                    alt="Honey" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1587049352847-4d4b1a511674?q=80&w=600&auto=format&fit=crop" }}
-                  />
+                  <div className="w-full h-full bg-gradient-to-br from-amber-200 to-amber-100 flex items-center justify-center">
+                    <span className="text-6xl opacity-40">🍯</span>
+                  </div>
                   <div className="absolute top-3 right-3">
                     <span className="bg-white/90 backdrop-blur-sm text-amber-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                       {batch.status}

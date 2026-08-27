@@ -30,6 +30,7 @@ export default function Home() {
               >
                 Logout
               </button>
+            </div>
           ) : !isLoading ? (
             <div className="flex gap-3">
               <Link

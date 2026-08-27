@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import contractAddress from "./contractAddress.json";
-// You should have the compiled ABI copied over to the frontend
-import HoneyChainABI from "./HoneyChain.json"; 
+// ABI from Hardhat deployment artifacts
+import HoneyChainABI from "./contractABI.json"; 
 
 export const getWeb3Provider = async () => {
   if (typeof window !== "undefined" && typeof (window as any).ethereum !== "undefined") {
@@ -17,8 +17,8 @@ export const getWeb3Provider = async () => {
 
 export const getHoneyChainContract = async (signerOrProvider: any) => {
   return new ethers.Contract(
-    contractAddress.address,
-    HoneyChainABI.abi,
+    contractAddress.HoneyChain,
+    HoneyChainABI,
     signerOrProvider
   );
 };
