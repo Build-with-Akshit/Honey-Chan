@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { getContract } from "@/lib/blockchain";
 
 export default function TracePage() {
   const { batchId } = useParams();
@@ -12,29 +11,25 @@ export default function TracePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
-  // Create full URL for QR code
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
-    async function fetchBlockchainData() {
+    async function fetchTraceData() {
       if (!batchId) return;
       try {
         setLoading(true);
-        const contract = getContract();
-        
         const decodedBatchId = decodeURIComponent(batchId as string);
-        // Ensure batch exists
-        const exists = await contract.doesBatchExist(decodedBatchId);
-        if (!exists) {
-          setError("Batch not found on the blockchain.");
+        const res = await fetch(`/api/trace/${encodeURIComponent(decodedBatchId)}`);
+        
+        if (!res.ok) {
+          const errData = await res.json();
+          setError(errData.error || "Batch not found on the blockchain.");
           return;
         }
 
-        const batch = await contract.getBatch(decodedBatchId);
-        const batchHistory = await contract.getBatchHistory(decodedBatchId);
-
-        setBatchData(batch);
-        setHistory(batchHistory);
+        const data = await res.json();
+        setBatchData(data.batch);
+        setHistory(data.history || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to fetch blockchain data.");
@@ -43,7 +38,7 @@ export default function TracePage() {
       }
     }
 
-    fetchBlockchainData();
+    fetchTraceData();
   }, [batchId]);
 
   if (loading) return <div className="p-10 text-center">Loading blockchain data...</div>;
@@ -70,16 +65,16 @@ export default function TracePage() {
             <div className="font-mono">{decodeURIComponent(batchId as string)}</div>
             
             <div className="font-semibold text-gray-600">Beekeeper:</div>
-            <div className="font-mono text-xs truncate">{batchData?.[1] || batchData?.beekeeper}</div>
+            <div className="font-mono text-xs truncate">{batchData?.beekeeper}</div>
             
             <div className="font-semibold text-gray-600">Quantity:</div>
-            <div>{Number(batchData?.[2] ?? batchData?.quantity)} grams</div>
+            <div>{Number(batchData?.quantity)} grams</div>
             
             <div className="font-semibold text-gray-600">Status:</div>
-            <div className="font-bold text-green-600">{STATUS_LABELS[Number(batchData?.[6] ?? batchData?.status)] || "Unknown"}</div>
+            <div className="font-bold text-green-600">{STATUS_LABELS[Number(batchData?.status)] || "Unknown"}</div>
             
             <div className="font-semibold text-gray-600">Quality Passed:</div>
-            <div>{(batchData?.[8] ?? batchData?.qualityPassed) ? "✅ Yes" : "❌ No"}</div>
+            <div>{batchData?.qualityPassed ? "✅ Yes" : "❌ No"}</div>
           </div>
         </div>
 
@@ -94,7 +89,7 @@ export default function TracePage() {
       <div className="bg-white p-6 rounded-xl shadow-lg border border-yellow-100">
         <h2 className="text-2xl font-semibold mb-6">Supply Chain History (Blockchain)</h2>
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-          {history.map((event, index) => {
+          {history.map((event: any, index: number) => {
             const date = new Date(Number(event.timestamp) * 1000).toLocaleString();
             return (
               <div key={index} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
