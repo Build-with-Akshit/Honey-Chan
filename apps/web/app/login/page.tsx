@@ -50,7 +50,11 @@ export default function Login() {
       await login({ walletAddress, signature, message });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Web3 Login failed");
+      if (err.code === "ACTION_REJECTED" || (err.message && err.message.includes("rejected"))) {
+        setError("Login cancelled. You rejected the signature request in MetaMask.");
+      } else {
+        setError(err.message || "Web3 Login failed");
+      }
     } finally {
       setWeb3Loading(false);
     }
