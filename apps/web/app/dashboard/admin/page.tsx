@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   });
   
   const [clusters, setClusters] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
             <h2 className="font-semibold text-gray-700">📋 Recent Activity</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            {activitiesToDisplay.map((item, i) => (
+            {activitiesToDisplay.map((item: any, i: number) => (
               <div key={i} className="p-4">
                 <div className="flex items-start gap-3">
                   <span className="text-lg">{item.icon}</span>

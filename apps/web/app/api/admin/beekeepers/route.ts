@@ -13,13 +13,13 @@ export async function GET() {
       where: { role: "BEEKEEPER" },
       include: {
         hives: true,
-        batches: { select: { quantity: true } }
+        honeyBatches: { select: { quantity: true } }
       }
     });
 
     const enriched = beekeepers.map((bk) => {
-      const activeHives = bk.hives.filter(h => h.status === "ACTIVE").length;
-      const totalHoneyKg = bk.batches.reduce((acc, batch) => acc + Number(batch.quantity || 0), 0);
+      const activeHives = bk.hives.filter((h: any) => h.status === "ACTIVE").length;
+      const totalHoneyKg = bk.honeyBatches.reduce((acc: number, batch: any) => acc + Number(batch.quantity || 0), 0);
       
       return {
         id: bk.id,
@@ -27,7 +27,7 @@ export async function GET() {
         cluster: "KVIC Registered Cluster",
         district: "Registered District",
         hives: activeHives,
-        batches: bk.batches.length,
+        batches: bk.honeyBatches.length,
         honey: `${totalHoneyKg.toFixed(1)} KG`,
         wallet: bk.walletAddress || "Not connected",
         status: "VERIFIED"

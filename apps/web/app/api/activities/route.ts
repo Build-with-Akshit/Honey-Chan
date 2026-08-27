@@ -34,9 +34,9 @@ export async function GET() {
       if (e.stage === "HARVESTED") icon = "🍯";
 
       return {
-        action: `Batch ${e.batch.batchId} - ${e.stage.replace("_", " ")}`,
-        actor: e.actor.name,
-        time: timeAgo(new Date(e.timestamp)),
+        action: `Batch ${e.batch?.batchId || "Unknown"} - ${e.stage.replace("_", " ")}`,
+        actor: e.actor?.name || "System",
+        time: e.timestamp ? timeAgo(new Date(e.timestamp)) : "Unknown",
         icon
       };
     });
