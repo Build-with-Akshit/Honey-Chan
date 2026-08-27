@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function VerifyPage() {
   const params = useParams();
@@ -78,8 +79,50 @@ export default function VerifyPage() {
             </p>
           </div>
           <span className="text-[11px] font-mono bg-amber-100/70 text-amber-900 px-2.5 py-1 rounded-full font-bold">
-            {data?.batchId}
+            {data?.batchId || batchId}
           </span>
+        </div>
+
+        {/* QR Code & Print Section */}
+        <div className="card p-4 bg-white border-amber-100 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-sm print:hidden">
+              <QRCodeSVG value={typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`} size={64} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-800">Batch QR Code</h3>
+              <p className="text-xs text-gray-500 hidden sm:block">Scan to verify this product</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              const url = typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`;
+              const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+              const printWindow = window.open('', '_blank');
+              if (printWindow) {
+                printWindow.document.write(`
+                  <html>
+                    <head><title>Print QR Code - ${batchId}</title></head>
+                    <body style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; font-family:sans-serif;">
+                      <h2 style="margin-bottom: 5px;">HoneyChain Verification</h2>
+                      <p style="margin-top: 0; color: #555; font-family: monospace;">Batch ID: ${batchId}</p>
+                      <img src="${qrUrl}" alt="QR Code" style="width: 250px; height: 250px; border: 1px solid #ddd; padding: 10px; border-radius: 10px;" />
+                      <script>
+                        setTimeout(() => {
+                          window.print();
+                          window.close();
+                        }, 500);
+                      </script>
+                    </body>
+                  </html>
+                `);
+              }
+            }}
+            className="btn-primary text-xs px-4 py-2 flex items-center gap-2"
+          >
+            <span>🖨️</span>
+            <span>Print QR</span>
+          </button>
         </div>
 
         {/* Interactive Judge Tamper Demonstration Trigger */}

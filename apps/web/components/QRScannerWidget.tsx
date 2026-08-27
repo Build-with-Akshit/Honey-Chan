@@ -1,48 +1,87 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { useEffect, useState, useRef } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { useRouter } from "next/navigation";
 
 export default function QRScannerWidget() {
   const router = useRouter();
   const [scanning, setScanning] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
-  useEffect(() => {
-    if (!scanning) return;
+  const handleSuccess = (decodedText: string) => {
+    stopCamera();
+    setScanning(false);
+    
+    let batchId = decodedText;
+    if (decodedText.includes('/verify/')) {
+      batchId = decodedText.split('/verify/')[1];
+    } else if (decodedText.includes('/trace/')) {
+      batchId = decodedText.split('/trace/')[1];
+    }
+    
+    router.push(`/verify/${batchId}`);
+  };
 
-    // Initialize scanner with responsive config
-    const scanner = new Html5QrcodeScanner(
-      "qr-reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      /* verbose= */ false
-    );
-
-    scanner.render(
-      (decodedText) => {
-        // Stop scanning after success
-        scanner.clear();
-        setScanning(false);
-        
-        // Handle URL or raw Batch ID
-        let batchId = decodedText;
-        if (decodedText.includes('/verify/')) {
-          batchId = decodedText.split('/verify/')[1];
-        } else if (decodedText.includes('/trace/')) {
-          batchId = decodedText.split('/trace/')[1];
-        }
-        
-        router.push(`/verify/${batchId}`);
-      },
-      (error) => {
-        // Ignore continuous stream errors
+  const startCamera = async () => {
+    setErrorMsg("");
+    setCameraActive(true);
+    try {
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode("qr-reader-custom");
       }
-    );
+      await scannerRef.current.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        handleSuccess,
+        () => {} // ignore stream errors
+      );
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("Camera access denied or unavailable.");
+      setCameraActive(false);
+    }
+  };
 
+  const stopCamera = async () => {
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (err) {}
+    }
+    setCameraActive(false);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setErrorMsg("");
+    const file = e.target.files[0];
+    
+    try {
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode("qr-reader-custom");
+      }
+      const decodedText = await scannerRef.current.scanFile(file, true);
+      handleSuccess(decodedText);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("No valid QR code found in the image. Please try another clear image.");
+    }
+    // reset input
+    e.target.value = "";
+  };
+
+  // cleanup on unmount
+  useEffect(() => {
     return () => {
-      scanner.clear().catch(console.error);
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().catch(() => {});
+      }
     };
-  }, [scanning, router]);
+  }, []);
 
   if (!scanning) {
     return (
@@ -57,15 +96,64 @@ export default function QRScannerWidget() {
 
   return (
     <div className="w-full mt-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* HTML5 QR Code injects its own UI here */}
-      <div id="qr-reader" className="w-full border-none"></div>
+      <div className="p-4 space-y-4">
+        {errorMsg && (
+          <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg border border-red-200 font-medium">
+            ⚠️ {errorMsg}
+          </div>
+        )}
+
+        <div id="qr-reader-custom" className={`w-full overflow-hidden rounded-lg bg-black ${cameraActive ? 'block' : 'hidden'}`}></div>
+
+        {!cameraActive ? (
+          <div className="space-y-4">
+            <button
+              onClick={startCamera}
+              className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors border border-amber-300"
+            >
+              <span>📹</span> Open Camera to Scan
+            </button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-400 font-semibold text-xs uppercase">OR</span>
+              </div>
+            </div>
+
+            <label className="w-full cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 hover:border-amber-400 text-gray-700 font-bold py-4 rounded-lg flex flex-col items-center justify-center gap-1 transition-all">
+              <span className="text-xl">📁</span>
+              <span>Upload QR Image</span>
+              <span className="text-[10px] text-gray-400 font-normal">JPG, PNG supported</span>
+              <input 
+                type="file" 
+                accept="image/png, image/jpeg, image/webp" 
+                className="hidden" 
+                onChange={handleFileUpload} 
+              />
+            </label>
+          </div>
+        ) : (
+          <button
+            onClick={stopCamera}
+            className="w-full bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 rounded-lg flex items-center justify-center gap-2 border border-red-200 transition-colors"
+          >
+            Stop Camera
+          </button>
+        )}
+      </div>
       
       <div className="p-3 bg-gray-50 border-t border-gray-100">
         <button
-          onClick={() => setScanning(false)}
+          onClick={() => {
+            stopCamera();
+            setScanning(false);
+          }}
           className="w-full px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
         >
-          Cancel Scanning
+          Cancel
         </button>
       </div>
     </div>
