@@ -41,12 +41,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchActivities = async () => {
+    try {
+      const res = await fetch('/api/activities', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setRecentActivities(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch activities", err);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
     let timer: NodeJS.Timeout;
 
     const pollData = async () => {
-      await Promise.all([fetchStats(), fetchClusters()]);
+      await Promise.all([fetchStats(), fetchClusters(), fetchActivities()]);
       if (isMounted) {
         setLoading(false);
         timer = setTimeout(pollData, 10000); // Poll every 10s AFTER previous request finishes
@@ -70,11 +82,8 @@ export default function AdminDashboard() {
     { label: "Total Honey Tracked", value: `${stats.totalHoneyTons} T`, icon: "⚖️", color: "text-purple-700" },
   ];
 
-  const RECENT_ACTIVITY = [
-    { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: "✅" },
-    { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: "🐝" },
-    { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: "⚠️" },
-    { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: "📊" },
+  const activitiesToDisplay = recentActivities.length > 0 ? recentActivities : [
+    { action: "No recent activity yet.", actor: "System", time: "Just now", icon: "ℹ️" }
   ];
 
   return (
@@ -133,7 +142,7 @@ export default function AdminDashboard() {
             <h2 className="font-semibold text-gray-700">📋 Recent Activity</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            {RECENT_ACTIVITY.map((item, i) => (
+            {activitiesToDisplay.map((item, i) => (
               <div key={i} className="p-4">
                 <div className="flex items-start gap-3">
                   <span className="text-lg">{item.icon}</span>
