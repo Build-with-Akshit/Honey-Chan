@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { await prisma.honeyBatch.updateMany({ where: { batchId: 'test_6' }, data: { status: 'COMPLETED' } }); console.log('Fixed test_6'); } main().finally(() => prisma.$disconnect());
