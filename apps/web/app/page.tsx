@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import QRScannerWidget from "@/components/QRScannerWidget";
 
 export default function Home() {
   const { user, isLoading, logout } = useAuth();
@@ -145,12 +146,9 @@ export default function Home() {
             <p className="text-xs text-gray-500 mb-4 max-w-sm">
               Consumers can instantly verify the authenticity and entire supply chain journey of their honey. No account needed.
             </p>
-            <Link
-              href="/verify/HC-2026-000127"
-              className="btn-primary inline-flex items-center gap-2 px-6 py-3"
-            >
-              Scan / Enter QR
-            </Link>
+            <div className="max-w-xs mx-auto">
+              <QRScannerWidget />
+            </div>
           </div>
         </div>
 
