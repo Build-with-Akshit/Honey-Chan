@@ -13,7 +13,7 @@ const NAV_ITEMS: Record<UserRole, { label: string; path: string; icon: string }[
     { label: "Beekeepers", path: "/dashboard/admin/beekeepers", icon: "🐝" },
     { label: "Clusters", path: "/dashboard/admin/clusters", icon: "📍" },
     { label: "All Batches", path: "/dashboard/admin/batches", icon: "🍯" },
-    { label: "Analytics", path: "/analytics", icon: "📈" },
+    { label: "Analytics", path: "/dashboard/admin/analytics", icon: "📈" },
   ],
   BEEKEEPER: [
     { label: "Overview", path: "/dashboard/beekeeper", icon: "📊" },

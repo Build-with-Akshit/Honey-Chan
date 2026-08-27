@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Home } from "lucide-react";
+
 
 export default function AnalyticsPage() {
-  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,21 +25,12 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push("/")}
-              className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
-            >
-              <Home size={18} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
-              <p className="text-xs text-gray-500">Smart Automation & Authenticity Metrics</p>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
+          <p className="text-xs text-gray-500">Smart Automation & Authenticity Metrics</p>
+        </div>
           <span className="badge badge-info">EXECUTIVE DASHBOARD</span>
         </div>
 
@@ -108,7 +97,6 @@ export default function AnalyticsPage() {
             </div>
           </>
         )}
-      </div>
     </div>
   );
 }
