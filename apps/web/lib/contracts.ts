@@ -8,10 +8,10 @@ export const CONTRACT_ADDRESS: string = contractAddress.HoneyChain;
 
 // Network config
 export const NETWORK_CONFIG = {
-  chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "31337"),
-  chainIdHex: `0x${parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "31337").toString(16)}`,
+  chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "11155111"),
+  chainIdHex: `0x${parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "11155111").toString(16)}`,
   networkName: "Sepolia",
-  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL || "http://127.0.0.1:8545",
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL || "https://rpc2.sepolia.org",
   currencySymbol: "ETH",
   blockExplorerUrl: "",
 };
