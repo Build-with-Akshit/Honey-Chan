@@ -61,8 +61,19 @@ export default function VerifyPage() {
   const isVerified = data?.hashMatch && !data?.isTampered;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4 text-gray-800">
-      <div className="max-w-xl mx-auto space-y-5 page-enter">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 print:bg-white print:bg-none py-8 print:py-0 px-4 text-gray-800">
+      
+      {/* Print-Only View */}
+      <div className="hidden print:flex flex-col items-center justify-center min-h-screen w-full bg-white text-black p-10">
+        <h2 className="text-3xl font-bold mb-2">HoneyChain Verification</h2>
+        <p className="text-gray-600 mb-8 font-mono text-lg">Batch ID: {batchId}</p>
+        <div className="p-4 border-4 border-gray-900 rounded-xl">
+          <QRCodeSVG value={typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`} size={250} />
+        </div>
+        <p className="mt-8 text-gray-500 font-medium">Scan to verify this product's authenticity</p>
+      </div>
+
+      <div className="max-w-xl mx-auto space-y-5 page-enter print:hidden">
         {/* Navigation & Header */}
         <div className="flex items-center justify-between">
           <Link
@@ -86,7 +97,7 @@ export default function VerifyPage() {
         {/* QR Code & Print Section */}
         <div className="card p-4 bg-white border-amber-100 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-sm print:hidden">
+            <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
               <QRCodeSVG value={typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`} size={64} />
             </div>
             <div>
@@ -95,29 +106,7 @@ export default function VerifyPage() {
             </div>
           </div>
           <button
-            onClick={() => {
-              const url = typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`;
-              const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
-              const printWindow = window.open('', '_blank');
-              if (printWindow) {
-                printWindow.document.write(`
-                  <html>
-                    <head><title>Print QR Code - ${batchId}</title></head>
-                    <body style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; font-family:sans-serif;">
-                      <h2 style="margin-bottom: 5px;">HoneyChain Verification</h2>
-                      <p style="margin-top: 0; color: #555; font-family: monospace;">Batch ID: ${batchId}</p>
-                      <img src="${qrUrl}" alt="QR Code" style="width: 250px; height: 250px; border: 1px solid #ddd; padding: 10px; border-radius: 10px;" />
-                      <script>
-                        setTimeout(() => {
-                          window.print();
-                          window.close();
-                        }, 500);
-                      </script>
-                    </body>
-                  </html>
-                `);
-              }
-            }}
+            onClick={() => window.print()}
             className="btn-primary text-xs px-4 py-2 flex items-center gap-2"
           >
             <span>🖨️</span>
