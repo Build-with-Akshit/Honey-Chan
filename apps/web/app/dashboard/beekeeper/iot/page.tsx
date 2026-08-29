@@ -104,46 +104,6 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* Demo Sensor Controls Panel */}
-      <div className="card p-4 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-200">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <span className="badge badge-info text-[10px] mb-1">INTERACTIVE JUDGE DEMO CONTROLS</span>
-            <p className="text-xs font-bold text-gray-800">Simulate Real-Time Telemetry & Environmental Events</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => triggerReading(0, 0, 0)}
-              disabled={streaming}
-              className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm"
-            >
-              <span>📡</span>
-              <span>{streaming ? "Streaming..." : "Send Normal Tick"}</span>
-            </button>
-
-            <button
-              onClick={() => triggerReading(2.8, 8.0, 0)}
-              disabled={streaming}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 border border-orange-300 transition-colors"
-            >
-              ⚠️ Heat Anomaly (+2.8°C)
-            </button>
-
-            <button
-              onClick={() => triggerReading(0, 0, 1.2)}
-              disabled={streaming}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-colors"
-            >
-              ⚖️ Honey Flow Gain (+1.2kg)
-            </button>
-          </div>
-        </div>
-
-        {lastAction && (
-          <p className="text-[11px] text-amber-700 mt-2 font-medium">✓ {lastAction}</p>
-        )}
-      </div>
 
       {/* 4 Sensor Telemetry Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

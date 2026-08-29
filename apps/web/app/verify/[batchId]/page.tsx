@@ -114,35 +114,6 @@ export default function VerifyPage() {
           </button>
         </div>
 
-        {/* Interactive Judge Tamper Demonstration Trigger */}
-        <div className="card p-3 bg-gradient-to-r from-amber-50/90 to-orange-50/90 border-amber-200">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="text-[11px] font-bold text-amber-900">🧪 Security Tamper Proof Demo</p>
-              <p className="text-[10px] text-gray-500">
-                {isVerified
-                  ? "Currently genuine. Click to simulate illegal DB manipulation:"
-                  : "⚠️ Data is currently tampered! See hash mismatch below:"}
-              </p>
-            </div>
-            <button
-              onClick={handleTamperTest}
-              disabled={tampering}
-              className={`text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all ${
-                isVerified
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-amber-600 hover:bg-amber-700 text-white"
-              }`}
-            >
-              {tampering ? "Simulating..." : isVerified ? "Alter DB (Test Tamper)" : "Re-test Hash"}
-            </button>
-          </div>
-          {tamperSuccessMsg && (
-            <p className="text-[10px] text-red-600 font-semibold mt-1">
-              ⚡ {tamperSuccessMsg}
-            </p>
-          )}
-        </div>
 
         {/* Verification Status Card */}
         <div
