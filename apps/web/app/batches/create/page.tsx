@@ -65,6 +65,7 @@ export default function CreateBatchPage() {
 
     try {
       let txHash = "";
+      let metadataHash = "";
 
       // 1. Try to register on blockchain first
       if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -80,7 +81,7 @@ export default function CreateBatchPage() {
             type: formData.honeyType,
             quantity: formData.quantityKg
           });
-          const metadataHash = ethers.keccak256(ethers.toUtf8Bytes(metadataPayload));
+          metadataHash = ethers.keccak256(ethers.toUtf8Bytes(metadataPayload));
           
           // Quantity is stored in grams on the smart contract (18.5 KG = 18500)
           const quantityGrams = Math.floor(Number(formData.quantityKg) * 1000);
