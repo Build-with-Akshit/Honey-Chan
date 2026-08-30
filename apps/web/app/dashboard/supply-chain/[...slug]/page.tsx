@@ -482,7 +482,7 @@ export function BatchTable({
 
 // ── Processed Batches with QR Generator ──
 function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
-  const processed = batches.filter((b) => ["QUALITY_TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status));
+  const processed = batches.filter((b) => ["TESTED", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status));
 
   return (
     <div className="space-y-6">
