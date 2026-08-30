@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         {/* Logo */}
         <div className="p-4 border-b border-amber-100/50 flex items-center gap-3">
-          <span className="text-2xl cursor-pointer" onClick={() => router.push("/")}>🍯</span>
+          <span className="text-2xl cursor-pointer" title={!sidebarOpen ? "Home (Alt + `)" : undefined} onClick={() => router.push("/")}>🍯</span>
           {sidebarOpen && (
             <div className="cursor-pointer" onClick={() => router.push("/")}>
               <h1 className="text-lg font-bold text-amber-900 leading-tight">HoneyChain</h1>
@@ -167,8 +167,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* User Badge */}
         <div className="p-4 border-b border-amber-100/50">
-          <Link href="/dashboard/profile" className="flex items-center gap-3 hover:bg-amber-50 p-2 -m-2 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-amber-100">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <Link href="/dashboard/profile" title={!sidebarOpen ? `Profile - ${user.name} (Alt + 0)` : undefined} className="flex items-center gap-3 hover:bg-amber-50 p-2 -m-2 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-amber-100">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
               {user.name.charAt(0)}
             </div>
             {sidebarOpen && (
@@ -197,6 +197,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.path}
                 href={item.path}
+                title={!sidebarOpen ? item.label : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm ${isActive
                     ? "bg-amber-100/60 text-amber-900 font-bold shadow-sm"
                     : "text-gray-600 font-medium hover:text-amber-800 hover:bg-amber-50"
