@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { honeyApi } from "@/lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -68,18 +68,20 @@ export default function BeekeeperIoTPage() {
     );
   }
 
-  const mockHistory = Array.from({ length: 12 }).map((_, i) => {
-    const d = new Date();
-    d.setSeconds(d.getSeconds() - (11 - i) * 4);
-    return {
-      temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
-      humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
-      weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
-      beeActivity: 0.85 + Math.random() * 0.1,
-      battery: 92,
-      timestamp: d.toISOString(),
-    };
-  }).reverse(); // Oldest to newest in mock generation, though logic reverses it later
+  const mockHistory = useMemo(() => {
+    return Array.from({ length: 12 }).map((_, i) => {
+      const d = new Date();
+      d.setSeconds(d.getSeconds() - (11 - i) * 4);
+      return {
+        temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
+        humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
+        weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
+        beeActivity: 0.85 + Math.random() * 0.1,
+        battery: 92,
+        timestamp: d.toISOString(),
+      };
+    }).reverse(); // Oldest to newest in mock generation, though logic reverses it later
+  }, []);
 
   const history = currentHive?.readingsHistory?.length > 0 ? currentHive.readingsHistory : mockHistory;
   const latest = currentHive?.latestReading || history[0];
