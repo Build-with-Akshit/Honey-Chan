@@ -253,14 +253,13 @@ export default function BeekeeperBatchesPage() {
                     )}
                     {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
                       isPendingForOther ? (
-                        <div className="flex flex-col items-end justify-center">
-                          <span className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
-                            ⏳ Awaiting Acceptance
-                          </span>
-                          <span className="text-[10px] font-medium text-gray-500 mt-0.5 px-1 max-w-[140px] truncate" title={`${lastEvent?.actor?.name || 'Recipient'} (${lastEvent?.actor?.role || 'Unknown'})`}>
-                            by {lastEvent?.actor?.name || "Recipient"}
-                          </span>
-                        </div>
+                        <span 
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg max-w-[180px]" 
+                          title={`Awaiting acceptance from ${lastEvent?.actor?.name || 'User'} (${lastEvent?.actor?.role || 'Unknown'})`}
+                        >
+                          <span className="shrink-0">⏳</span>
+                          <span className="truncate">Awaiting: {lastEvent?.actor?.name || "Recipient"}</span>
+                        </span>
                       ) : (
                         <button
                           onClick={() => openTransferModal(batch)}
