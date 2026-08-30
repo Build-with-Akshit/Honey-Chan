@@ -364,18 +364,28 @@ export default function VerifyPage() {
             </span>
           </div>
           <p className="font-mono text-[10px] text-gray-500 break-all">{data?.txHash}</p>
-          {data?.etherscanUrl && (
-            <a
-              href={data.etherscanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+          
+          <div className="flex flex-wrap items-center gap-3 mt-2.5 pt-2 border-t border-gray-200">
+            {data?.etherscanUrl && (
+              <a
+                href={data.etherscanUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                🔗 Sepolia Etherscan →
+              </a>
+            )}
+            <Link
+              href={`/trace/${encodeURIComponent(batchId as string)}`}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 hover:text-amber-950 hover:underline bg-amber-50/80 px-2.5 py-1 rounded-lg border border-amber-200"
             >
-              🔗 View on Sepolia Etherscan →
-            </a>
-          )}
+              🔍 Open On-Chain Technical Explorer →
+            </Link>
+          </div>
+
           {data?.contractAddress && (
-            <p className="font-mono text-[9px] text-gray-400 mt-1">Contract: {data.contractAddress}</p>
+            <p className="font-mono text-[9px] text-gray-400 mt-2">Contract: {data.contractAddress}</p>
           )}
         </div>
 
