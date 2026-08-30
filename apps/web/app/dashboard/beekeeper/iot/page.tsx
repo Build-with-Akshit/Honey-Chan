@@ -67,16 +67,27 @@ export default function BeekeeperIoTPage() {
     );
   }
 
-  const mockHistory = Array.from({ length: 12 }).map((_, i) => ({
-    temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
-    humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
-    weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
-    beeActivity: 0.85 + Math.random() * 0.1,
-    battery: 92,
-  })).reverse(); // Oldest to newest in mock generation, though logic reverses it later
+  const mockHistory = Array.from({ length: 12 }).map((_, i) => {
+    const d = new Date();
+    d.setSeconds(d.getSeconds() - (11 - i) * 4);
+    return {
+      temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
+      humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
+      weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
+      beeActivity: 0.85 + Math.random() * 0.1,
+      battery: 92,
+      timestamp: d.toISOString(),
+    };
+  }).reverse(); // Oldest to newest in mock generation, though logic reverses it later
 
   const history = currentHive?.readingsHistory?.length > 0 ? currentHive.readingsHistory : mockHistory;
   const latest = currentHive?.latestReading || history[0];
+
+  const formatTime = (isoString?: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
 
   return (
     <div className="space-y-6">
@@ -180,7 +191,7 @@ export default function BeekeeperIoTPage() {
         {/* Temperature Trend */}
         <div className="card p-5 bg-white">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-800">🌡️ Temperature Trend (Last 12 Hours)</h3>
+            <h3 className="text-sm font-bold text-gray-800">🌡️ Temperature Trend (Live)</h3>
             <span className="text-xs text-gray-400">Target: 34.0°C</span>
           </div>
 
@@ -202,8 +213,8 @@ export default function BeekeeperIoTPage() {
                     className="w-full bg-amber-400 hover:bg-amber-500 rounded-t-md transition-all duration-300"
                     style={{ height: `${heightPercent}%` }}
                   />
-                  <span className="text-[9px] text-gray-400 truncate max-w-[24px]">
-                    {idx === 11 ? "Now" : `-${12 - idx}h`}
+                  <span className="text-[7.5px] text-gray-400 truncate max-w-[36px]">
+                    {idx === 11 ? "Now" : formatTime(r.timestamp)}
                   </span>
                 </div>
               );
@@ -214,7 +225,7 @@ export default function BeekeeperIoTPage() {
         {/* Weight Trend */}
         <div className="card p-5 bg-white">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-800">⚖️ Weight Accumulation (Honey Storage Flow)</h3>
+            <h3 className="text-sm font-bold text-gray-800">⚖️ Weight Accumulation (Live)</h3>
             <span className="text-xs text-emerald-700 font-semibold">+0.6 kg today</span>
           </div>
 
@@ -236,8 +247,8 @@ export default function BeekeeperIoTPage() {
                     className="w-full bg-emerald-400 hover:bg-emerald-500 rounded-t-md transition-all duration-300"
                     style={{ height: `${heightPercent}%` }}
                   />
-                  <span className="text-[9px] text-gray-400 truncate max-w-[24px]">
-                    {idx === 11 ? "Now" : `-${12 - idx}h`}
+                  <span className="text-[7.5px] text-gray-400 truncate max-w-[36px]">
+                    {idx === 11 ? "Now" : formatTime(r.timestamp)}
                   </span>
                 </div>
               );
