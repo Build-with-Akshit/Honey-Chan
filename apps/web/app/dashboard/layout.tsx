@@ -93,6 +93,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const items = NAV_ITEMS[user.role as UserRole] || [];
     
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '\\') {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+        return;
+      }
+
       if (e.altKey) {
         if (e.key === '`') {
           e.preventDefault();
