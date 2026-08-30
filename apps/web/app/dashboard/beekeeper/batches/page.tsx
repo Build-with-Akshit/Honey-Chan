@@ -85,7 +85,7 @@ export default function BeekeeperBatchesPage() {
         });
         
         alert("Batch synced successfully!");
-        loadBatches(); // Reload the list
+        window.location.reload(); // Reload the list
       } else {
         alert("MetaMask not found!");
       }
