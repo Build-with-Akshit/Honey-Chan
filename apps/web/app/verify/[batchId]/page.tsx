@@ -80,6 +80,15 @@ export default function VerifyPage() {
     }
   }
 
+  const formatStageDisplay = (stage: string) => {
+    if (stage === "DISTRIBUTED") return "DISTRIBUTION";
+    if (stage === "PROCESSING") return "PROCESSING";
+    if (stage === "QUALITY_TESTED" || stage === "TESTED") return "QUALITY TESTING";
+    if (stage === "RETAIL") return "RETAIL";
+    if (stage === "HARVEST") return "HARVEST";
+    return stage;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 print:bg-white print:bg-none py-8 print:py-0 px-4 text-gray-800">
       
@@ -143,48 +152,106 @@ export default function VerifyPage() {
               : "border-red-400 bg-gradient-to-b from-red-50/80 via-white to-red-50/60"
           }`}
         >
-          <div className="text-5xl mb-2">{isVerified ? "✅" : "🚨"}</div>
-          <h2 className={`text-2xl font-black ${isVerified ? "text-green-800" : "text-red-700"}`}>
-            {isVerified ? "Authentic Honey Verified" : "TAMPER WARNING DETECTED"}
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">
-            {isVerified
-              ? "Cryptographic hashes match on-chain immutable smart contract."
-              : "Off-chain database state does NOT match on-chain cryptographic anchor!"}
-          </p>
-
-          <div className="grid grid-cols-3 gap-2 mt-4 text-[11px] font-bold">
-            <div className={`p-2 rounded-lg ${isVerified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
-              {isVerified ? "✓" : "⚠️"} Blockchain Record
-            </div>
-            <div className={`p-2 rounded-lg ${isVerified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
-              {isVerified ? "✓ Hash Match" : "✗ Hash Mismatch"}
-            </div>
-            <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
-              ✓ NABL / FSSAI Pass
-            </div>
+          <div className="inline-block p-2 rounded-full mb-3 shadow-inner">
+            {isVerified ? (
+              <div className="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg shadow-green-500/30">
+                ✓
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg shadow-red-500/30 animate-pulse">
+                ✕
+              </div>
+            )}
           </div>
 
-          {/* Always show hash comparison for transparency */}
-          <div className={`mt-4 p-3 ${!isVerified ? "bg-red-100/70 border border-red-300" : "bg-green-50/70 border border-green-200"} rounded-lg text-left text-[11px] font-mono space-y-1`}>
-            <p className={`${!isVerified ? "text-red-800" : "text-green-800"} font-bold`}>Keccak-256 Hash Comparison:</p>
-            <p className="text-gray-700 break-all">On-Chain: {data?.onChainHash || "N/A"}</p>
-            <p className={`${!isVerified ? "text-red-700" : "text-green-700"} break-all`}>Computed: {data?.currentDataHash || "N/A"}</p>
-            {data?.onChainStatus && (
-              <p className="text-gray-500 mt-1">Blockchain Status: <span className="font-bold text-gray-800">{data.onChainStatus}</span> | DB Status: <span className="font-bold text-gray-800">{data.dbStatus}</span></p>
-            )}
+          <h2
+            className={`text-xl font-black mb-1 ${
+              isVerified ? "text-green-800" : "text-red-700"
+            }`}
+          >
+            {isVerified ? "Authentic Honey Verified" : "Tamper Warning Detected"}
+          </h2>
+          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+            {isVerified
+              ? "Cryptographic hashes match on-chain immutable smart contract."
+              : "Cryptographic hash mismatch! The physical quantity, origin, or botanical source does not match the blockchain record."}
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`badge ${
+                data?.blockchainVerified
+                  ? "badge-verified"
+                  : "bg-gray-100 text-gray-600 border-gray-200"
+              }`}
+            >
+              ✓ Blockchain Record
+            </span>
+            <span
+              className={`badge ${
+                data?.hashMatch
+                  ? "badge-verified"
+                  : "bg-red-100 text-red-700 border-red-200"
+              }`}
+            >
+              {data?.hashMatch ? "✓ Hash Match" : "✕ Hash Mismatch"}
+            </span>
+            <span
+              className={`badge ${
+                data?.labResult === "PASS"
+                  ? "badge-verified"
+                  : "bg-amber-100 text-amber-800 border-amber-200"
+              }`}
+            >
+              {data?.labResult === "PASS"
+                ? "✓ NABL / FSSAI Pass"
+                : "⏳ Lab Test Pending"}
+            </span>
+          </div>
+
+          {/* Cryptographic Proof Comparison Panel */}
+          <div className="mt-4 p-3 rounded-lg bg-gray-900 text-left text-[10px] font-mono text-gray-300 space-y-1 overflow-hidden">
+            <p className="text-gray-400 font-bold uppercase tracking-wider text-[9px] mb-1.5 text-amber-400">
+              Keccak-256 Hash Comparison:
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 w-16 shrink-0">On-Chain:</span>
+              <span className="text-emerald-400 truncate">{data?.onChainHash}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 w-16 shrink-0">Computed:</span>
+              <span
+                className={
+                  data?.hashMatch
+                    ? "text-emerald-400 truncate"
+                    : "text-red-400 truncate font-bold"
+                }
+              >
+                {data?.currentDataHash}
+              </span>
+            </div>
+            <div className="pt-1 mt-1 border-t border-gray-800 flex items-center justify-between text-[9px] text-gray-400">
+              <span>Blockchain Status: <strong className="text-amber-300">{data?.onChainStatus || "Active"}</strong></span>
+              <span>DB Status: <strong className="text-amber-300">{data?.dbStatus}</strong></span>
+            </div>
           </div>
         </div>
 
         {/* Honey Trust Score Card */}
-        <div className="card p-5 bg-white shadow-sm">
+        <div className="card p-5 bg-white shadow-sm border border-amber-100">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <span className="text-xs font-bold text-gray-700">Honey Trust & Transparency Score</span>
-              <p className="text-[10px] text-gray-400">Multi-parameter audit composite score</p>
+              <h3 className="font-bold text-xs text-gray-800">
+                Honey Trust &amp; Transparency Score
+              </h3>
+              <p className="text-[10px] text-gray-400">
+                Multi-parameter audit composite score
+              </p>
             </div>
-            <div className="text-right">
-              <span className="text-3xl font-black text-amber-700">{data?.trustScore}</span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-2xl font-black text-amber-900">
+                {data?.trustScore}
+              </span>
               <span className="text-xs text-gray-400">/100</span>
             </div>
           </div>
@@ -211,7 +278,7 @@ export default function VerifyPage() {
         {/* Batch & Origin Details */}
         <div className="card overflow-hidden bg-white shadow-sm">
           <div className="p-3.5 bg-amber-50/60 border-b border-amber-100">
-            <h3 className="font-bold text-xs text-amber-900">🍯 Producer & Harvest Passport</h3>
+            <h3 className="font-bold text-xs text-amber-900">🍯 Producer &amp; Harvest Passport</h3>
           </div>
           <div className="divide-y divide-gray-100 text-xs">
             {[
@@ -314,7 +381,7 @@ export default function VerifyPage() {
                         <div>
                            <div className="flex items-center justify-between">
                              <p className={`font-bold ${isRejected ? 'text-red-700' : 'text-green-700'}`}>
-                               {isRejected ? 'Transfer Rejected' : `Transfer Accepted • Stage: ${item.outcomeEvent.stage}`}
+                               {isRejected ? 'Transfer Rejected' : `Transfer Accepted • Stage: ${formatStageDisplay(item.outcomeEvent.stage)}`}
                              </p>
                              <span className="text-[10px] text-gray-400">{item.outcomeEvent.date}</span>
                            </div>
@@ -339,7 +406,7 @@ export default function VerifyPage() {
                     <div className="pb-6 text-xs flex-1">
                       <div className="flex items-center justify-between">
                         <p className="font-bold text-gray-900">
-                          {item.stage === 'PENDING_TRANSFER' ? `Transfer Initiated to ${item.actor}` : item.stage}
+                          {item.stage === 'PENDING_TRANSFER' ? `Transfer Initiated to ${item.actor}` : formatStageDisplay(item.stage)}
                         </p>
                         <span className="text-[10px] text-gray-400">{item.date}</span>
                       </div>
