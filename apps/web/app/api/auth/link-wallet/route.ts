@@ -2,6 +2,8 @@ import { getSession, encrypt } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { getAdminContract } from "@/lib/blockchain";
+import { keccak256, toUtf8Bytes } from "ethers";
 
 
 export async function POST(request: Request) {
@@ -40,6 +42,34 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: { walletAddress },
     });
+
+    // Auto-grant role on blockchain (Async so it doesn't block the API response)
+    const mapRole = (role: string) => {
+      switch (role) {
+        case "BEEKEEPER": return "BEEKEEPER_ROLE";
+        case "PROCESSOR": return "PROCESSOR_ROLE";
+        case "LAB": return "LAB_ROLE";
+        case "DISTRIBUTOR":
+        case "WHOLESALER": return "DISTRIBUTOR_ROLE";
+        case "RETAILER": return "RETAILER_ROLE";
+        default: return null;
+      }
+    };
+
+    const onChainRole = mapRole(updatedUser.role);
+    if (onChainRole) {
+      try {
+        const contract = getAdminContract();
+        const roleHash = keccak256(toUtf8Bytes(onChainRole));
+        console.log(`[Auto-Grant] Granting ${onChainRole} to ${walletAddress}...`);
+        
+        // We do NOT await tx.wait() here to keep the API fast. It will mine in the background.
+        const tx = await contract.registerParticipant(walletAddress, roleHash, updatedUser.name);
+        console.log(`[Auto-Grant] Tx sent: ${tx.hash}`);
+      } catch (err) {
+        console.error(`[Auto-Grant] Failed to grant role to ${walletAddress}:`, err);
+      }
+    }
 
     // Update session cookie
     const { password: _, ...userWithoutPassword } = updatedUser;

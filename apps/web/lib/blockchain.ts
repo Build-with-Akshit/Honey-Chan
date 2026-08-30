@@ -28,6 +28,16 @@ export function getContract(): Contract {
   return _contract;
 }
 
+export function getAdminContract(): Contract {
+  const adminKey = process.env.ADMIN_PRIVATE_KEY;
+  if (!adminKey) throw new Error("ADMIN_PRIVATE_KEY missing in environment variables");
+  
+  const provider = getProvider();
+  const { Wallet } = require("ethers");
+  const wallet = new Wallet(adminKey, provider);
+  return new Contract(CONTRACT_ADDRESS, HONEY_CHAIN_ABI, wallet);
+}
+
 export async function getContractWithSigner(): Promise<Contract> {
   if (typeof window !== "undefined" && (window as any).ethereum) {
     await (window as any).ethereum.request({ method: "eth_requestAccounts" });
