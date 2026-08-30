@@ -265,15 +265,15 @@ export default function VerifyPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+            <div className={`p-3 rounded-xl border text-center ${parseFloat(data?.labMoisture || "0") > 20 ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
               <span className="text-gray-400 block text-[10px]">Moisture Content</span>
-              <span className="font-black text-emerald-800 text-lg">{data?.labMoisture}</span>
-              <span className="text-[10px] text-emerald-600 block">(FSSAI Limit &lt;20%)</span>
+              <span className={`font-black text-lg ${parseFloat(data?.labMoisture || "0") > 20 ? "text-red-800" : "text-emerald-800"}`}>{data?.labMoisture}</span>
+              <span className={`text-[10px] block ${parseFloat(data?.labMoisture || "0") > 20 ? "text-red-600" : "text-emerald-600"}`}>(FSSAI Limit &lt;20%)</span>
             </div>
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
+            <div className={`p-3 rounded-xl border text-center ${parseFloat(data?.labAdulteration || "0") > 0 ? "bg-red-50 border-red-200" : data?.labAdulteration === "Pending" ? "bg-gray-50 border-gray-200" : "bg-emerald-50 border-emerald-200"}`}>
               <span className="text-gray-400 block text-[10px]">Adulteration (C3/C4 Sugar)</span>
-              <span className="font-black text-amber-800 text-lg">{data?.labAdulteration || "Pending"}</span>
-              <span className="text-[10px] text-amber-700 block">{parseFloat(data?.labAdulteration || "0") > 0 ? "Adulteration Detected" : data?.labAdulteration === "Pending" ? "Awaiting Test" : "100% Pure Nectar"}</span>
+              <span className={`font-black text-lg ${parseFloat(data?.labAdulteration || "0") > 0 ? "text-red-800" : data?.labAdulteration === "Pending" ? "text-gray-500" : "text-emerald-800"}`}>{data?.labAdulteration || "Pending"}</span>
+              <span className={`text-[10px] block ${parseFloat(data?.labAdulteration || "0") > 0 ? "text-red-700" : data?.labAdulteration === "Pending" ? "text-gray-500" : "text-emerald-600"}`}>{parseFloat(data?.labAdulteration || "0") > 0 ? "Adulteration Detected" : data?.labAdulteration === "Pending" ? "Awaiting Test" : "100% Pure Nectar"}</span>
             </div>
           </div>
         </div>
