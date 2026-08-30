@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { honeyApi } from "@/lib/api";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceArea } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceArea, Brush } from 'recharts';
 
 export default function BeekeeperIoTPage() {
   const [hives, setHives] = useState<any[]>([]);
-  const [selectedHiveCode, setSelectedHiveCode] = useState("HIVE-007");
+  const [selectedHiveCode, setSelectedHiveCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [streaming, setStreaming] = useState(false);
   const [lastAction, setLastAction] = useState<string | null>(null);
@@ -15,6 +15,10 @@ export default function BeekeeperIoTPage() {
     try {
       const list = await honeyApi.getHives();
       setHives(list);
+      // If no hive is selected yet and we have hives, select the first one
+      if (list.length > 0) {
+        setSelectedHiveCode((prev) => prev || list[0].hiveCode);
+      }
     } catch (err) {
       console.error("Failed to load hives:", err);
     } finally {
@@ -41,7 +45,7 @@ export default function BeekeeperIoTPage() {
         beeActivity: 0.88,
         battery: 92,
       };
-      
+
       await honeyApi.postReading({
         hiveCode: currentHive.hiveCode,
         temperature: Number((base.temperature + tempMod + (Math.random() * 0.4 - 0.2)).toFixed(1)),
@@ -60,13 +64,13 @@ export default function BeekeeperIoTPage() {
   };
 
   const [mockHistory, setMockHistory] = useState(() => {
-    return Array.from({ length: 12 }).map((_, i) => {
+    return Array.from({ length: 100 }).map((_, i) => {
       const d = new Date();
-      d.setSeconds(d.getSeconds() - (11 - i) * 4);
+      d.setSeconds(d.getSeconds() - (99 - i) * 4);
       return {
         temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
         humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
-        weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)),
+        weight: Number((38.0 + (99 - i) * 0.05).toFixed(1)),
         beeActivity: 0.85 + Math.random() * 0.1,
         battery: 92,
         timestamp: d.toISOString(),
@@ -110,10 +114,11 @@ export default function BeekeeperIoTPage() {
   const formatTime = (isoString?: string) => {
     if (!isoString) return "";
     const d = new Date(isoString);
-    return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
+    // Show HH:mm:ss to prevent confusion about whether it's minutes or seconds
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
-  const chartData = history.slice(0, 12).reverse().map((r: any) => ({
+  const chartData = history.slice(0, 100).reverse().map((r: any) => ({
     ...r,
     timeLabel: formatTime(r.timestamp)
   }));
@@ -229,13 +234,13 @@ export default function BeekeeperIoTPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#fef3c7" />
                 <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
                 <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}°`} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                   itemStyle={{ color: '#d97706', fontWeight: 'bold' }}
                 />
-                <ReferenceArea y1={33.0} y2={35.0} fill="#22c55e" fillOpacity={0.08} ifOverflow="hidden" />
                 <Line isAnimationActive={false} type="monotone" dataKey="temperature" stroke="#fbbf24" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                <Brush dataKey="timeLabel" height={30} stroke="#f59e0b" startIndex={Math.max(0, chartData.length - 12)} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -253,12 +258,13 @@ export default function BeekeeperIoTPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d1fae5" />
                 <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
                 <YAxis domain={['dataMin - 5', 'dataMax + 5']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}k`} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                   itemStyle={{ color: '#047857', fontWeight: 'bold' }}
                 />
                 <Line isAnimationActive={false} type="monotone" dataKey="weight" stroke="#34d399" strokeWidth={3} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                <Brush dataKey="timeLabel" height={30} stroke="#10b981" startIndex={Math.max(0, chartData.length - 12)} />
               </LineChart>
             </ResponsiveContainer>
           </div>

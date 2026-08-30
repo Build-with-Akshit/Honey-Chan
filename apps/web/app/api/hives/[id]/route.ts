@@ -4,12 +4,13 @@ import { requireAuth } from "@/lib/auth-guard";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user, errorResponse } = await requireAuth(["BEEKEEPER", "ADMIN"]);
     if (errorResponse) return errorResponse;
 
+    const params = await props.params;
     const hiveId = parseInt(params.id);
     
     // Check if hive exists and belongs to user

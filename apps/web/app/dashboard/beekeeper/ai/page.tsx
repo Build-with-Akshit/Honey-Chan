@@ -5,12 +5,14 @@ import { honeyApi } from "@/lib/api";
 
 export default function BeekeeperAIPage() {
   const [aiData, setAiData] = useState<any>(null);
-  const [selectedHive, setSelectedHive] = useState("HIVE-007");
+  const [hives, setHives] = useState<any[]>([]);
+  const [selectedHive, setSelectedHive] = useState("");
   const [loading, setLoading] = useState(true);
   const [scanningImage, setScanningImage] = useState(false);
   const [imageReport, setImageReport] = useState<any>(null);
 
   const fetchAI = async (hiveCode: string) => {
+    if (!hiveCode) return;
     setLoading(true);
     try {
       const res = await honeyApi.getHiveAI(hiveCode);
@@ -23,7 +25,24 @@ export default function BeekeeperAIPage() {
   };
 
   useEffect(() => {
-    fetchAI(selectedHive);
+    const loadData = async () => {
+      try {
+        const list = await honeyApi.getHives();
+        setHives(list);
+        if (list.length > 0) {
+          setSelectedHive(list[0].hiveCode);
+        }
+      } catch(err) {
+        console.error(err);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedHive) {
+      fetchAI(selectedHive);
+    }
   }, [selectedHive]);
 
   const runImageScan = async () => {
@@ -63,10 +82,12 @@ export default function BeekeeperAIPage() {
             onChange={(e) => setSelectedHive(e.target.value)}
             className="text-xs font-bold text-amber-800 bg-transparent focus:outline-none cursor-pointer"
           >
-            <option value="HIVE-007">HIVE-007 (Sonipat • Healthy 91%)</option>
-            <option value="HIVE-001">HIVE-001 (Sonipat • Healthy 94%)</option>
-            <option value="HIVE-012">HIVE-012 (Murthal • Warning 72%)</option>
-            <option value="HIVE-018">HIVE-018 (Kundli • Prime 96%)</option>
+            {hives.length === 0 && <option value="">No Hives Found</option>}
+            {hives.map(h => (
+              <option key={h.id} value={h.hiveCode}>
+                {h.hiveCode} ({h.location || 'Unknown'})
+              </option>
+            ))}
           </select>
         </div>
       </div>

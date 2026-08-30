@@ -19,7 +19,7 @@ export async function GET() {
         beekeeper: true,
         sensorReadings: {
           orderBy: { timestamp: "desc" },
-          take: 12
+          take: 100
         },
         aiPredictions: {
           orderBy: { createdAt: "desc" },
