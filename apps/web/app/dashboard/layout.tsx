@@ -1,4 +1,4 @@
-x"use client";
+"use client";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWallet";
