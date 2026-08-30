@@ -59,19 +59,40 @@ export default function BeekeeperIoTPage() {
     }
   };
 
-  const mockHistory = useMemo(() => {
+  const [mockHistory, setMockHistory] = useState(() => {
     return Array.from({ length: 12 }).map((_, i) => {
       const d = new Date();
       d.setSeconds(d.getSeconds() - (11 - i) * 4);
       return {
         temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
         humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
-        weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
+        weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)),
         beeActivity: 0.85 + Math.random() * 0.1,
         battery: 92,
         timestamp: d.toISOString(),
       };
-    }).reverse(); // Oldest to newest in mock generation, though logic reverses it later
+    }).reverse();
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMockHistory(prev => {
+        const next = [...prev];
+        next.pop(); // remove oldest
+        const last = next[0]; // most recent
+        const d = new Date();
+        next.unshift({
+          temperature: Number((last.temperature + (Math.random() * 0.4 - 0.2)).toFixed(1)),
+          humidity: Number((last.humidity + (Math.random() * 1.0 - 0.5)).toFixed(1)),
+          weight: Number((last.weight + 0.05).toFixed(1)),
+          beeActivity: Number(Math.min(0.98, Math.max(0.5, last.beeActivity + (Math.random() * 0.1 - 0.05))).toFixed(2)),
+          battery: last.battery,
+          timestamp: d.toISOString(),
+        });
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading && !currentHive) {
