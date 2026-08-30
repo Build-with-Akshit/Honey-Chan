@@ -36,7 +36,10 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
         body: formData,
       });
 
-      if (!uploadRes.ok) throw new Error("Failed to upload to IPFS");
+      if (!uploadRes.ok) {
+        const errData = await uploadRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to upload to IPFS");
+      }
       const uploadData = await uploadRes.json();
       const ipfsHash = uploadData.ipfsHash;
 
