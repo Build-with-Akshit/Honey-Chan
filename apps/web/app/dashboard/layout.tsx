@@ -139,7 +139,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = NAV_ITEMS[user.role] || [];
 
   return (
-    <div className="min-h-screen flex bg-amber-50/20">
+    <div className="h-screen flex bg-amber-50/20 overflow-hidden">
       {/* Sidebar Overlay (Mobile) */}
       {sidebarOpen && (
         <div 
