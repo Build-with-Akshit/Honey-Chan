@@ -253,8 +253,8 @@ export default function BeekeeperBatchesPage() {
                     )}
                     {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
                       isPendingForOther ? (
-                        <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
-                          ⏳ Awaiting Acceptance
+                        <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap" title={`Awaiting acceptance from ${lastEvent?.actor?.name || 'User'} (${lastEvent?.actor?.role || 'Unknown'})`}>
+                          ⏳ Awaiting: {lastEvent?.actor?.name || "Recipient"}
                         </span>
                       ) : (
                         <button
