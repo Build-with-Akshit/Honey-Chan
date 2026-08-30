@@ -255,7 +255,13 @@ export default function VerifyPage() {
               <span className="text-lg">🧪</span>
               <h3 className="font-bold text-xs text-gray-800">FSSAI / NABL Quality Certification</h3>
             </div>
-            <span className="badge badge-verified">PASS • GRADE A</span>
+            {data?.labResult === "PENDING" ? (
+              <span className="badge bg-gray-100 text-gray-500 border-gray-200">PENDING</span>
+            ) : data?.labResult === "PASS" ? (
+              <span className="badge badge-verified">PASS • GRADE A</span>
+            ) : (
+              <span className="badge bg-red-100 text-red-700 border-red-200">FAILED</span>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
