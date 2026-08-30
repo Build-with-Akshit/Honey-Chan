@@ -250,6 +250,7 @@ export default function BeekeeperBatchesPage() {
                       >
                         {loading ? "Syncing..." : "Sync to Ledger 🔄"}
                       </button>
+                    )}
                     {batch.qualityTests && batch.qualityTests.length > 0 && (
                       <a
                         href={batch.qualityTests[batch.qualityTests.length - 1].reportUrl || `https://gateway.pinata.cloud/ipfs/${batch.qualityTests[batch.qualityTests.length - 1].reportHash}`}
