@@ -498,7 +498,11 @@ export function BatchTable({
 
 // ── Processed Batches with QR Generator ──
 function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
-  const processed = batches.filter((b) => ["TESTED", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status));
+  const processed = batches.filter((b) => 
+    ["TESTED", "QUALITY_TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status) &&
+    !isPendingForUser(b, user.id) &&
+    isOwner(b, user.id)
+  );
 
   return (
     <div className="space-y-6">
@@ -798,7 +802,7 @@ export default function SupplyChainDashboard() {
           description="Batches received from beekeepers awaiting processing."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || b.status === "HARVESTED"}
+          filterFn={(b) => isPendingForUser(b, user.id)}
           emptyMessage="No incoming raw honey batches at this time."
           onRefresh={refresh}
         />
@@ -812,7 +816,7 @@ export default function SupplyChainDashboard() {
           description="Batches currently being processed in your facility."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "PROCESSING" && isOwner(b, user.id)}
+          filterFn={(b) => b.status === "PROCESSING" && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
           emptyMessage="No batches in the processing queue currently."
           onRefresh={refresh}
         />
