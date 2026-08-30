@@ -992,25 +992,11 @@ export default function SupplyChainDashboard() {
         <FilteredListPage
           title="Incoming Shipments"
           icon="📦"
-          description="Batches being shipped to your warehouse."
+          description="Batches transferred from processing plants awaiting your acceptance."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "QUALITY_TESTED" && isOwner(b, user.id))}
+          filterFn={(b) => isPendingForUser(b, user.id)}
           emptyMessage="No incoming shipments at this time."
-          onRefresh={refresh}
-        />
-      );
-    }
-    if (slug === "transit") {
-      return (
-        <FilteredListPage
-          title="In Transit"
-          icon="🚚"
-          description="Batches currently in transit to retail destinations."
-          batches={batches}
-          user={user}
-          filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id)}
-          emptyMessage="No batches currently in transit."
           onRefresh={refresh}
         />
       );
@@ -1020,11 +1006,31 @@ export default function SupplyChainDashboard() {
         <FilteredListPage
           title="Warehouse Stock"
           icon="🏢"
-          description="Batches stored in your warehouse ready for dispatch."
+          description="Batches physically stored in your distribution center ready for dispatch."
           batches={batches}
           user={user}
           filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
-          emptyMessage="Warehouse is empty."
+          emptyMessage="Warehouse is empty. Accept incoming shipments to add stock."
+          onRefresh={refresh}
+        />
+      );
+    }
+    if (slug === "transit") {
+      return (
+        <FilteredListPage
+          title="In Transit"
+          icon="🚚"
+          description="Shipments dispatched to retailers currently on the road awaiting their receipt."
+          batches={batches}
+          user={user}
+          filterFn={(b) => {
+            const events = b.events || [];
+            if (events.length < 2) return false;
+            const lastEvent = events[events.length - 1];
+            const prevEvent = events[events.length - 2];
+            return lastEvent.stage === "PENDING_TRANSFER" && prevEvent.actorId === user.id;
+          }}
+          emptyMessage="No shipments currently in transit to retailers."
           onRefresh={refresh}
         />
       );
@@ -1032,13 +1038,16 @@ export default function SupplyChainDashboard() {
     if (slug === "dispatch") {
       return (
         <FilteredListPage
-          title="Dispatch Queue"
+          title="Dispatch History"
           icon="📤"
-          description="Batches ready to be dispatched to retailers and wholesalers."
+          description="Batches successfully delivered and received by retailers."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
-          emptyMessage="No batches in dispatch queue."
+          filterFn={(b) => 
+            (b.status === "RETAIL" || b.status === "COMPLETED") && 
+            b.events?.some((e: any) => e.actorId === user.id)
+          }
+          emptyMessage="No completed dispatches yet."
           onRefresh={refresh}
         />
       );
@@ -1050,12 +1059,13 @@ export default function SupplyChainDashboard() {
     if (slug === "purchases") {
       return (
         <FilteredListPage
-          title="My Purchases"
+          title="Incoming Purchases"
           icon="🛒"
-          description="All batches you have purchased."
+          description="Purchased batches awaiting receipt."
           batches={batches}
           user={user}
-          emptyMessage="No purchases yet."
+          filterFn={(b) => isPendingForUser(b, user.id)}
+          emptyMessage="No incoming purchases yet."
           onRefresh={refresh}
         />
       );
@@ -1068,7 +1078,7 @@ export default function SupplyChainDashboard() {
           description="Batches currently in your stock."
           batches={batches}
           user={user}
-          filterFn={(b) => !["COMPLETED"].includes(b.status) && isOwner(b, user.id)}
+          filterFn={(b) => !["COMPLETED"].includes(b.status) && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
           emptyMessage="Inventory is empty."
           onRefresh={refresh}
         />
@@ -1082,7 +1092,7 @@ export default function SupplyChainDashboard() {
           description="Batches transferred to retailers."
           batches={batches}
           user={user}
-          filterFn={(b) => ["RETAIL", "COMPLETED"].includes(b.status)}
+          filterFn={(b) => ["RETAIL", "COMPLETED"].includes(b.status) && b.events?.some((e: any) => e.actorId === user.id)}
           emptyMessage="No transfers to retailers yet."
           onRefresh={refresh}
         />
@@ -1095,13 +1105,13 @@ export default function SupplyChainDashboard() {
     if (slug === "received") {
       return (
         <FilteredListPage
-          title="Received Stock"
+          title="Incoming Shipments"
           icon="🏪"
-          description="Batches received in your store from distributors/wholesalers."
+          description="Batches shipped to your store from distributors awaiting acceptance."
           batches={batches}
           user={user}
-          filterFn={(b) => isPendingForUser(b, user.id) || (b.status === "RETAIL" && isOwner(b, user.id))}
-          emptyMessage="No stock received yet."
+          filterFn={(b) => isPendingForUser(b, user.id)}
+          emptyMessage="No incoming shipments awaiting receipt."
           onRefresh={refresh}
         />
       );
@@ -1117,8 +1127,8 @@ export default function SupplyChainDashboard() {
           description="Batches that have been finalized and sold to consumers. These are permanently locked on the blockchain."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "COMPLETED"}
-          emptyMessage="No products sold yet."
+          filterFn={(b) => b.status === "COMPLETED" && isOwner(b, user.id)}
+          emptyMessage="No products finalized as sold yet."
           showActions={false}
           onRefresh={refresh}
         />
