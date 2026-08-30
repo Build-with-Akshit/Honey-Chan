@@ -41,6 +41,59 @@ export default function BeekeeperBatchesPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const handleSyncToBlockchain = async (batch: any) => {
+    try {
+      setLoading(true);
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const { getContractWithSigner } = await import("@/lib/blockchain");
+        const { ethers } = await import("ethers");
+        const contract = await getContractWithSigner();
+        
+        const metadataPayload = JSON.stringify({
+          batchId: batch.batchId || batch.id,
+          hive: batch.hive?.hiveCode || batch.hiveCode || "UNKNOWN",
+          type: batch.honeyType || "Mixed Flora",
+          quantity: String(batch.quantityKg || batch.quantity || 0)
+        });
+        const metadataHash = ethers.keccak256(ethers.toUtf8Bytes(metadataPayload));
+        
+        const quantityGrams = Math.floor(Number(batch.quantityKg || batch.quantity || 0) * 1000);
+        const harvestTimestamp = Math.floor(new Date(batch.harvestDate || batch.createdAt || Date.now()).getTime() / 1000);
+
+        alert("Please approve the CREATE BATCH transaction in MetaMask to sync this batch to the blockchain.");
+        
+        const tx = await contract.createBatch(
+          batch.batchId || batch.id,
+          metadataHash,
+          quantityGrams,
+          harvestTimestamp
+        );
+        
+        await tx.wait();
+        
+        // Update backend
+        await fetch(`/api/batches/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ batchId: batch.batchId || batch.id, txHash: tx.hash, metadataHash })
+        });
+        
+        alert("Batch synced successfully!");
+        loadBatches(); // Reload the list
+      } else {
+        alert("MetaMask not found!");
+      }
+    } catch (err: any) {
+      console.error(err);
+      // Only alert if they didn't manually reject the transaction
+      if (err.code !== 'ACTION_REJECTED' && err.code !== 4001) {
+         alert("Sync failed: " + (err.reason || err.message));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openTransferModal = async (batch: any) => {
     setTransferModal({ open: true, batch });
     setSelectedUser(null);
@@ -183,6 +236,15 @@ export default function BeekeeperBatchesPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {!batch.metadataHash && (
+                      <button
+                        onClick={() => handleSyncToBlockchain(batch)}
+                        className="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                        disabled={loading}
+                      >
+                        {loading ? "Syncing..." : "Sync to Ledger 🔄"}
+                      </button>
+                    )}
                     {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
                       isPendingForOther ? (
                         <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
