@@ -10,17 +10,17 @@ import Link from "next/link";
 const NAV_ITEMS: Record<UserRole, { label: string; path: string; icon: string }[]> = {
   ADMIN: [
     { label: "Overview", path: "/dashboard/admin", icon: "📊" },
-    { label: "Beekeepers", path: "/dashboard/admin/beekeepers", icon: "🐝" },
     { label: "Clusters", path: "/dashboard/admin/clusters", icon: "📍" },
+    { label: "Beekeepers", path: "/dashboard/admin/beekeepers", icon: "🐝" },
     { label: "All Batches", path: "/dashboard/admin/batches", icon: "🍯" },
     { label: "Analytics", path: "/dashboard/admin/analytics", icon: "📈" },
   ],
   BEEKEEPER: [
     { label: "Overview", path: "/dashboard/beekeeper", icon: "📊" },
     { label: "My Hives", path: "/dashboard/beekeeper/hives", icon: "🐝" },
-    { label: "My Batches", path: "/dashboard/beekeeper/batches", icon: "🍯" },
     { label: "IoT Monitor", path: "/dashboard/beekeeper/iot", icon: "📡" },
     { label: "AI Insights", path: "/dashboard/beekeeper/ai", icon: "🧠" },
+    { label: "Harvest Batches", path: "/dashboard/beekeeper/batches", icon: "🍯" },
   ],
   PROCESSOR: [
     { label: "Overview", path: "/dashboard/supply-chain", icon: "📊" },
