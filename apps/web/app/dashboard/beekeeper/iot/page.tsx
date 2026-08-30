@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceArea } from 'recharts';
 
 export default function BeekeeperIoTPage() {
   const [hives, setHives] = useState<any[]>([]);
@@ -234,6 +234,7 @@ export default function BeekeeperIoTPage() {
                   labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                   itemStyle={{ color: '#d97706', fontWeight: 'bold' }}
                 />
+                <ReferenceArea y1={33.0} y2={35.0} fill="#22c55e" fillOpacity={0.08} ifOverflow="hidden" />
                 <Line isAnimationActive={false} type="monotone" dataKey="temperature" stroke="#fbbf24" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
