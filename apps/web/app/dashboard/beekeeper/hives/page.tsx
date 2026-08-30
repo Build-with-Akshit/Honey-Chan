@@ -42,6 +42,16 @@ export default function BeekeeperHivesPage() {
     }
   };
 
+  const handleDeleteHive = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this hive?")) return;
+    try {
+      await honeyApi.deleteHive(id);
+      loadHives();
+    } catch (err: any) {
+      alert("Failed to delete hive: " + err.message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,10 +145,18 @@ export default function BeekeeperHivesPage() {
                     <p className="text-[11px] text-gray-400">{hive.location}</p>
                   </div>
                 </div>
-                <span className={`badge ${hive.status === "ACTIVE" ? "badge-verified" : "badge-warning"}`}>
-                  {hive.status}
-                </span>
-              </div>
+                <div className="flex gap-2 items-center">
+                  <span className={`badge ${hive.status === "ACTIVE" ? "badge-verified" : "badge-warning"}`}>
+                    {hive.status}
+                  </span>
+                  <button 
+                    onClick={() => handleDeleteHive(hive.id)} 
+                    className="text-gray-300 hover:text-red-500 transition-colors"
+                    title="Delete Hive"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
 
               <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-gray-100">
                 <div className="p-2 rounded-lg bg-amber-50/60">

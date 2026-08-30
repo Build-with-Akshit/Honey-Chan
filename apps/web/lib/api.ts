@@ -31,6 +31,7 @@ export const honeyApi = {
   getClusters: () => fetchApi<any[]>("/clusters"),
   getHives: () => fetchApi<any[]>("/hives"),
   getHive: (id: string) => fetchApi<any>(`/hives/${id}`),
+  deleteHive: (id: string | number) => fetchApi<any>(`/hives/${id}`, { method: "DELETE" }),
   createHive: (data: any) =>
     fetchApi<any>("/hives", { method: "POST", body: JSON.stringify(data) }),
   postReading: (data: any) =>
