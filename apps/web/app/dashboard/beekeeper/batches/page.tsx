@@ -250,6 +250,15 @@ export default function BeekeeperBatchesPage() {
                       >
                         {loading ? "Syncing..." : "Sync to Ledger 🔄"}
                       </button>
+                    {batch.qualityTests && batch.qualityTests.length > 0 && (
+                      <a
+                        href={batch.qualityTests[batch.qualityTests.length - 1].reportUrl || `https://gateway.pinata.cloud/ipfs/${batch.qualityTests[batch.qualityTests.length - 1].reportHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                      >
+                        Certificate 📝
+                      </a>
                     )}
                     {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
                       isPendingForOther ? (

@@ -416,6 +416,16 @@ export function BatchTable({
 
               {showActions && (
                 <div className="flex items-center gap-2">
+                    {batch.qualityTests && batch.qualityTests.length > 0 && (
+                      <a
+                        href={batch.qualityTests[batch.qualityTests.length - 1].reportUrl || `https://gateway.pinata.cloud/ipfs/${batch.qualityTests[batch.qualityTests.length - 1].reportHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                      >
+                        Certificate 📝
+                      </a>
+                    )}
                   <Link
                     href={`/verify/${batch.batchId}`}
                     className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
