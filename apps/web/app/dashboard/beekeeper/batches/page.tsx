@@ -125,7 +125,7 @@ export default function BeekeeperBatchesPage() {
       
       const exists = await contract.doesBatchExist(transferModal.batch.batchId);
       if (!exists) {
-        alert("❌ This batch is not registered on the blockchain! (It was either created before Web3 integration, or your wallet lacks the BEEKEEPER_ROLE to register batches).\n\nPlease Create a New Batch from the dashboard.");
+        alert("❌ This batch is not registered on the blockchain! \n\nPlease click the 'Sync to Ledger 🔄' button for this batch to register it before initiating a transfer.");
         setTransferring(false);
         return;
       }

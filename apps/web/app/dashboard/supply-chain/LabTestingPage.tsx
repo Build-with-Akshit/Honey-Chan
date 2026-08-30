@@ -7,9 +7,19 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
   const [passed, setPassed] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  const pendingBatches = batches.filter(
-    (b) => b.events?.[b.events.length - 1]?.stage === "PENDING_TRANSFER" && b.events[b.events.length - 1].actorId === user.id || (b.status === "PROCESSING" && b.events[b.events.length-1]?.actorId === user.id)
-  );
+  const pendingBatches = batches.filter((b) => {
+    const lastEvent = b.events?.[b.events.length - 1];
+    if (!lastEvent) return false;
+    
+    // Check if the Lab is the current custodian (they have accepted the transfer)
+    const isCustodian = lastEvent.actorId === user.id;
+    // Ensure it's not just a pending transfer waiting to be accepted
+    const isAccepted = lastEvent.stage !== "PENDING_TRANSFER";
+    // Ensure it hasn't been tested yet
+    const notTested = !b.qualityTests || b.qualityTests.length === 0;
+
+    return isCustodian && isAccepted && notTested;
+  });
 
   const handleTestSubmit = async () => {
     if (!testModal.batch || !file) return alert("Please select a PDF report to upload");
