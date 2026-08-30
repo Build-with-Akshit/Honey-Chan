@@ -6,23 +6,7 @@ const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
 export async function POST(req: Request) {
   try {
     if (!PINATA_API_KEY || !PINATA_SECRET_API_KEY) {
-      console.warn("⚠️ Pinata credentials missing in .env. Falling back to mock IPFS upload for testing.");
-      
-      const formData = await req.formData();
-      const file = formData.get("file") as File;
-      if (!file) {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 });
-      }
-
-      // Generate a mock CID (Qm...)
-      const mockCid = "Qm" + Array.from({ length: 44 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-      
-      return NextResponse.json({
-        success: true,
-        ipfsHash: mockCid,
-        url: `https://gateway.pinata.cloud/ipfs/${mockCid}`,
-        message: "Mock upload successful (Pinata keys were missing)",
-      });
+      return NextResponse.json({ error: "Pinata credentials missing in .env" }, { status: 500 });
     }
 
     const formData = await req.formData();
