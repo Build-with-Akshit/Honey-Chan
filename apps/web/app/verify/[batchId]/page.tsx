@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
@@ -10,6 +10,7 @@ export default function VerifyPage() {
   const params = useParams();
   const rawBatchId = params.batchId as string;
   const batchId = rawBatchId || "HC-2026-000127";
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
@@ -76,13 +77,13 @@ export default function VerifyPage() {
       <div className="max-w-xl mx-auto space-y-5 page-enter print:hidden">
         {/* Navigation & Header */}
         <div className="flex items-center justify-between">
-          <Link
-            href="/"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-amber-50"
           >
             <span>←</span>
-            <span>Home</span>
-          </Link>
+            <span>Back</span>
+          </button>
           <div className="text-center">
             <h1 className="text-xl font-bold gradient-text">Honey Chain</h1>
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">
