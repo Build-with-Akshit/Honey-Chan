@@ -425,9 +425,14 @@ export function BatchTable({
                   {isPendingForMe ? (
                     <AcceptRejectButtons batch={batch} user={user} onDone={onRefresh} />
                   ) : isPendingForOther ? (
-                    <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap" title={`Awaiting acceptance from ${lastEvent?.actor?.name || 'User'} (${lastEvent?.actor?.role || 'Unknown'})`}>
-                      ⏳ Awaiting: {lastEvent?.actor?.name || "Recipient"}
-                    </span>
+                    <div className="flex flex-col items-end justify-center">
+                      <span className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
+                        ⏳ Awaiting Acceptance
+                      </span>
+                      <span className="text-[10px] font-medium text-gray-500 mt-0.5 px-1 max-w-[140px] truncate" title={`${lastEvent?.actor?.name || 'Recipient'} (${lastEvent?.actor?.role || 'Unknown'})`}>
+                        by {lastEvent?.actor?.name || "Recipient"}
+                      </span>
+                    </div>
                   ) : batch.status !== "COMPLETED" && isOwner(batch, user.id) && user.role !== "RETAILER" ? (
                     <TransferButton batch={batch} user={user} onDone={onRefresh} />
                   ) : null}
