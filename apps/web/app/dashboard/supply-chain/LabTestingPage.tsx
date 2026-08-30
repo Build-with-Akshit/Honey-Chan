@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
 export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
@@ -6,6 +6,17 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
   const [file, setFile] = useState<File | null>(null);
   const [passed, setPassed] = useState(true);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && testModal.open) {
+        setTestModal({ open: false, batch: null });
+        setFile(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [testModal.open]);
 
   const pendingBatches = batches.filter((b) => {
     const lastEvent = b.events?.[b.events.length - 1];
