@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import jsQR from "jsqr";
 import { useRouter } from "next/navigation";
 
 export default function QRScannerWidget() {
@@ -61,15 +62,59 @@ export default function QRScannerWidget() {
     const file = e.target.files[0];
     
     try {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode("qr-reader-custom");
-      }
-      const decodedText = await scannerRef.current.scanFile(file, true);
-      handleSuccess(decodedText);
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        
+        // Scale down if image is too large
+        const MAX_WIDTH = 1000;
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_WIDTH) {
+          height = Math.round(height * (MAX_WIDTH / width));
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        if (context) {
+          context.drawImage(img, 0, 0, width, height);
+          const imageData = context.getImageData(0, 0, width, height);
+          
+          let code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (!code) {
+            // Try with inversion for better contrast support
+            code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "invertFirst",
+            });
+          }
+
+          if (code) {
+            handleSuccess(code.data);
+          } else {
+            setErrorMsg("No valid QR code found in the image. Please try another clear image.");
+          }
+        }
+        URL.revokeObjectURL(objectUrl);
+      };
+      
+      img.onerror = () => {
+        setErrorMsg("Failed to load image. Please try a different file.");
+        URL.revokeObjectURL(objectUrl);
+      };
+      
+      img.src = objectUrl;
     } catch (err) {
       console.error(err);
-      setErrorMsg("No valid QR code found in the image. Please try another clear image.");
+      setErrorMsg("Error processing image.");
     }
+    
     // reset input
     e.target.value = "";
   };
