@@ -205,13 +205,13 @@ export default function BeekeeperIoTPage() {
               <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#fef3c7" />
                 <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
-                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}°`} />
+                <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}°`} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                   itemStyle={{ color: '#d97706', fontWeight: 'bold' }}
                 />
-                <Line type="monotone" dataKey="temperature" stroke="#fbbf24" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                <Line isAnimationActive={false} type="monotone" dataKey="temperature" stroke="#fbbf24" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -228,13 +228,13 @@ export default function BeekeeperIoTPage() {
               <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d1fae5" />
                 <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
-                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}k`} />
+                <YAxis domain={['dataMin - 5', 'dataMax + 5']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}k`} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                   itemStyle={{ color: '#047857', fontWeight: 'bold' }}
                 />
-                <Line type="monotone" dataKey="weight" stroke="#34d399" strokeWidth={3} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                <Line isAnimationActive={false} type="monotone" dataKey="weight" stroke="#34d399" strokeWidth={3} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
