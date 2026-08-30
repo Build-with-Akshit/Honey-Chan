@@ -22,8 +22,10 @@ export async function POST(request: Request) {
     }
 
     // Check if wallet is already linked to another user
-    const existingWallet = await prisma.user.findUnique({
-      where: { walletAddress },
+    const existingWallet = await prisma.user.findFirst({
+      where: { 
+        walletAddress: { equals: walletAddress, mode: "insensitive" } 
+      },
     });
 
     if (existingWallet && existingWallet.id !== user.id) {

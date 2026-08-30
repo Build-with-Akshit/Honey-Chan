@@ -22,9 +22,11 @@ export async function POST(request: Request) {
         );
       }
 
-      // 2. Find user by wallet address
-      user = await prisma.user.findUnique({
-        where: { walletAddress },
+      // 2. Find user by wallet address (case-insensitive to handle checksummed addresses)
+      user = await prisma.user.findFirst({
+        where: { 
+          walletAddress: { equals: walletAddress, mode: "insensitive" } 
+        },
       });
 
       if (!user) {
