@@ -67,14 +67,16 @@ export default function BeekeeperIoTPage() {
     );
   }
 
-  const history = currentHive?.readingsHistory || [];
-  const latest = currentHive?.latestReading || {
-    temperature: 34.2,
-    humidity: 65.4,
-    weight: 38.4,
-    beeActivity: 0.88,
+  const mockHistory = Array.from({ length: 12 }).map((_, i) => ({
+    temperature: Number((34.0 + Math.random() * 0.8 - 0.4).toFixed(1)),
+    humidity: Number((65.0 + Math.random() * 2 - 1).toFixed(1)),
+    weight: Number((38.0 + (12 - i) * 0.05).toFixed(1)), // Simulating steady weight increase over time
+    beeActivity: 0.85 + Math.random() * 0.1,
     battery: 92,
-  };
+  })).reverse(); // Oldest to newest in mock generation, though logic reverses it later
+
+  const history = currentHive?.readingsHistory?.length > 0 ? currentHive.readingsHistory : mockHistory;
+  const latest = currentHive?.latestReading || history[0];
 
   return (
     <div className="space-y-6">
