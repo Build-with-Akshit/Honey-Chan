@@ -32,14 +32,12 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
     const lastEvent = b.events?.[b.events.length - 1];
     if (!lastEvent) return false;
     
-    // Check if the Lab is the current custodian (they have accepted the transfer)
-    const isCustodian = lastEvent.actorId === user.id;
-    // Ensure it's not just a pending transfer waiting to be accepted
-    const isAccepted = lastEvent.stage !== "PENDING_TRANSFER";
+    // Check if the Lab is the assigned tester
+    const isAssigned = lastEvent.stage === "TEST_REQUESTED" && lastEvent.actorId === user.id;
     // Ensure it hasn't been tested yet
     const notTested = !b.qualityTests || b.qualityTests.length === 0;
 
-    return isCustodian && isAccepted && notTested;
+    return isAssigned && notTested;
   });
 
   const handleTestSubmit = async () => {

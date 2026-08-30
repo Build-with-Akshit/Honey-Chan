@@ -51,6 +51,29 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       });
       return NextResponse.json({ success: true, message: "Transfer initiated" });
 
+    } else if (action === 'REQUEST_TEST') {
+      // Find recipient Lab
+      let recipientId = null;
+      if (recipientWallet) {
+        const recipient = await prisma.user.findFirst({
+          where: { walletAddress: { equals: recipientWallet, mode: 'insensitive' } }
+        });
+        if (recipient) recipientId = recipient.id;
+        else return NextResponse.json({ error: `No registered user found with wallet ${recipientWallet}` }, { status: 404 });
+      }
+
+      await prisma.supplyChainEvent.create({
+        data: {
+          batchId: batch.id,
+          stage: "TEST_REQUESTED",
+          location: location || "Lab Assignment",
+          notes: notes || `Lab test requested from ${stage}`,
+          txHash: generatedTx,
+          actorId: recipientId, // Associate with lab so they see it in pending tests
+        }
+      });
+      return NextResponse.json({ success: true, message: "Lab test requested" });
+
     } else if (action === 'ACCEPT') {
       // Complete the transfer
       await prisma.honeyBatch.update({

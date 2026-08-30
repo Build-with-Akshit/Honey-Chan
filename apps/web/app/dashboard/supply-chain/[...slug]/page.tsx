@@ -100,6 +100,24 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
         return;
       }
 
+      if (selectedUser.role === "LAB") {
+        // LAB TRANSFER: KVIC Workflow - Do NOT transfer ownership. Just request a test.
+        const { honeyApi } = await import("@/lib/api");
+        await honeyApi.transferBatch(batch.batchId, {
+          recipientWallet: selectedUser.walletAddress.toLowerCase(),
+          action: "REQUEST_TEST",
+          location: "Lab Request",
+          notes: `Quality Test requested by ${user.name}`,
+        });
+
+        setModalOpen(false);
+        onDone();
+        setTimeout(() => {
+          alert(`✅ Test requested from ${selectedUser.name}. They will upload the report.`);
+        }, 100);
+        return;
+      }
+
       alert("Please approve the INITIATE TRANSFER transaction in MetaMask.");
       // Pass lowercased address to bypass strict ethers.js checksum validation for dummy DB data
       const recipientAddress = selectedUser.walletAddress.toLowerCase();
@@ -749,7 +767,25 @@ export function isOwner(batch: any, userId: string | number) {
     }
     return batch.beekeeperId === userId;
   }
-  
+
+  // If the last event was done by a LAB, ownership belongs to the actor BEFORE the lab
+  if (lastEvent.stage === "QUALITY_TESTED" || lastEvent.stage === "TEST_REQUESTED" || lastEvent.stage === "LAB_TESTING") {
+     // Find the last event that wasn't a lab event
+     const nonLabEvent = [...events].reverse().find(e => 
+       e.stage !== "QUALITY_TESTED" && e.stage !== "TEST_REQUESTED" && e.stage !== "LAB_TESTING"
+     );
+     if (nonLabEvent) {
+       // If the non-lab event was PENDING_TRANSFER, the owner is the actor before that
+       if (nonLabEvent.stage === "PENDING_TRANSFER") {
+          const preTransferIndex = events.indexOf(nonLabEvent) - 1;
+          if (preTransferIndex >= 0) return events[preTransferIndex].actorId === userId;
+          return batch.beekeeperId === userId;
+       }
+       return nonLabEvent.actorId === userId;
+     }
+     return batch.beekeeperId === userId;
+  }
+
   return lastEvent.actorId === userId;
 }
 
@@ -840,7 +876,7 @@ export default function SupplyChainDashboard() {
           description="Completed quality test reports."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "TESTED" && isOwner(b, user.id)}
+          filterFn={(b) => (b.status === "QUALITY_TESTED" || b.status === "TESTED") && b.events?.some((e: any) => e.stage === "TEST_REQUESTED" && e.actorId === user.id)}
           emptyMessage="No test results available yet."
           onRefresh={refresh}
         />
