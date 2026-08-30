@@ -52,6 +52,11 @@ export default function Login() {
       console.error(err);
       if (err.code === "ACTION_REJECTED" || (err.message && err.message.includes("rejected"))) {
         setError("Login cancelled. You rejected the signature request in MetaMask.");
+      } else if (err.message && err.message.includes("Wallet not registered")) {
+        setError("Wallet not registered. Redirecting to signup...");
+        setTimeout(() => {
+          router.push('/register');
+        }, 2000);
       } else {
         setError(err.message || "Web3 Login failed");
       }
