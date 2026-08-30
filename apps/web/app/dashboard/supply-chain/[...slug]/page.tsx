@@ -116,9 +116,11 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
         notes: `Transfer initiated to ${selectedUser.name} (${selectedUser.role})`,
       });
 
-      alert(`⏳ Transfer initiated to ${selectedUser.name}. Waiting for their acceptance.`);
       setModalOpen(false);
       onDone();
+      setTimeout(() => {
+        alert(`⏳ Transfer initiated to ${selectedUser.name}. Waiting for their acceptance.`);
+      }, 100);
     } catch (err: any) {
       console.error(err);
       alert("Transfer failed: " + (err.reason || err.message));
@@ -274,7 +276,7 @@ function TransferButton({ batch, user, onDone }: { batch: any; user: any; onDone
                   {busy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Processing...</span>
+                      <span>Processing on Blockchain...</span>
                     </>
                   ) : (
                     <>

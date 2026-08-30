@@ -155,11 +155,11 @@ export default function BeekeeperBatchesPage() {
         notes: `Transfer initiated to ${selectedUser.name} (${selectedUser.role})`,
       });
 
-      alert(
-        `✅ Transfer initiated to ${selectedUser.name} (${selectedUser.role})!\n\nWaiting for their acceptance on their dashboard.`
-      );
       setTransferModal({ open: false, batch: null });
-      window.location.reload();
+      setTimeout(() => {
+        alert(`✅ Transfer initiated to ${selectedUser.name} (${selectedUser.role})!\n\nWaiting for their acceptance on their dashboard.`);
+        window.location.reload();
+      }, 100);
     } catch (err: any) {
       console.error(err);
       alert("Transfer failed: " + (err.reason || err.message));
