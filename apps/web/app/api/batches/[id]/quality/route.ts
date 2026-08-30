@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getSession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const batchId = (await params).id;
     const { ipfsHash, txHash, passed, reportUrl } = await req.json();
 
@@ -24,7 +30,7 @@ export async function POST(
         result: passed ? "PASS" : "FAIL",
         reportHash: ipfsHash,
         reportUrl: reportUrl,
-        // Optional: Assuming LAB user is determined via session, omitted here for simplicity
+        labId: user.id,
       },
     });
 
@@ -44,6 +50,7 @@ export async function POST(
         stage: "QUALITY_TESTED",
         txHash: txHash,
         notes: `Lab Quality Test: ${passed ? "PASSED" : "FAILED"}. Report CID: ${ipfsHash}`,
+        actorId: user.id,
       }
     });
 

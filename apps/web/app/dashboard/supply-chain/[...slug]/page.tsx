@@ -820,7 +820,7 @@ export default function SupplyChainDashboard() {
           description="Completed quality test reports."
           batches={batches}
           user={user}
-          filterFn={(b) => b.status === "QUALITY_TESTED" && isOwner(b, user.id)}
+          filterFn={(b) => b.status === "TESTED" && isOwner(b, user.id)}
           emptyMessage="No test results available yet."
           onRefresh={refresh}
         />
@@ -834,7 +834,7 @@ export default function SupplyChainDashboard() {
           description="Blockchain-verified quality certificates issued for tested batches."
           batches={batches}
           user={user}
-          filterFn={(b) => ["QUALITY_TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status)}
+          filterFn={(b) => ["TESTED", "DISTRIBUTED", "RETAIL", "COMPLETED"].includes(b.status)}
           emptyMessage="No certificates issued yet."
           onRefresh={refresh}
         />
