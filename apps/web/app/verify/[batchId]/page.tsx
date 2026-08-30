@@ -266,8 +266,8 @@ export default function VerifyPage() {
             </div>
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
               <span className="text-gray-400 block text-[10px]">Adulteration (C3/C4 Sugar)</span>
-              <span className="font-black text-amber-800 text-lg">0.0% (Zero)</span>
-              <span className="text-[10px] text-amber-700 block">100% Pure Nectar</span>
+              <span className="font-black text-amber-800 text-lg">{data?.labAdulteration || "Pending"}</span>
+              <span className="text-[10px] text-amber-700 block">{parseFloat(data?.labAdulteration || "0") > 0 ? "Adulteration Detected" : data?.labAdulteration === "Pending" ? "Awaiting Test" : "100% Pure Nectar"}</span>
             </div>
           </div>
         </div>

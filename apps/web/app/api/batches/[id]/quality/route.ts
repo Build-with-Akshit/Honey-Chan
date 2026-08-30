@@ -13,7 +13,7 @@ export async function POST(
     }
 
     const batchId = (await params).id;
-    const { ipfsHash, txHash, passed, reportUrl } = await req.json();
+    const { ipfsHash, txHash, passed, reportUrl, moisture, sucrose, fructose, glucose, hfmContent } = await req.json();
 
     const batch = await prisma.honeyBatch.findUnique({
       where: { batchId },
@@ -31,6 +31,11 @@ export async function POST(
         reportHash: ipfsHash,
         reportUrl: reportUrl,
         labId: user.id,
+        moisture,
+        sucrose,
+        fructose,
+        glucose,
+        hfmContent,
       },
     });
 

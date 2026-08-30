@@ -138,7 +138,8 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       isTampered: !hashMatch,
       labVerified: !!qualityTest,
       labResult: qualityTest?.result || "PENDING",
-      labMoisture: qualityTest ? `${qualityTest.moisture}%` : "Pending",
+      labMoisture: qualityTest?.moisture ? `${qualityTest.moisture}%` : "Pending",
+      labAdulteration: qualityTest?.hfmContent !== null && qualityTest?.hfmContent !== undefined ? `${qualityTest.hfmContent}%` : "Pending",
       labDate: qualityTest?.testedAt || "In testing queue",
       txHash: batch.blockchainTx,
       etherscanUrl: batch.blockchainTx

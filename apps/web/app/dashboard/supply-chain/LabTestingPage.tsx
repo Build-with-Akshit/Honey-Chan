@@ -6,12 +6,22 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
   const [file, setFile] = useState<File | null>(null);
   const [passed, setPassed] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [moisture, setMoisture] = useState<string>("");
+  const [sucrose, setSucrose] = useState<string>("");
+  const [fructose, setFructose] = useState<string>("");
+  const [glucose, setGlucose] = useState<string>("");
+  const [hfmContent, setHfmContent] = useState<string>("");
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && testModal.open) {
         setTestModal({ open: false, batch: null });
         setFile(null);
+        setMoisture("");
+        setSucrose("");
+        setFructose("");
+        setGlucose("");
+        setHfmContent("");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -75,13 +85,23 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
           ipfsHash,
           txHash: tx.hash,
           passed,
-          reportUrl: uploadData.url
+          reportUrl: uploadData.url,
+          moisture: moisture ? parseFloat(moisture) : null,
+          sucrose: sucrose ? parseFloat(sucrose) : null,
+          fructose: fructose ? parseFloat(fructose) : null,
+          glucose: glucose ? parseFloat(glucose) : null,
+          hfmContent: hfmContent ? parseFloat(hfmContent) : null,
         }),
       });
 
       alert(`✅ Quality Test Recorded! CID: ${ipfsHash}`);
       setTestModal({ open: false, batch: null });
       setFile(null);
+      setMoisture("");
+      setSucrose("");
+      setFructose("");
+      setGlucose("");
+      setHfmContent("");
       onRefresh();
 
     } catch (err: any) {
@@ -141,6 +161,25 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
                   <option value="FAIL">❌ FAILED (Adulteration Detected)</option>
                 </select>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Moisture (%)</label>
+                  <input type="number" step="0.1" value={moisture} onChange={e => setMoisture(e.target.value)} className="w-full border rounded p-2 text-sm" placeholder="< 20%" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">HFM / Adulteration (%)</label>
+                  <input type="number" step="0.1" value={hfmContent} onChange={e => setHfmContent(e.target.value)} className="w-full border rounded p-2 text-sm" placeholder="0.0" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Sucrose (%)</label>
+                  <input type="number" step="0.1" value={sucrose} onChange={e => setSucrose(e.target.value)} className="w-full border rounded p-2 text-sm" placeholder="< 5%" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Fructose (%)</label>
+                  <input type="number" step="0.1" value={fructose} onChange={e => setFructose(e.target.value)} className="w-full border rounded p-2 text-sm" />
+                </div>
+              </div>
               
               <div>
                 <label className="block text-xs font-semibold mb-1">Upload PDF Report (IPFS)</label>
@@ -153,7 +192,15 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
               </div>
 
               <div className="flex gap-2 mt-4">
-                <button onClick={() => setTestModal({ open: false, batch: null })} className="flex-1 p-2 bg-gray-200 rounded">Cancel</button>
+                <button onClick={() => {
+                  setTestModal({ open: false, batch: null });
+                  setFile(null);
+                  setMoisture("");
+                  setSucrose("");
+                  setFructose("");
+                  setGlucose("");
+                  setHfmContent("");
+                }} className="flex-1 p-2 bg-gray-200 rounded">Cancel</button>
                 <button onClick={handleTestSubmit} disabled={uploading || !file} className="flex-1 p-2 bg-purple-600 text-white rounded disabled:opacity-50">
                   {uploading ? "Uploading to IPFS..." : "Submit to Blockchain"}
                 </button>
