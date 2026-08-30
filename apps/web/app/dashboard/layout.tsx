@@ -93,11 +93,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const items = NAV_ITEMS[user.role as UserRole] || [];
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && !isNaN(Number(e.key))) {
-        const num = parseInt(e.key);
-        if (num > 0 && num <= items.length) {
+      if (e.altKey) {
+        if (e.key === '`') {
           e.preventDefault();
-          router.push(items[num - 1].path);
+          router.push("/");
+          return;
+        }
+        if (e.key === '0') {
+          e.preventDefault();
+          router.push("/dashboard/profile");
+          return;
+        }
+        
+        if (!isNaN(Number(e.key))) {
+          const num = parseInt(e.key);
+          if (num > 0 && num <= items.length) {
+            e.preventDefault();
+            router.push(items[num - 1].path);
+          }
         }
       }
     };
