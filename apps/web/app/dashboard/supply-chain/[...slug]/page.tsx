@@ -1023,6 +1023,7 @@ export default function SupplyChainDashboard() {
           description="Batches stored in your warehouse ready for dispatch."
           batches={batches}
           user={user}
+          filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
           emptyMessage="Warehouse is empty."
           onRefresh={refresh}
         />
@@ -1036,7 +1037,7 @@ export default function SupplyChainDashboard() {
           description="Batches ready to be dispatched to retailers and wholesalers."
           batches={batches}
           user={user}
-          filterFn={(b) => !["COMPLETED", "RETAIL"].includes(b.status)}
+          filterFn={(b) => b.status === "DISTRIBUTED" && isOwner(b, user.id) && !isPendingForUser(b, user.id)}
           emptyMessage="No batches in dispatch queue."
           onRefresh={refresh}
         />
