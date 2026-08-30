@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function BeekeeperIoTPage() {
   const [hives, setHives] = useState<any[]>([]);
@@ -88,6 +89,11 @@ export default function BeekeeperIoTPage() {
     const d = new Date(isoString);
     return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
   };
+
+  const chartData = history.slice(0, 12).reverse().map((r: any) => ({
+    ...r,
+    timeLabel: formatTime(r.timestamp)
+  }));
 
   return (
     <div className="space-y-6">
@@ -186,7 +192,7 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* SVG Micro-Chart for Temperature & Weight Trends */}
+      {/* SVG Line Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Temperature Trend */}
         <div className="card p-5 bg-white">
@@ -194,31 +200,20 @@ export default function BeekeeperIoTPage() {
             <h3 className="text-sm font-bold text-gray-800">🌡️ Temperature Trend (Live)</h3>
             <span className="text-xs text-gray-400">Target: 34.0°C</span>
           </div>
-
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 pl-2 pr-4 bg-amber-50/40 rounded-xl border border-amber-100">
-            {/* Y-Axis */}
-            <div className="flex flex-col justify-between h-full pb-4 pr-2 text-[9px] text-gray-400 font-medium border-r border-amber-200/50 whitespace-nowrap">
-              <span>40°C</span>
-              <span>35°C</span>
-              <span>30°C</span>
-            </div>
-            {history.slice(0, 12).reverse().map((r: any, idx: number) => {
-              const heightPercent = Math.max(20, Math.min(95, (r.temperature - 30) * 12));
-              return (
-                <div key={idx} className="flex-1 flex flex-col justify-end items-center gap-1 group relative h-full">
-                  <div className="text-[9px] font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">
-                    {r.temperature}°
-                  </div>
-                  <div
-                    className="w-full bg-amber-400 hover:bg-amber-500 rounded-t-md transition-all duration-300"
-                    style={{ height: `${heightPercent}%` }}
-                  />
-                  <span className="text-[8px] text-gray-400 whitespace-nowrap overflow-visible">
-                    {idx === 11 ? "Now" : formatTime(r.timestamp)}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="h-44 pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#fef3c7" />
+                <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
+                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}°`} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
+                  labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
+                  itemStyle={{ color: '#d97706', fontWeight: 'bold' }}
+                />
+                <Line type="monotone" dataKey="temperature" stroke="#fbbf24" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -228,31 +223,20 @@ export default function BeekeeperIoTPage() {
             <h3 className="text-sm font-bold text-gray-800">⚖️ Weight Accumulation (Live)</h3>
             <span className="text-xs text-emerald-700 font-semibold">+0.6 kg today</span>
           </div>
-
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 pl-2 pr-4 bg-emerald-50/40 rounded-xl border border-emerald-100">
-            {/* Y-Axis */}
-            <div className="flex flex-col justify-between h-full pb-4 pr-2 text-[9px] text-gray-400 font-medium border-r border-emerald-200/50 whitespace-nowrap">
-              <span>45 kg</span>
-              <span>35 kg</span>
-              <span>25 kg</span>
-            </div>
-            {history.slice(0, 12).reverse().map((r: any, idx: number) => {
-              const heightPercent = Math.max(20, Math.min(95, (r.weight - 25) * 4.5));
-              return (
-                <div key={idx} className="flex-1 flex flex-col justify-end items-center gap-1 group relative h-full">
-                  <div className="text-[9px] font-semibold text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">
-                    {r.weight}k
-                  </div>
-                  <div
-                    className="w-full bg-emerald-400 hover:bg-emerald-500 rounded-t-md transition-all duration-300"
-                    style={{ height: `${heightPercent}%` }}
-                  />
-                  <span className="text-[8px] text-gray-400 whitespace-nowrap overflow-visible">
-                    {idx === 11 ? "Now" : formatTime(r.timestamp)}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="h-44 pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d1fae5" />
+                <XAxis dataKey="timeLabel" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} minTickGap={15} />
+                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}k`} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
+                  labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
+                  itemStyle={{ color: '#047857', fontWeight: 'bold' }}
+                />
+                <Line type="monotone" dataKey="weight" stroke="#34d399" strokeWidth={3} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
