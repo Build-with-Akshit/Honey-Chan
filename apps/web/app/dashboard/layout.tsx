@@ -87,10 +87,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [wallet.isConnected, wallet.address, user, linkWallet]);
 
-  // Keyboard shortcuts for sidebar navigation (Alt + 1, 2, 3...)
+  // Keyboard shortcuts for sidebar navigation (Alt + 1, 2, 3... and Alt + Up/Down Arrows)
   useEffect(() => {
     if (!user) return;
     const items = NAV_ITEMS[user.role as UserRole] || [];
+    if (items.length === 0) return;
     
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === '\\') {
@@ -110,6 +111,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           router.push("/dashboard/profile");
           return;
         }
+
+        // Alt + ArrowDown: Navigate to Next Section
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const currentIndex = items.findIndex(item => item.path === pathname);
+          const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+          router.push(items[nextIndex].path);
+          return;
+        }
+
+        // Alt + ArrowUp: Navigate to Previous Section
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const currentIndex = items.findIndex(item => item.path === pathname);
+          const prevIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + items.length) % items.length;
+          router.push(items[prevIndex].path);
+          return;
+        }
         
         if (!isNaN(Number(e.key))) {
           const num = parseInt(e.key);
@@ -123,7 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [user, router]);
+  }, [user, router, pathname]);
 
   if (isLoading || !user) {
     return (
