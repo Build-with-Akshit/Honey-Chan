@@ -94,26 +94,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (items.length === 0) return;
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === '\\') {
+      // Ctrl + \ to toggle sidebar (ignoring AltGr which also sends ctrlKey)
+      if (e.ctrlKey && !e.altKey && !e.getModifierState?.("AltGraph") && e.key === '\\') {
         e.preventDefault();
         setSidebarOpen(prev => !prev);
         return;
       }
 
-      if (e.altKey) {
-        if (e.key === '`') {
+      // Check for Left Alt OR Right Alt (AltGraph / AltRight)
+      const isAltPressed = 
+        e.altKey || 
+        (e.getModifierState && e.getModifierState("AltGraph")) || 
+        (e.getModifierState && e.getModifierState("Alt"));
+
+      if (isAltPressed) {
+        // Alt + ` : Home
+        if (e.key === '`' || e.code === 'Backquote') {
           e.preventDefault();
           router.push("/");
           return;
         }
-        if (e.key === '0') {
+
+        // Alt + 0 : Profile
+        if (e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
           e.preventDefault();
           router.push("/dashboard/profile");
           return;
         }
 
         // Alt + ArrowDown: Navigate to Next Section
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'ArrowDown' || e.code === 'ArrowDown') {
           e.preventDefault();
           const currentIndex = items.findIndex(item => item.path === pathname);
           const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
@@ -122,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         // Alt + ArrowUp: Navigate to Previous Section
-        if (e.key === 'ArrowUp') {
+        if (e.key === 'ArrowUp' || e.code === 'ArrowUp') {
           e.preventDefault();
           const currentIndex = items.findIndex(item => item.path === pathname);
           const prevIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + items.length) % items.length;
@@ -130,12 +140,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           return;
         }
         
-        if (!isNaN(Number(e.key))) {
-          const num = parseInt(e.key);
-          if (num > 0 && num <= items.length) {
-            e.preventDefault();
-            router.push(items[num - 1].path);
-          }
+        // Alt + Number Keys (1, 2, 3...)
+        let digit = -1;
+        if (!isNaN(Number(e.key)) && e.key.trim() !== "") {
+          digit = parseInt(e.key);
+        } else if (e.code && e.code.startsWith("Digit")) {
+          digit = parseInt(e.code.replace("Digit", ""));
+        } else if (e.code && e.code.startsWith("Numpad")) {
+          digit = parseInt(e.code.replace("Numpad", ""));
+        }
+
+        if (digit > 0 && digit <= items.length) {
+          e.preventDefault();
+          router.push(items[digit - 1].path);
+          return;
         }
       }
     };
