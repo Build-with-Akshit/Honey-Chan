@@ -222,7 +222,7 @@ export default function BeekeeperBatchesPage() {
                   <div>
                     <span className="text-gray-400">Source Hive:</span>
                     <p className="font-semibold text-gray-800 mt-0.5">
-                      {batch.hive?.hiveCode || batch.hiveCode || "N/A"}
+                      {batch.hive?.hiveCode || batch.hiveCode || "Deleted Hive"}
                     </p>
                   </div>
                   <div>

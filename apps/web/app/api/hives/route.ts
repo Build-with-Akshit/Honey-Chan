@@ -9,8 +9,11 @@ export async function GET() {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Beekeepers see only their own hives
-    const whereClause = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    // Beekeepers see only their own active hives
+    const whereClause: any = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    
+    // Always hide soft-deleted hives
+    whereClause.status = { not: "DELETED" };
 
     const hives = await prisma.hive.findMany({
       where: whereClause,

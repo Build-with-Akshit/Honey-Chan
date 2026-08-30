@@ -27,25 +27,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized to delete this hive" }, { status: 403 });
     }
 
-    if (hive.honeyBatches.length > 0) {
-      // Unlink batches instead of preventing deletion
-      await prisma.honeyBatch.updateMany({
-        where: { hiveId },
-        data: { hiveId: null }
-      });
-    }
-
-    // Delete related records manually because cascade might not be set up
-    await prisma.sensorReading.deleteMany({
-      where: { hiveId }
-    });
-
-    await prisma.aiPrediction.deleteMany({
-      where: { hiveId }
-    });
-
-    await prisma.hive.delete({
-      where: { id: hiveId }
+    // Soft delete the hive to retain historical data and relations for batches
+    await prisma.hive.update({
+      where: { id: hiveId },
+      data: { status: "DELETED" }
     });
 
     return NextResponse.json({ success: true });
