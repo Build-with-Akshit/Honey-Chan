@@ -53,7 +53,7 @@ export default function VerifyPage() {
           <div className="text-6xl mb-4 animate-float">🍯</div>
           <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-sm font-semibold text-gray-700">Verifying Cryptographic Ledger...</p>
-          <p className="text-xs text-gray-400 font-mono mt-1">{batchId}</p>
+          <p className="text-xs text-gray-400 font-mono mt-1">{decodeURIComponent(batchId as string)}</p>
         </div>
       </div>
     );
@@ -86,7 +86,7 @@ export default function VerifyPage() {
       {/* Print-Only View */}
       <div className="hidden print:flex flex-col items-center justify-center min-h-screen w-full bg-white text-black p-10">
         <h2 className="text-3xl font-bold mb-2">HoneyChain Verification</h2>
-        <p className="text-gray-600 mb-8 font-mono text-lg">Batch ID: {batchId}</p>
+        <p className="text-gray-600 mb-8 font-mono text-lg">Batch ID: {decodeURIComponent(batchId as string)}</p>
         <div className="p-4 border-4 border-gray-900 rounded-xl">
           <QRCodeSVG value={typeof window !== 'undefined' ? window.location.href : `https://honey-chan.vercel.app/verify/${batchId}`} size={250} />
         </div>
@@ -109,8 +109,8 @@ export default function VerifyPage() {
               KVIC Consumer Verification
             </p>
           </div>
-          <span className="text-[11px] font-mono bg-amber-100/70 text-amber-900 px-2.5 py-1 rounded-full font-bold">
-            {data?.batchId || batchId}
+          <span className="text-[11px] font-mono bg-amber-100/70 text-amber-900 px-2.5 py-1 rounded-full font-bold max-w-[120px] truncate" title={data?.batchId || decodeURIComponent(batchId as string)}>
+            {data?.batchId || decodeURIComponent(batchId as string)}
           </span>
         </div>
 
