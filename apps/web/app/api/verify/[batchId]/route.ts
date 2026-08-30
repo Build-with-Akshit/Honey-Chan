@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOnChainBatch, verifyBatchHash, computeMetadataHash, isBlockchainReachable } from "@/lib/blockchain";
-import { BATCH_STATUS_MAP, SUPPLY_CHAIN_STAGE_MAP } from "@/lib/contracts";
+import { BATCH_STATUS_MAP, SUPPLY_CHAIN_STAGE_MAP, CONTRACT_ADDRESS } from "@/lib/contracts";
 
 export async function GET(req: Request, props: { params: Promise<{ batchId: string }> }) {
   try {
@@ -144,7 +144,7 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       etherscanUrl: batch.blockchainTx
         ? `https://sepolia.etherscan.io/tx/${batch.blockchainTx}`
         : null,
-      contractAddress: "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb",
+      contractAddress: CONTRACT_ADDRESS,
       journey: batch.events.map((e) => ({
         stage: e.stage,
         icon: e.stage === "HARVEST" ? "🐝" : e.stage === "PROCESSING" ? "🏭" : e.stage === "LAB_TESTING" ? "🧪" : e.stage === "DISTRIBUTION" ? "🚚" : "🏪",
