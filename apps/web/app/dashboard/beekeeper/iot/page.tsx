@@ -86,7 +86,7 @@ export default function BeekeeperIoTPage() {
   const formatTime = (isoString?: string) => {
     if (!isoString) return "";
     const d = new Date(isoString);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
   };
 
   return (
@@ -195,9 +195,9 @@ export default function BeekeeperIoTPage() {
             <span className="text-xs text-gray-400">Target: 34.0°C</span>
           </div>
 
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-amber-50/40 rounded-xl border border-amber-100">
+          <div className="h-44 flex items-end gap-2 pt-6 pb-2 pl-2 pr-4 bg-amber-50/40 rounded-xl border border-amber-100">
             {/* Y-Axis */}
-            <div className="flex flex-col justify-between h-full pb-4 pr-1 text-[9px] text-gray-400 font-medium border-r border-amber-200/50">
+            <div className="flex flex-col justify-between h-full pb-4 pr-2 text-[9px] text-gray-400 font-medium border-r border-amber-200/50 whitespace-nowrap">
               <span>40°C</span>
               <span>35°C</span>
               <span>30°C</span>
@@ -213,7 +213,7 @@ export default function BeekeeperIoTPage() {
                     className="w-full bg-amber-400 hover:bg-amber-500 rounded-t-md transition-all duration-300"
                     style={{ height: `${heightPercent}%` }}
                   />
-                  <span className="text-[7.5px] text-gray-400 truncate max-w-[36px]">
+                  <span className="text-[8px] text-gray-400 whitespace-nowrap overflow-visible">
                     {idx === 11 ? "Now" : formatTime(r.timestamp)}
                   </span>
                 </div>
@@ -229,9 +229,9 @@ export default function BeekeeperIoTPage() {
             <span className="text-xs text-emerald-700 font-semibold">+0.6 kg today</span>
           </div>
 
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-emerald-50/40 rounded-xl border border-emerald-100">
+          <div className="h-44 flex items-end gap-2 pt-6 pb-2 pl-2 pr-4 bg-emerald-50/40 rounded-xl border border-emerald-100">
             {/* Y-Axis */}
-            <div className="flex flex-col justify-between h-full pb-4 pr-1 text-[9px] text-gray-400 font-medium border-r border-emerald-200/50">
+            <div className="flex flex-col justify-between h-full pb-4 pr-2 text-[9px] text-gray-400 font-medium border-r border-emerald-200/50 whitespace-nowrap">
               <span>45 kg</span>
               <span>35 kg</span>
               <span>25 kg</span>
@@ -247,7 +247,7 @@ export default function BeekeeperIoTPage() {
                     className="w-full bg-emerald-400 hover:bg-emerald-500 rounded-t-md transition-all duration-300"
                     style={{ height: `${heightPercent}%` }}
                   />
-                  <span className="text-[7.5px] text-gray-400 truncate max-w-[36px]">
+                  <span className="text-[8px] text-gray-400 whitespace-nowrap overflow-visible">
                     {idx === 11 ? "Now" : formatTime(r.timestamp)}
                   </span>
                 </div>
