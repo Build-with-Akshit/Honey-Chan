@@ -236,7 +236,7 @@ export default function BeekeeperBatchesPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {!batch.metadataHash && (
+                    {!(batch.metadataHash || batch.blockchainTx) && (
                       <button
                         onClick={() => handleSyncToBlockchain(batch)}
                         className="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
