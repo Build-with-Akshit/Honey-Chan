@@ -87,6 +87,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [wallet.isConnected, wallet.address, user, linkWallet]);
 
+  // Keyboard shortcuts for sidebar navigation (Alt + 1, 2, 3...)
+  useEffect(() => {
+    if (!user) return;
+    const items = NAV_ITEMS[user.role as UserRole] || [];
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && !isNaN(Number(e.key))) {
+        const num = parseInt(e.key);
+        if (num > 0 && num <= items.length) {
+          e.preventDefault();
+          router.push(items[num - 1].path);
+        }
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [user, router]);
+
   if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50/30">
