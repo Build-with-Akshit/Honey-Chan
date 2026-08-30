@@ -112,7 +112,8 @@ export default function CreateBatchPage() {
       // 2. Create batch via API (DB storage)
       const res = await honeyApi.createBatch({
         ...formData,
-        blockchainTx: txHash || undefined // API will generate a mock hash if undefined
+        blockchainTx: txHash || undefined, // API will generate a mock hash if undefined
+        metadataHash
       });
       
       setCreatedBatch(res);

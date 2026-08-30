@@ -60,22 +60,28 @@ export default function BeekeeperBatchesPage() {
         const quantityGrams = Math.floor(Number(batch.quantityKg || batch.quantity || 0) * 1000);
         const harvestTimestamp = Math.floor(new Date(batch.harvestDate || batch.createdAt || Date.now()).getTime() / 1000);
 
-        alert("Please approve the CREATE BATCH transaction in MetaMask to sync this batch to the blockchain.");
-        
-        const tx = await contract.createBatch(
-          batch.batchId || batch.id,
-          metadataHash,
-          quantityGrams,
-          harvestTimestamp
-        );
-        
-        await tx.wait();
+        const exists = await contract.doesBatchExist(batch.batchId || batch.id);
+        let finalTxHash = batch.blockchainTx || "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+        if (!exists) {
+          alert("Please approve the CREATE BATCH transaction in MetaMask to sync this batch to the blockchain.");
+          
+          const tx = await contract.createBatch(
+            batch.batchId || batch.id,
+            metadataHash,
+            quantityGrams,
+            harvestTimestamp
+          );
+          
+          await tx.wait();
+          finalTxHash = tx.hash;
+        }
         
         // Update backend
         await fetch(`/api/batches/sync`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchId: batch.batchId || batch.id, txHash: tx.hash, metadataHash })
+          body: JSON.stringify({ batchId: batch.batchId || batch.id, txHash: finalTxHash, metadataHash })
         });
         
         alert("Batch synced successfully!");
