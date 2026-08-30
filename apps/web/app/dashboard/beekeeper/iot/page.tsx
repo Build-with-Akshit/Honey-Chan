@@ -59,15 +59,6 @@ export default function BeekeeperIoTPage() {
     }
   };
 
-  if (loading && !currentHive) {
-    return (
-      <div className="p-12 text-center text-gray-500">
-        <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-xs">Connecting to IoT Telemetry Gateway...</p>
-      </div>
-    );
-  }
-
   const mockHistory = useMemo(() => {
     return Array.from({ length: 12 }).map((_, i) => {
       const d = new Date();
@@ -82,6 +73,15 @@ export default function BeekeeperIoTPage() {
       };
     }).reverse(); // Oldest to newest in mock generation, though logic reverses it later
   }, []);
+
+  if (loading && !currentHive) {
+    return (
+      <div className="p-12 text-center text-gray-500">
+        <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
+        <p className="text-xs">Connecting to IoT Telemetry Gateway...</p>
+      </div>
+    );
+  }
 
   const history = currentHive?.readingsHistory?.length > 0 ? currentHive.readingsHistory : mockHistory;
   const latest = currentHive?.latestReading || history[0];
