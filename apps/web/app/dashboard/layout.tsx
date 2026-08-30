@@ -250,18 +250,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => {
-                  if (!wallet.hasMetaMask) {
-                    window.open("https://metamask.io/download/", "_blank");
-                  } else {
-                    wallet.connect();
-                  }
-                }}
-                className="text-xs font-bold text-white bg-gray-800 hover:bg-gray-900 px-4 py-1.5 rounded-full shadow-sm transition-all flex items-center gap-1.5 hover:scale-105"
-              >
-                <span>🦊</span> Connect Wallet
-              </button>
+              <div className="flex items-center gap-2">
+                {wallet.error && (
+                  <span className="text-[10px] text-red-600 font-semibold bg-red-50 px-2 py-1 rounded border border-red-100 max-w-[150px] truncate" title={wallet.error}>
+                    {wallet.error}
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    if (!wallet.hasMetaMask) {
+                      window.open("https://metamask.io/download/", "_blank");
+                    } else {
+                      wallet.connect();
+                    }
+                  }}
+                  disabled={wallet.isConnecting}
+                  className="text-xs font-bold text-white bg-gray-800 hover:bg-gray-900 px-4 py-1.5 rounded-full shadow-sm transition-all flex items-center gap-1.5 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>🦊</span> {wallet.isConnecting ? "Connecting..." : "Connect Wallet"}
+                </button>
+              </div>
             )}
           </div>
         </header>
