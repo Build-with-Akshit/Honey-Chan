@@ -229,9 +229,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ) : (
             <button
               onClick={() => setSidebarOpen(true)}
-              className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors bg-white shadow-sm"
+              className="w-full flex justify-center py-2 text-gray-400 hover:text-amber-700 hover:bg-amber-50 border border-gray-200 rounded-lg hover:border-amber-200 transition-all bg-white shadow-sm"
+              title="Expand Sidebar (Ctrl + \)"
             >
-              »
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
             </button>
           )}
         </div>
