@@ -185,6 +185,12 @@ export default function BeekeeperIoTPage() {
           </div>
 
           <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-amber-50/40 rounded-xl border border-amber-100">
+            {/* Y-Axis */}
+            <div className="flex flex-col justify-between h-full pb-4 pr-1 text-[9px] text-gray-400 font-medium border-r border-amber-200/50">
+              <span>40°C</span>
+              <span>35°C</span>
+              <span>30°C</span>
+            </div>
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
               const heightPercent = Math.max(20, Math.min(95, (r.temperature - 30) * 12));
               return (
@@ -213,6 +219,12 @@ export default function BeekeeperIoTPage() {
           </div>
 
           <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-emerald-50/40 rounded-xl border border-emerald-100">
+            {/* Y-Axis */}
+            <div className="flex flex-col justify-between h-full pb-4 pr-1 text-[9px] text-gray-400 font-medium border-r border-emerald-200/50">
+              <span>45 kg</span>
+              <span>35 kg</span>
+              <span>25 kg</span>
+            </div>
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
               const heightPercent = Math.max(20, Math.min(95, (r.weight - 25) * 4.5));
               return (
