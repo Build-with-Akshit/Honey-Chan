@@ -522,36 +522,75 @@ function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; us
     isOwner(b, user.id)
   );
 
+  const [selectedBatchId, setSelectedBatchId] = useState<string>(processed[0]?.batchId || "");
+
+  useEffect(() => {
+    if ((!selectedBatchId || !processed.some((b) => b.batchId === selectedBatchId)) && processed.length > 0) {
+      setSelectedBatchId(processed[0].batchId);
+    }
+  }, [processed, selectedBatchId]);
+
   return (
     <div className="space-y-6">
       <div className="card bg-white p-6 border border-amber-200 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-2">🏷️ Batch Packaging & QR Generation</h2>
-        <p className="text-gray-500 text-xs mb-4">
-          Generate a unique QR code for your processed honey batches. Print and attach these to the physical bottles before distribution.
-        </p>
-        <div className="flex gap-3 items-center">
-          <input
-            type="text"
-            placeholder="Enter Batch ID (e.g. HC-2026-000127)"
-            className="border border-gray-200 rounded-lg px-4 py-2.5 flex-1 text-sm focus:outline-none focus:border-amber-400"
-            id="batchIdInput"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const batchId = (e.target as HTMLInputElement).value;
-                if (batchId) window.open(`/trace/${batchId}`, "_blank");
-              }
-            }}
-          />
-          <button
-            onClick={() => {
-              const batchId = (document.getElementById("batchIdInput") as HTMLInputElement).value;
-              if (batchId) window.open(`/trace/${batchId}`, "_blank");
-            }}
-            className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-colors shadow-sm"
-          >
-            Generate Trace QR
-          </button>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xl">🏷️</span>
+          <h2 className="text-lg font-bold text-gray-800">Batch Packaging & QR Generation</h2>
         </div>
+        <p className="text-gray-500 text-xs mb-4">
+          Select a quality-tested batch from your facility to generate, preview, and print traceability QR codes before bottle packaging & distribution.
+        </p>
+
+        {processed.length === 0 ? (
+          <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl text-center">
+            <p className="text-xs text-amber-800 font-medium">
+              No processed batches available for QR generation yet. Batches will appear here once Quality Tested by the Lab.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div className="relative flex-1">
+              <select
+                value={selectedBatchId}
+                onChange={(e) => setSelectedBatchId(e.target.value)}
+                className="w-full bg-amber-50/40 border border-amber-200 text-gray-800 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all cursor-pointer appearance-none pr-10"
+              >
+                {processed.map((b) => (
+                  <option key={b.id || b.batchId} value={b.batchId}>
+                    {b.batchId} — {b.honeyType || "Honey"} ({b.quantity} KG) • {b.location || "Origin"}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-800">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (selectedBatchId) window.open(`/verify/${encodeURIComponent(selectedBatchId)}`, "_blank");
+                }}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all shadow-sm shadow-amber-500/20 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <span>📱</span>
+                <span>Verify & Print QR</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedBatchId) window.open(`/trace/${encodeURIComponent(selectedBatchId)}`, "_blank");
+                }}
+                className="bg-white hover:bg-amber-50 text-amber-900 border border-amber-200 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap"
+                title="View on Blockchain Trace Explorer"
+              >
+                <span>🔍</span>
+                <span>Trace Explorer</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -572,6 +611,17 @@ function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; us
 
 // ── Retail Inventory / POS Page ──
 function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
+  const storeBatches = batches.filter((b) => isOwner(b, user.id) && !isPendingForUser(b, user.id));
+  const [selectedBatchId, setSelectedBatchId] = useState<string>(storeBatches[0]?.batchId || "");
+  const [billNumber, setBillNumber] = useState<string>("");
+  const [busy, setBusy] = useState<boolean>(false);
+
+  useEffect(() => {
+    if ((!selectedBatchId || !storeBatches.some((b) => b.batchId === selectedBatchId)) && storeBatches.length > 0) {
+      setSelectedBatchId(storeBatches[0].batchId);
+    }
+  }, [storeBatches, selectedBatchId]);
+
   return (
     <div className="space-y-6">
       <div className="card bg-white p-6 border border-green-200 shadow-sm">
@@ -579,95 +629,132 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
         <p className="text-gray-500 text-xs mb-4">
           Record the final sale to a consumer. This action permanently locks the batch on the blockchain, ensuring no further modifications can be made.
         </p>
-        <div className="space-y-3">
-          <input
-            type="text"
-            placeholder="Enter Batch ID (e.g. HC-2026-000127)"
-            className="border border-gray-200 rounded-lg px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
-            id="retailBatchId"
-          />
-          <input
-            type="text"
-            placeholder="Enter Consumer Bill / Invoice Number"
-            className="border border-gray-200 rounded-lg px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
-            id="retailBillNumber"
-          />
-          <button
-            onClick={async () => {
-              const batchId = (document.getElementById("retailBatchId") as HTMLInputElement).value;
-              const billNo = (document.getElementById("retailBillNumber") as HTMLInputElement).value;
-              if (!batchId || !billNo) return alert("Please fill all fields");
 
-              try {
-                const { getContractWithSigner } = await import("@/lib/blockchain");
-                const { ethers } = await import("ethers");
-                const contract = await getContractWithSigner();
+        {storeBatches.length === 0 ? (
+          <div className="p-4 bg-green-50/60 border border-green-200 rounded-xl text-center">
+            <p className="text-xs text-green-800 font-medium">
+              No inventory ready for final sale. Batches transferred to your store will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Select Batch from Inventory</label>
+              <div className="relative">
+                <select
+                  value={selectedBatchId}
+                  onChange={(e) => setSelectedBatchId(e.target.value)}
+                  className="w-full bg-green-50/30 border border-green-200 text-gray-800 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-green-400 appearance-none pr-10"
+                >
+                  {storeBatches.map((b) => (
+                    <option key={b.id || b.batchId} value={b.batchId}>
+                      {b.batchId} — {b.honeyType || "Honey"} ({b.quantity} KG)
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-green-800">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-                const exists = await contract.doesBatchExist(batchId);
-                if (!exists) {
-                  alert(`❌ Batch "${batchId}" not found on blockchain!`);
-                  return;
-                }
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Consumer Bill / Invoice Number</label>
+              <input
+                type="text"
+                placeholder="e.g. INV-2026-98765"
+                value={billNumber}
+                onChange={(e) => setBillNumber(e.target.value)}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
+              />
+            </div>
 
-                const batch = await contract.getBatch(batchId);
-                const signerAddress = await (
-                  await new ethers.BrowserProvider((window as any).ethereum)
-                )
-                  .getSigner()
-                  .then((s: any) => s.getAddress());
+            <button
+              disabled={busy}
+              onClick={async () => {
+                if (!selectedBatchId || !billNumber) return alert("Please select a batch and enter bill number");
 
-                const currentOwner = batch[5];
-                const status = batch[6];
-
-                if (Number(status) === 6) {
-                  alert(`⚠️ Batch "${batchId}" is ALREADY Completed/Locked!`);
-                  return;
-                }
-                
-                if (currentOwner.toLowerCase() !== signerAddress.toLowerCase()) {
-                  alert(`❌ You are not the current owner of this batch on the blockchain.\nPlease accept the pending transfer first!`);
-                  return;
-                }
-
-                if (Number(status) !== 5) { // 5 is Retail
-                   alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
-                   return;
-                }
-
-                const billHash = ethers.id(billNo);
-                alert("Please approve the final sale transaction in MetaMask to lock the batch.");
-                const tx = await contract.completeRetailSale(batchId, billHash);
-                await tx.wait();
-
-                // Sync status with backend database
+                setBusy(true);
                 try {
-                  await fetch(`/api/batches/${batchId}/complete`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ billHash }),
-                  });
-                } catch (e) {
-                  console.error("Failed to sync completion to backend database", e);
-                }
+                  const { getContractWithSigner } = await import("@/lib/blockchain");
+                  const { ethers } = await import("ethers");
+                  const contract = await getContractWithSigner();
 
-                alert("🎉 Consumer sale finalized on Blockchain. Batch is now permanently locked.");
-                onRefresh();
-              } catch (err: any) {
-                console.error(err);
-                if (err.message.includes("AccessControlUnauthorizedAccount")) {
-                  alert("❌ Your MetaMask wallet does not have the 'Retailer' role on the smart contract.");
-                } else if (err.message.includes("InvalidTransition")) {
-                  alert("❌ Batch cannot be locked because it was transferred with the wrong stage (e.g. Processing instead of Retail).");
-                } else {
-                  alert("Failed to finalize: " + (err.reason || err.message));
+                  const exists = await contract.doesBatchExist(selectedBatchId);
+                  if (!exists) {
+                    alert(`❌ Batch "${selectedBatchId}" not found on blockchain!`);
+                    setBusy(false);
+                    return;
+                  }
+
+                  const batch = await contract.getBatch(selectedBatchId);
+                  const signerAddress = await (
+                    await new ethers.BrowserProvider((window as any).ethereum)
+                  )
+                    .getSigner()
+                    .then((s: any) => s.getAddress());
+
+                  const currentOwner = batch[5];
+                  const status = batch[6];
+
+                  if (Number(status) === 6) {
+                    alert(`⚠️ Batch "${selectedBatchId}" is ALREADY Completed/Locked!`);
+                    setBusy(false);
+                    return;
+                  }
+                  
+                  if (currentOwner.toLowerCase() !== signerAddress.toLowerCase()) {
+                    alert(`❌ You are not the current owner of this batch on the blockchain.\nPlease accept the pending transfer first!`);
+                    setBusy(false);
+                    return;
+                  }
+
+                  if (Number(status) !== 5) { // 5 is Retail
+                     alert(`❌ Batch is not in the correct 'Retail' stage on the blockchain.\nIt is currently in stage ${Number(status)}.\n(This happened due to the old dropdown bug). Please create a new batch to test this flow.`);
+                     setBusy(false);
+                     return;
+                  }
+
+                  const billHash = ethers.id(billNumber);
+                  alert("Please approve the final sale transaction in MetaMask to lock the batch.");
+                  const tx = await contract.completeRetailSale(selectedBatchId, billHash);
+                  await tx.wait();
+
+                  // Sync status with backend database
+                  try {
+                    await fetch(`/api/batches/${selectedBatchId}/complete`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ billHash }),
+                    });
+                  } catch (e) {
+                    console.error("Failed to sync completion to backend database", e);
+                  }
+
+                  alert("🎉 Consumer sale finalized on Blockchain. Batch is now permanently locked.");
+                  setBillNumber("");
+                  onRefresh();
+                } catch (err: any) {
+                  console.error(err);
+                  if (err.message?.includes("AccessControlUnauthorizedAccount")) {
+                    alert("❌ Your MetaMask wallet does not have the 'Retailer' role on the smart contract.");
+                  } else if (err.message?.includes("InvalidTransition")) {
+                    alert("❌ Batch cannot be locked because it was transferred with the wrong stage (e.g. Processing instead of Retail).");
+                  } else {
+                    alert("Failed to finalize: " + (err.reason || err.message));
+                  }
+                } finally {
+                  setBusy(false);
                 }
-              }
-            }}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg w-full text-sm transition-colors shadow-sm"
-          >
-            🔒 Finalize Sale on Blockchain
-          </button>
-        </div>
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl w-full text-sm transition-colors shadow-sm disabled:opacity-50"
+            >
+              {busy ? "Finalizing on Blockchain..." : "🔒 Finalize Sale on Blockchain"}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
