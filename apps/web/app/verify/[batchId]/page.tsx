@@ -61,6 +61,25 @@ export default function VerifyPage() {
 
   const isVerified = data?.hashMatch && !data?.isTampered;
 
+  const journey = data?.journey || [];
+  const groupedJourney: any[] = [];
+  let i = 0;
+  while (i < journey.length) {
+    const step = journey[i];
+    if (step.stage === "PENDING_TRANSFER" && i + 1 < journey.length) {
+      groupedJourney.push({
+        isGroup: true,
+        actor: step.actor,
+        transferEvent: step,
+        outcomeEvent: journey[i + 1]
+      });
+      i += 2;
+    } else {
+      groupedJourney.push({ isGroup: false, ...step });
+      i++;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 print:bg-white print:bg-none py-8 print:py-0 px-4 text-gray-800">
       
@@ -257,27 +276,76 @@ export default function VerifyPage() {
         <div className="card p-5 bg-white shadow-sm space-y-4">
           <h3 className="font-bold text-xs text-gray-800">🗺️ End-to-End Supply Chain Journey</h3>
           <div className="space-y-0">
-            {data?.journey?.map((step: any, i: number) => (
-              <div key={i} className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-sm">
-                    {step.icon}
+            {groupedJourney.map((item: any, i: number) => {
+              if (item.isGroup) {
+                const isRejected = item.outcomeEvent.stage === 'TRANSFER_REJECTED';
+                return (
+                  <div key={i} className="flex gap-3 relative">
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-sm z-10">
+                        📦
+                      </div>
+                      {i < groupedJourney.length - 1 && <div className="w-0.5 h-full bg-amber-200 my-1 absolute top-8 bottom-0" />}
+                    </div>
+                    <div className="pb-6 text-xs flex-1">
+                      <div className={`border rounded-xl p-3 space-y-3 shadow-sm ${isRejected ? 'bg-red-50/40 border-red-200' : 'bg-blue-50/40 border-blue-200'}`}>
+                        {/* Transfer Initiated */}
+                        <div>
+                           <div className="flex items-center justify-between">
+                             <p className="font-bold text-blue-900">Transfer Initiated to {item.actor}</p>
+                             <span className="text-[10px] text-gray-400">{item.transferEvent.date}</span>
+                           </div>
+                           <p className="text-[10px] text-gray-500 mt-0.5">{item.transferEvent.notes}</p>
+                           <p className="font-mono text-[9px] text-blue-800 truncate max-w-[260px] mt-0.5">Tx: {item.transferEvent.txHash}</p>
+                        </div>
+
+                        {/* Connection Line Inside Box */}
+                        <div className="flex flex-col ml-3">
+                           <div className={`w-0.5 h-4 ${isRejected ? 'bg-red-200' : 'bg-blue-200'}`}></div>
+                        </div>
+
+                        {/* Transfer Outcome */}
+                        <div>
+                           <div className="flex items-center justify-between">
+                             <p className={`font-bold ${isRejected ? 'text-red-700' : 'text-green-700'}`}>
+                               {isRejected ? 'Transfer Rejected' : `Transfer Accepted • Stage: ${item.outcomeEvent.stage}`}
+                             </p>
+                             <span className="text-[10px] text-gray-400">{item.outcomeEvent.date}</span>
+                           </div>
+                           <p className="text-[10px] text-gray-500 mt-0.5">{item.outcomeEvent.notes}</p>
+                           <p className={`font-mono text-[9px] truncate max-w-[260px] mt-0.5 ${isRejected ? 'text-red-800' : 'text-green-800'}`}>Tx: {item.outcomeEvent.txHash}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {i < data.journey.length - 1 && <div className="w-0.5 h-10 bg-amber-200 my-1" />}
-                </div>
-                <div className="pb-4 text-xs flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-gray-900">{step.stage}</p>
-                    <span className="text-[10px] text-gray-400">{step.date}</span>
+                );
+              }
+
+              // Normal Step
+              return (
+                 <div key={i} className="flex gap-3 relative">
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-sm z-10">
+                        {item.icon}
+                      </div>
+                      {i < groupedJourney.length - 1 && <div className="w-0.5 h-full bg-amber-200 my-1 absolute top-8 bottom-0" />}
+                    </div>
+                    <div className="pb-6 text-xs flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-gray-900">
+                          {item.stage === 'PENDING_TRANSFER' ? `Transfer Initiated to ${item.actor}` : item.stage}
+                        </p>
+                        <span className="text-[10px] text-gray-400">{item.date}</span>
+                      </div>
+                      <p className="text-gray-600 mt-0.5">{item.actor} • {item.location}</p>
+                      {item.notes && <p className="text-[10px] text-gray-500 mt-0.5">{item.notes}</p>}
+                      <p className="font-mono text-[9px] text-amber-800 truncate max-w-[260px] mt-0.5">
+                        Tx: {item.txHash}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-gray-600 mt-0.5">{step.actor} • {step.location}</p>
-                  {step.notes && <p className="text-[10px] text-gray-500 italic mt-0.5">{step.notes}</p>}
-                  <p className="font-mono text-[9px] text-amber-800 truncate max-w-[260px] mt-0.5">
-                    Tx: {step.txHash}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
