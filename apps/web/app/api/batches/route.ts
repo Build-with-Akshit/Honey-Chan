@@ -60,6 +60,8 @@ export async function POST(req: Request) {
       originLocation,
       notes,
       blockchainTx,
+      txHash,
+      metadataHash,
     } = data;
 
     if (!batchId || !quantityKg) {
@@ -104,7 +106,8 @@ export async function POST(req: Request) {
         harvestDate: harvestDate ? new Date(harvestDate) : new Date(),
         location: originLocation || hive.location,
         notes,
-        blockchainTx: blockchainTx || "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+        metadataHash: metadataHash || null,
+        blockchainTx: txHash || blockchainTx || null,
         status: "HARVESTED",
         events: {
           create: {
@@ -112,7 +115,7 @@ export async function POST(req: Request) {
             actorId: beekeeperId,
             location: originLocation || hive.location,
             notes: notes || "Batch created via Honey Chain Web3 Portal",
-            txHash: blockchainTx || "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+            txHash: txHash || blockchainTx || null,
           }
         }
       },
