@@ -135,12 +135,13 @@ export default function CreateBatchPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/beekeeper"
-              className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
+            <button
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-amber-50"
             >
-              ←
-            </Link>
+              <span>←</span>
+              <span>Back</span>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Create Honey Batch</h1>
               <p className="text-xs text-gray-500">
