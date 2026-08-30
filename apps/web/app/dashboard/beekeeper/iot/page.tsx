@@ -188,8 +188,8 @@ export default function BeekeeperIoTPage() {
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
               const heightPercent = Math.max(20, Math.min(95, (r.temperature - 30) * 12));
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div className="text-[9px] font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div key={idx} className="flex-1 flex flex-col justify-end items-center gap-1 group relative h-full">
+                  <div className="text-[9px] font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">
                     {r.temperature}°
                   </div>
                   <div
@@ -216,8 +216,8 @@ export default function BeekeeperIoTPage() {
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
               const heightPercent = Math.max(20, Math.min(95, (r.weight - 25) * 4.5));
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div className="text-[9px] font-semibold text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div key={idx} className="flex-1 flex flex-col justify-end items-center gap-1 group relative h-full">
+                  <div className="text-[9px] font-semibold text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">
                     {r.weight}k
                   </div>
                   <div
