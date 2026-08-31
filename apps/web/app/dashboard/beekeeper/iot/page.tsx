@@ -336,8 +336,7 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* ─── 4 High-Precision Telemetry Sensor Cards ─────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Card 1: Brood Chamber Temperature */}
         <div className="card p-5 bg-white border-amber-100 hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute top-0 left-0 h-1 bg-amber-500 w-full" />
@@ -422,33 +421,7 @@ export default function BeekeeperIoTPage() {
           </div>
         </div>
 
-        {/* Card 4: Foraging Activity & Acoustic Frequency */}
-        <div className="card p-5 bg-white border-purple-100 hover:shadow-md transition-shadow relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-1 bg-purple-500 w-full" />
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                <span>Foraging Traffic Index</span>
-              </div>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-3xl font-black text-purple-800 tracking-tight font-mono">
-                  {Math.round(latest.beeActivity * 100)}%
-                </span>
-                <span className="text-xs font-semibold text-purple-600">/ 100</span>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-2">
-                <span>Acoustic: <b className="text-purple-700 font-mono">{latest.acousticHz} Hz</b></span>
-                <span className="font-mono text-gray-400">Doppler IR</span>
-              </div>
-              <span className="badge bg-purple-50 text-purple-800 border border-purple-200 mt-2.5 text-[10px] font-bold block text-center">
-                High Foraging Activity (Peak Flow)
-              </span>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-xl shrink-0">
-              🐝
-            </div>
-          </div>
-        </div>
+        {/* Card 4: Foraging Activity — TEMPORARILY DISABLED */}
       </div>
 
       {/* ─── Real-time Waveform Telemetry Charts ─────────────────────────── */}
