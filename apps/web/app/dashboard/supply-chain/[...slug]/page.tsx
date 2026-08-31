@@ -613,7 +613,9 @@ function ProcessedBatchesPage({ batches, user, onRefresh }: { batches: any[]; us
 function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; user: any; onRefresh: () => void }) {
   const storeBatches = batches.filter((b) => isOwner(b, user.id) && !isPendingForUser(b, user.id));
   const [selectedBatchId, setSelectedBatchId] = useState<string>(storeBatches[0]?.batchId || "");
+  const [buyerName, setBuyerName] = useState<string>("");
   const [billNumber, setBillNumber] = useState<string>("");
+  const [storeLocation, setStoreLocation] = useState<string>("");
   const [busy, setBusy] = useState<boolean>(false);
 
   useEffect(() => {
@@ -625,9 +627,9 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
   return (
     <div className="space-y-6">
       <div className="card bg-white p-6 border border-green-200 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-2">🏪 Retail Point of Sale (Finalize Batch)</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-1">🏪 Retail Point of Sale &amp; Consumer Billing</h2>
         <p className="text-gray-500 text-xs mb-4">
-          Record the final sale to a consumer. This action permanently locks the batch on the blockchain, ensuring no further modifications can be made.
+          Record the final consumer purchase. This action records the customer invoice and permanently locks the batch on the blockchain ledger.
         </p>
 
         {storeBatches.length === 0 ? (
@@ -637,9 +639,9 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Select Batch from Inventory</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">🍯 Select Honey Batch from Stock</label>
               <div className="relative">
                 <select
                   value={selectedBatchId}
@@ -660,13 +662,37 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
               </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">👤 Buyer / Customer Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mrs. Sunita Sharma"
+                  value={buyerName}
+                  onChange={(e) => setBuyerName(e.target.value)}
+                  className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">🧾 Consumer Bill / Invoice Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. INV-2026-98765"
+                  value={billNumber}
+                  onChange={(e) => setBillNumber(e.target.value)}
+                  className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Consumer Bill / Invoice Number</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">📍 Store / Counter Location (Optional)</label>
               <input
                 type="text"
-                placeholder="e.g. INV-2026-98765"
-                value={billNumber}
-                onChange={(e) => setBillNumber(e.target.value)}
+                placeholder="e.g. Khadi India Emporium, CP, New Delhi"
+                value={storeLocation}
+                onChange={(e) => setStoreLocation(e.target.value)}
                 className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-green-400"
               />
             </div>
@@ -727,7 +753,13 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
                     await fetch(`/api/batches/${selectedBatchId}/complete`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ billHash }),
+                      body: JSON.stringify({
+                        billHash,
+                        billNumber,
+                        buyerName: buyerName.trim() || "Retail Consumer",
+                        location: storeLocation.trim() || user.name || "Khadi India Store",
+                        txHash: tx.hash,
+                      }),
                     });
                   } catch (e) {
                     console.error("Failed to sync completion to backend database", e);
@@ -735,6 +767,8 @@ function RetailInventoryPage({ batches, user, onRefresh }: { batches: any[]; use
 
                   alert("🎉 Consumer sale finalized on Blockchain. Batch is now permanently locked.");
                   setBillNumber("");
+                  setBuyerName("");
+                  setStoreLocation("");
                   onRefresh();
                 } catch (err: any) {
                   console.error(err);

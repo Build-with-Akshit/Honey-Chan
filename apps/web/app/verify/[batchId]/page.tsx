@@ -395,24 +395,34 @@ export default function VerifyPage() {
               }
 
               // Normal Step
+              const isCompleted = item.stage === 'COMPLETED';
               return (
                  <div key={i} className="flex gap-3 relative">
                     <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-sm z-10">
-                        {item.icon}
+                      <div className={`w-8 h-8 rounded-full ${isCompleted ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 ring-2 ring-emerald-200' : 'bg-amber-100 border border-amber-300'} flex items-center justify-center text-sm z-10 font-bold`}>
+                        {isCompleted ? "🛍️" : item.icon}
                       </div>
                       {i < groupedJourney.length - 1 && <div className="w-0.5 h-full bg-amber-200 my-1 absolute top-8 bottom-0" />}
                     </div>
                     <div className="pb-6 text-xs flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-bold text-gray-900">
-                          {item.stage === 'PENDING_TRANSFER' ? `Transfer Initiated to ${item.actor}` : formatStageDisplay(item.stage)}
+                        <p className={`font-bold ${isCompleted ? 'text-emerald-950 text-sm flex items-center gap-1.5' : 'text-gray-900'}`}>
+                          {isCompleted ? "🎉 Purchased by Consumer" : item.stage === 'PENDING_TRANSFER' ? `Transfer Initiated to ${item.actor}` : formatStageDisplay(item.stage)}
+                          {isCompleted && (
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold border border-emerald-200">
+                              Final Sale Verified
+                            </span>
+                          )}
                         </p>
                         <span className="text-[10px] text-gray-400">{item.date}</span>
                       </div>
-                      <p className="text-gray-600 mt-0.5">{item.actor} • {item.location}</p>
-                      {item.notes && <p className="text-[10px] text-gray-500 mt-0.5">{item.notes}</p>}
-                      <p className="font-mono text-[9px] text-amber-800 truncate max-w-[260px] mt-0.5">
+                      <p className="text-gray-600 mt-0.5">{item.actor} {item.location ? `• ${item.location}` : ''}</p>
+                      {item.notes && (
+                        <div className={`mt-1.5 p-2.5 rounded-xl border text-[11px] font-medium ${isCompleted ? 'bg-gradient-to-r from-emerald-50/90 to-amber-50/50 border-emerald-200 text-emerald-950 shadow-sm' : 'bg-gray-50 border-gray-100 text-gray-700'}`}>
+                          {item.notes}
+                        </div>
+                      )}
+                      <p className="font-mono text-[9px] text-amber-800 truncate max-w-[260px] mt-1">
                         Tx: {item.txHash}
                       </p>
                     </div>

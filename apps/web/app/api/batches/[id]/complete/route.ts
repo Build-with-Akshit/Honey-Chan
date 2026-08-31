@@ -11,10 +11,10 @@ export async function POST(
     const { user, errorResponse } = await requireAuth(["RETAILER", "ADMIN"]);
     if (errorResponse) return errorResponse;
 
-    const { billHash } = await req.json();
-    
-    if (!billHash) {
-      return NextResponse.json({ error: "billHash is required" }, { status: 400 });
+    const { billHash, billNumber, buyerName, location, txHash } = await req.json();
+
+    if (!billHash && !billNumber) {
+      return NextResponse.json({ error: "billHash or billNumber is required" }, { status: 400 });
     }
 
     const batchId = params.id;
@@ -33,22 +33,22 @@ export async function POST(
     }
 
     // Ensure the batch is in RETAIL stage
-    if (batch.status !== "RETAIL") {
+    if (batch.status !== "RETAIL" && batch.status !== "COMPLETED") {
       return NextResponse.json(
         { error: `Cannot complete sale. Batch is in ${batch.status} stage, requires RETAIL.` },
         { status: 400 }
       );
     }
 
-    // Since blockchain state is the ultimate truth for the lock, 
-    // the frontend will prompt MetaMask to sign the `completeRetailSale` function.
-    // Here we just update our off-chain database to reflect the completed status.
+    const customerNote = buyerName
+      ? `🛍️ Sold to: ${buyerName} • Invoice: #${billNumber || "N/A"} • Verified Retail Sale`
+      : `🛍️ Consumer Retail Sale • Invoice: #${billNumber || "N/A"}`;
 
     const updatedBatch = await prisma.honeyBatch.update({
       where: { id: batch.id },
       data: {
         status: "COMPLETED",
-        // In a real app, we might also store the consumer bill details here
+        blockchainTx: txHash || batch.blockchainTx,
       },
     });
 
@@ -58,8 +58,9 @@ export async function POST(
         batchId: updatedBatch.id,
         stage: "COMPLETED",
         actorId: user!.id,
-        txHash: billHash, // Storing the bill hash as txHash
-        notes: "Consumer retail sale completed",
+        location: location || "Retail Counter",
+        txHash: txHash || billHash,
+        notes: customerNote,
       }
     });
 
