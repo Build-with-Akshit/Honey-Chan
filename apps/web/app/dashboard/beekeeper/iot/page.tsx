@@ -285,49 +285,49 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* ─── Hardware Gateway Health Strip (Rich Warm-Cyber Console) ───────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 bg-gradient-to-r from-[#22180d] via-[#302112] to-[#22180d] text-amber-50 p-4.5 rounded-2xl shadow-lg border border-amber-600/30 text-xs">
-        <div className="border-r border-amber-900/50 pr-2">
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Hardware Status</span>
-          <div className="flex items-center gap-2 mt-1.5 font-bold text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-dot" />
+      {/* ─── Hardware Gateway Health Strip (Light Theme) ─────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/50 text-amber-950 p-4.5 rounded-2xl shadow-sm border border-amber-200 text-xs">
+        <div className="border-r border-amber-200/80 pr-2">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Hardware Status</span>
+          <div className="flex items-center gap-2 mt-1.5 font-bold text-emerald-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
             <span>ONLINE (Ready)</span>
           </div>
         </div>
 
-        <div className="border-r border-amber-900/50 pr-2">
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">WiFi Signal (RSSI)</span>
-          <p className="font-mono font-bold text-amber-100 mt-1.5 flex items-center gap-1">
-            <span className="text-emerald-400">📶</span> {latest.rssi} dBm (98%)
+        <div className="border-r border-amber-200/80 pr-2">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">WiFi Signal (RSSI)</span>
+          <p className="font-mono font-bold text-amber-950 mt-1.5 flex items-center gap-1">
+            <span className="text-emerald-600">📶</span> {latest.rssi} dBm (98%)
           </p>
         </div>
 
-        <div className="border-r border-amber-900/50 pr-2">
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Battery & Solar MPPT</span>
-          <p className="font-mono font-bold text-amber-300 mt-1.5 flex items-center gap-1">
+        <div className="border-r border-amber-200/80 pr-2">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Battery & Solar MPPT</span>
+          <p className="font-mono font-bold text-amber-800 mt-1.5 flex items-center gap-1">
             <span>⚡</span> 4.12V ({latest.battery}%)
           </p>
         </div>
 
-        <div className="border-r border-amber-900/50 pr-2">
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Transmission Protocol</span>
-          <p className="font-mono font-semibold text-sky-300 mt-1.5">
+        <div className="border-r border-amber-200/80 pr-2">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Transmission Protocol</span>
+          <p className="font-mono font-bold text-blue-700 mt-1.5">
             MQTT / TLS 1.3
           </p>
         </div>
 
-        <div className="border-r border-amber-900/50 pr-2">
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Packet Rate / Loss</span>
-          <p className="font-mono font-bold text-amber-100 mt-1.5">
-            4.0s • <span className="text-emerald-400">0.0% loss</span>
+        <div className="border-r border-amber-200/80 pr-2">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Packet Rate / Loss</span>
+          <p className="font-mono font-bold text-amber-950 mt-1.5">
+            4.0s • <span className="text-emerald-700">0.0% loss</span>
           </p>
         </div>
 
         <div>
-          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Last Packet Sync</span>
-          <p className="font-mono text-amber-200 mt-1.5">
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Last Packet Sync</span>
+          <p className="font-mono font-bold text-amber-900 mt-1.5">
             {lastSyncSeconds === 0 ? (
-              <span className="text-emerald-400 font-bold">Just now</span>
+              <span className="text-emerald-700 font-bold">Just now</span>
             ) : (
               `${lastSyncSeconds}s ago`
             )}
@@ -569,19 +569,19 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* ─── Real Hardware Terminal: Live Telemetry Packet Stream ────────── */}
-      <div className="p-6 bg-gradient-to-b from-[#1b140b] via-[#241a0f] to-[#150e07] text-amber-100 border border-amber-700/40 rounded-3xl shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-amber-800/40">
+      {/* ─── Real Hardware Terminal: Live Telemetry Packet Stream (Light Theme) ── */}
+      <div className="p-6 bg-gradient-to-br from-white via-[#fffef9] to-amber-50/40 text-amber-950 border border-amber-200/90 rounded-3xl shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-amber-200/80">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-emerald-400 pulse-dot" />
+            <div className="w-3 h-3 rounded-full bg-emerald-500 pulse-dot" />
             <div>
-              <h3 className="text-sm font-bold text-amber-50 font-mono flex items-center gap-2">
+              <h3 className="text-sm font-extrabold text-amber-950 font-mono flex items-center gap-2">
                 <span>ESP32 Hardware Telemetry Ingestion Console</span>
-                <span className="text-[10px] bg-amber-950/80 text-amber-300 px-2.5 py-0.5 rounded border border-amber-700/60 font-sans">
+                <span className="text-[10px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/80 font-sans font-bold">
                   MQTT Broker: /apiary/{selectedHiveCode || "H001"}/telemetry
                 </span>
               </h3>
-              <p className="text-[11px] text-amber-200/60 font-sans mt-0.5">
+              <p className="text-[11px] text-amber-900/60 font-sans mt-0.5 font-medium">
                 Real-time hex & JSON telemetry packets received from ESP32-WROOM node
               </p>
             </div>
@@ -590,48 +590,48 @@ export default function BeekeeperIoTPage() {
           <div className="flex items-center gap-2 text-xs">
             <button
               onClick={() => setRawViewMode(rawViewMode === "json" ? "hex" : "json")}
-              className="px-3 py-1 rounded-xl bg-amber-950/90 hover:bg-amber-900/80 border border-amber-600/50 text-amber-200 font-mono transition-colors cursor-pointer"
+              className="px-3 py-1 rounded-xl bg-amber-100/80 hover:bg-amber-200/80 border border-amber-300 text-amber-900 font-mono font-bold transition-colors cursor-pointer"
             >
               Mode: {rawViewMode.toUpperCase()}
             </button>
-            <span className="text-[11px] text-amber-400/80 font-mono">QoS: 1 (TLS 1.3)</span>
+            <span className="text-[11px] text-amber-800/80 font-mono font-semibold">QoS: 1 (TLS 1.3)</span>
           </div>
         </div>
 
-        {/* Packet Stream Window */}
+        {/* Packet Stream Window (Warm Light Theme) */}
         <div
           ref={packetContainerRef}
-          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-2 bg-black/50 p-4 rounded-2xl border border-amber-900/40 scrollbar-thin scrollbar-thumb-amber-800"
+          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1.5 bg-[#fefaf0]/90 p-4 rounded-2xl border border-amber-200 shadow-inner scrollbar-thin scrollbar-thumb-amber-300"
         >
           {packetLogs.map((pkt) => (
-            <div key={pkt.id} className="flex items-start gap-2 hover:bg-amber-950/40 p-1.5 rounded-lg transition-colors">
-              <span className="text-amber-500/70 shrink-0">[{pkt.timestamp}]</span>
-              <span className="text-emerald-400 font-bold shrink-0">[RX]</span>
-              <span className="text-amber-300 font-bold shrink-0">{pkt.nodeId}</span>
-              <span className="text-sky-300 shrink-0">PKT#{pkt.seq}</span>
-              <span className="text-purple-300 shrink-0">[{pkt.rssi}dBm]</span>
+            <div key={pkt.id} className="flex items-start gap-2 hover:bg-amber-100/60 p-1.5 rounded-lg transition-colors">
+              <span className="text-gray-500 shrink-0 font-medium">[{pkt.timestamp}]</span>
+              <span className="text-emerald-700 font-extrabold shrink-0">[RX]</span>
+              <span className="text-amber-800 font-bold shrink-0">{pkt.nodeId}</span>
+              <span className="text-blue-700 font-bold shrink-0">PKT#{pkt.seq}</span>
+              <span className="text-purple-700 font-semibold shrink-0">[{pkt.rssi}dBm]</span>
               {rawViewMode === "json" ? (
-                <span className="text-amber-100/90 break-all">
-                  Payload: <span className="text-emerald-300">{pkt.payload}</span>
+                <span className="text-gray-700 break-all font-medium">
+                  Payload: <span className="text-emerald-800 font-bold">{pkt.payload}</span>
                 </span>
               ) : (
-                <span className="text-amber-300/80 break-all">
-                  HEX: <span className="text-yellow-300">0xAA 0x12 0x7F {pkt.crc} 0xDE 0xAD 0xBE 0xEF</span>
+                <span className="text-gray-600 break-all font-medium">
+                  HEX: <span className="text-amber-700 font-bold">0xAA 0x12 0x7F {pkt.crc} 0xDE 0xAD 0xBE 0xEF</span>
                 </span>
               )}
-              <span className="text-emerald-400 font-bold ml-auto shrink-0 font-mono">
+              <span className="text-emerald-700 font-extrabold ml-auto shrink-0 font-mono bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                 {pkt.crc} [{pkt.status}]
               </span>
             </div>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-amber-800/40 text-[11px] text-amber-300/70 font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-amber-200/80 text-[11px] text-amber-900/70 font-mono font-medium">
           <div className="flex items-center gap-4">
             <span>Payload Codec: Protobuf / JSON</span>
             <span>Security: SHA256 / Device-Token Handshake</span>
           </div>
-          <span className="text-emerald-400 font-bold">On-Chain Sepolia Hash Root: Syncing</span>
+          <span className="text-emerald-700 font-bold">On-Chain Sepolia Hash Root: Syncing</span>
         </div>
       </div>
 
