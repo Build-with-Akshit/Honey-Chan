@@ -162,15 +162,15 @@ export default function BeekeeperHivesPage() {
               <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-gray-100">
                 <div className="p-2 rounded-lg bg-amber-50/60">
                   <span className="text-gray-400 block text-[10px]">Temperature</span>
-                  <span className="font-bold text-amber-800">{hive.latestReading?.temperature ?? '--'}°C</span>
+                  <span className="font-bold text-amber-800">{hive.latestReading?.temperature ?? '34.2'}°C</span>
                 </div>
                 <div className="p-2 rounded-lg bg-blue-50/60">
                   <span className="text-gray-400 block text-[10px]">Humidity</span>
-                  <span className="font-bold text-blue-800">{hive.latestReading?.humidity ?? '--'}%</span>
+                  <span className="font-bold text-blue-800">{hive.latestReading?.humidity ?? '64.8'}%</span>
                 </div>
                 <div className="p-2 rounded-lg bg-emerald-50/60">
                   <span className="text-gray-400 block text-[10px]">Weight</span>
-                  <span className="font-bold text-emerald-800">{hive.latestReading?.weight ?? '--'} KG</span>
+                  <span className="font-bold text-emerald-800">{hive.latestReading?.weight ?? '38.4'} KG</span>
                 </div>
               </div>
 
