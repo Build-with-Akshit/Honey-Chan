@@ -80,12 +80,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, isLoading, router]);
 
-  // If user connects wallet and they don't have one linked in DB, link it automatically
+  // Auto-link wallet and guarantee on-chain smart contract role authorization whenever a wallet is connected
   useEffect(() => {
-    if (wallet.isConnected && wallet.address && user && !user.walletAddress) {
-      linkWallet(wallet.address).catch(console.error);
+    if (wallet.isConnected && wallet.address && user) {
+      if (!user.walletAddress || user.walletAddress.toLowerCase() !== wallet.address.toLowerCase()) {
+        linkWallet(wallet.address).catch(console.error);
+      }
     }
-  }, [wallet.isConnected, wallet.address, user, linkWallet]);
+  }, [wallet.isConnected, wallet.address, user?.walletAddress, linkWallet]);
 
   // Keyboard shortcuts for sidebar navigation (Alt + 1, 2, 3... and Alt + Up/Down Arrows)
   useEffect(() => {
