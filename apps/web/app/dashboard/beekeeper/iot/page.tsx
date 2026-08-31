@@ -42,7 +42,6 @@ export default function BeekeeperIoTPage() {
   const [hives, setHives] = useState<any[]>([]);
   const [selectedHiveCode, setSelectedHiveCode] = useState("H001");
   const [loading, setLoading] = useState(true);
-  const [activeMetricTab, setActiveMetricTab] = useState<"climate" | "weight" | "traffic">("climate");
   const [isPaused, setIsPaused] = useState(false);
   const [rawViewMode, setRawViewMode] = useState<"json" | "hex">("json");
   const [lastSyncSeconds, setLastSyncSeconds] = useState(0);
@@ -52,10 +51,10 @@ export default function BeekeeperIoTPage() {
     const now = Date.now();
     return Array.from({ length: 30 }).map((_, i) => {
       const time = new Date(now - (29 - i) * 4000);
-      const temp = 34.2 + (Math.sin(i * 0.25) * 0.15) + (Math.random() * 0.06 - 0.03);
-      const hum = 64.8 + (Math.cos(i * 0.2) * 0.6) + (Math.random() * 0.2 - 0.1);
-      const weight = 38.42 + (i * 0.001) + (Math.random() * 0.004 - 0.002);
-      const act = 0.88 + (Math.sin(i * 0.15) * 0.04);
+      const temp = 34.2 + Math.sin(i * 0.25) * 0.15 + (Math.random() * 0.06 - 0.03);
+      const hum = 64.8 + Math.cos(i * 0.2) * 0.6 + (Math.random() * 0.2 - 0.1);
+      const weight = 38.42 + i * 0.001 + (Math.random() * 0.004 - 0.002);
+      const act = 0.88 + Math.sin(i * 0.15) * 0.04;
       return {
         temperature: Number(temp.toFixed(2)),
         ambientTemp: Number((29.2 + Math.sin(i * 0.1) * 0.3).toFixed(1)),
@@ -85,7 +84,9 @@ export default function BeekeeperIoTPage() {
       return {
         id: i,
         seq,
-        timestamp: d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) + `.${(100 + i * 73) % 999}`,
+        timestamp:
+          d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) +
+          `.${(100 + i * 73) % 999}`,
         nodeId: "ESP32-H001",
         rssi: -64 + (i % 3),
         payload: JSON.stringify({ t: Number(t), h: Number(h), w: Number(w), act: Number(act), vbat: 4.12 }),
@@ -126,7 +127,9 @@ export default function BeekeeperIoTPage() {
     const interval = setInterval(() => {
       const d = new Date();
       const timeLabel = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      const timeMs = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) + `.${Math.floor(Math.random() * 899 + 100)}`;
+      const timeMs =
+        d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) +
+        `.${Math.floor(Math.random() * 899 + 100)}`;
 
       setHistory((prev) => {
         const last = prev[prev.length - 1] || {
@@ -141,13 +144,14 @@ export default function BeekeeperIoTPage() {
           rssi: -64,
         };
 
-        // Realistic organic micro-variations
         const tempDrift = Number((last.temperature + (Math.random() * 0.08 - 0.04)).toFixed(2));
         const ambTemp = Number((29.3 + Math.sin(Date.now() / 20000) * 0.4 + (Math.random() * 0.1 - 0.05)).toFixed(1));
         const humDrift = Number((last.humidity + (Math.random() * 0.3 - 0.15)).toFixed(1));
         const ambHum = Number((58.2 + (Math.random() * 0.4 - 0.2)).toFixed(1));
         const weightDrift = Number((last.weight + (Math.random() * 0.003 - 0.001)).toFixed(3));
-        const activityDrift = Number(Math.min(0.98, Math.max(0.7, last.beeActivity + (Math.random() * 0.03 - 0.015))).toFixed(2));
+        const activityDrift = Number(
+          Math.min(0.98, Math.max(0.7, last.beeActivity + (Math.random() * 0.03 - 0.015))).toFixed(2)
+        );
         const hz = Math.round(240 + activityDrift * 10 + (Math.random() * 4 - 2));
         const rssi = -64 + Math.floor(Math.random() * 3 - 1);
 
@@ -165,8 +169,7 @@ export default function BeekeeperIoTPage() {
           timeLabel: timeLabel,
         };
 
-        const updated = [...prev.slice(1), nextPoint];
-        return updated;
+        return [...prev.slice(1), nextPoint];
       });
 
       // Append new incoming packet frame
@@ -208,15 +211,6 @@ export default function BeekeeperIoTPage() {
     }
   }, [packetLogs]);
 
-  const currentHive = hives.find((h) => h.hiveCode === selectedHiveCode) || hives[0] || {
-    id: 1,
-    hiveCode: "H001",
-    flowerSource: "Mustard Flower",
-    location: "Sonipat Apiary Cluster A",
-    beeColonyType: "Apis mellifera",
-    status: "ACTIVE",
-  };
-
   const latest = history[history.length - 1] || {
     temperature: 34.24,
     ambientTemp: 29.4,
@@ -231,102 +225,107 @@ export default function BeekeeperIoTPage() {
 
   return (
     <div className="space-y-6 page-enter">
-      {/* ─── Top Header & Live Hardware Node Status ───────────────────────── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-amber-100 shadow-sm">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">IoT Hive Climate & Telemetry</h1>
-            <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
-              LIVE TELEMETRY STREAM
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-medium">
-            <span>KVIC Honey Mission Smart Apiary</span>
-            <span className="text-gray-300">•</span>
-            <span className="font-mono text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60">
-              Gateway Node: ESP32-WROOM-32D
-            </span>
-            <span className="text-gray-300">•</span>
-            <span className="text-gray-400">MAC: 24:6F:28:B4:7C:1A</span>
-          </p>
-        </div>
+      {/* ─── Top Header Card with Warm Honey Glassmorphism ───────────────── */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-500/10 p-6 rounded-3xl border border-amber-200/80 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl lg:text-3xl font-black text-amber-950 tracking-tight">
+                IoT Hive Climate & Telemetry
+              </h1>
+              <span className="flex items-center gap-2 bg-emerald-500/15 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
+                LIVE TELEMETRY STREAM
+              </span>
+            </div>
 
-        {/* Hive Selector & Live Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-gray-50 px-3.5 py-2 rounded-xl border border-gray-200 shadow-xs">
-            <span className="text-xs font-semibold text-gray-500">Active Hive:</span>
-            <select
-              value={selectedHiveCode}
-              onChange={(e) => setSelectedHiveCode(e.target.value)}
-              className="text-xs font-bold text-amber-900 bg-transparent focus:outline-none cursor-pointer"
+            <p className="text-xs text-amber-900/70 mt-2 flex flex-wrap items-center gap-2 font-medium">
+              <span className="font-semibold text-amber-950">KVIC Honey Mission Smart Apiary</span>
+              <span className="text-amber-300">•</span>
+              <span className="font-mono text-amber-900 bg-amber-200/60 px-2.5 py-0.5 rounded-md border border-amber-300/80 font-bold">
+                Gateway Node: ESP32-WROOM-32D
+              </span>
+              <span className="text-amber-300">•</span>
+              <span className="font-mono text-amber-800/80">MAC: 24:6F:28:B4:7C:1A</span>
+            </p>
+          </div>
+
+          {/* Controls: Hive Selector & Pause Stream */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5 bg-white/95 px-4 py-2.5 rounded-2xl border border-amber-200 shadow-xs hover:border-amber-400 transition-colors">
+              <span className="text-xs font-bold text-amber-900/60">Active Hive:</span>
+              <select
+                value={selectedHiveCode}
+                onChange={(e) => setSelectedHiveCode(e.target.value)}
+                className="text-xs font-extrabold text-amber-950 bg-transparent focus:outline-none cursor-pointer"
+              >
+                {hives.length > 0 ? (
+                  hives.map((h) => (
+                    <option key={h.id} value={h.hiveCode}>
+                      {h.hiveCode} • {h.flowerSource || "Mustard Flower"}
+                    </option>
+                  ))
+                ) : (
+                  <option value="H001">H001 • Mustard Flower</option>
+                )}
+              </select>
+            </div>
+
+            <button
+              onClick={() => setIsPaused(!isPaused)}
+              className={`text-xs font-extrabold px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
+                isPaused
+                  ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600 shadow-amber-500/20"
+                  : "bg-white/95 text-amber-900 border-amber-200 hover:bg-amber-50 hover:border-amber-300"
+              }`}
             >
-              {hives.length > 0 ? (
-                hives.map((h) => (
-                  <option key={h.id} value={h.hiveCode}>
-                    {h.hiveCode} • {h.flowerSource || "Mustard Flower"}
-                  </option>
-                ))
-              ) : (
-                <option value="H001">H001 • Mustard Flower</option>
-              )}
-            </select>
+              <span>{isPaused ? "▶ Resume Stream" : "⏸ Pause Stream"}</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all flex items-center gap-1.5 shadow-xs ${
-              isPaused
-                ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            <span>{isPaused ? "▶ Resume Stream" : "⏸ Pause"}</span>
-          </button>
         </div>
       </div>
 
-      {/* ─── Hardware Gateway Health Strip ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 bg-gray-900 text-white p-4 rounded-2xl shadow-md border border-gray-800 text-xs">
-        <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Hardware Status</span>
-          <div className="flex items-center gap-1.5 mt-1 font-semibold text-emerald-400">
+      {/* ─── Hardware Gateway Health Strip (Rich Warm-Cyber Console) ───────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 bg-gradient-to-r from-[#22180d] via-[#302112] to-[#22180d] text-amber-50 p-4.5 rounded-2xl shadow-lg border border-amber-600/30 text-xs">
+        <div className="border-r border-amber-900/50 pr-2">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Hardware Status</span>
+          <div className="flex items-center gap-2 mt-1.5 font-bold text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-dot" />
             <span>ONLINE (Ready)</span>
           </div>
         </div>
 
-        <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">WiFi Signal (RSSI)</span>
-          <p className="font-mono font-bold text-gray-100 mt-1 flex items-center gap-1">
+        <div className="border-r border-amber-900/50 pr-2">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">WiFi Signal (RSSI)</span>
+          <p className="font-mono font-bold text-amber-100 mt-1.5 flex items-center gap-1">
             <span className="text-emerald-400">📶</span> {latest.rssi} dBm (98%)
           </p>
         </div>
 
-        <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Battery & Solar MPPT</span>
-          <p className="font-mono font-bold text-amber-300 mt-1 flex items-center gap-1">
+        <div className="border-r border-amber-900/50 pr-2">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Battery & Solar MPPT</span>
+          <p className="font-mono font-bold text-amber-300 mt-1.5 flex items-center gap-1">
             <span>⚡</span> 4.12V ({latest.battery}%)
           </p>
         </div>
 
-        <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Transmission Protocol</span>
-          <p className="font-mono font-medium text-blue-300 mt-1">
+        <div className="border-r border-amber-900/50 pr-2">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Transmission Protocol</span>
+          <p className="font-mono font-semibold text-sky-300 mt-1.5">
             MQTT / TLS 1.3
           </p>
         </div>
 
-        <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Packet Rate / Loss</span>
-          <p className="font-mono font-bold text-gray-100 mt-1">
+        <div className="border-r border-amber-900/50 pr-2">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Packet Rate / Loss</span>
+          <p className="font-mono font-bold text-amber-100 mt-1.5">
             4.0s • <span className="text-emerald-400">0.0% loss</span>
           </p>
         </div>
 
         <div>
-          <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Last Packet Sync</span>
-          <p className="font-mono text-gray-300 mt-1">
+          <span className="text-amber-300/60 block text-[10px] uppercase font-bold tracking-wider">Last Packet Sync</span>
+          <p className="font-mono text-amber-200 mt-1.5">
             {lastSyncSeconds === 0 ? (
               <span className="text-emerald-400 font-bold">Just now</span>
             ) : (
@@ -336,155 +335,169 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* ─── 3 High-Precision Telemetry Sensor Cards ─────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: Brood Chamber Temperature */}
-        <div className="card p-5 bg-white border-amber-100 hover:shadow-md transition-shadow relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-1 bg-amber-500 w-full" />
+        <div className="group relative overflow-hidden bg-gradient-to-br from-[#fffef7] via-white to-amber-50/70 p-6 rounded-3xl border border-amber-200/90 shadow-sm hover:shadow-lg hover:border-amber-400 transition-all">
           <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                <span>Brood Chamber Temperature</span>
-              </div>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-3xl font-black text-amber-800 tracking-tight font-mono">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider">
+                Brood Chamber Temperature
+              </span>
+              <div className="flex items-baseline gap-1.5 pt-1">
+                <span className="text-4xl font-black text-amber-900 tracking-tight font-mono">
                   {latest.temperature.toFixed(2)}
                 </span>
-                <span className="text-sm font-bold text-amber-700">°C</span>
+                <span className="text-lg font-bold text-amber-600">°C</span>
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-2">
-                <span>Ambient: <b className="text-gray-700">{latest.ambientTemp}°C</b></span>
-                <span className="font-mono text-gray-400">SHT31-D</span>
-              </div>
-              <span className="badge badge-verified mt-2.5 text-[10px] font-bold block text-center">
-                ✓ Optimal Brood (33.8°C - 34.5°C)
-              </span>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-xl shrink-0">
+
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
               🌡️
             </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between text-xs text-amber-900/70 border-t border-amber-100 pt-3">
+            <span>Ambient: <b className="text-amber-950 font-bold">{latest.ambientTemp}°C</b></span>
+            <span className="font-mono bg-amber-100/70 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">
+              SHT31-D
+            </span>
+          </div>
+
+          <div className="mt-3.5 bg-emerald-50 text-emerald-800 border border-emerald-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
+            ✓ Optimal Brood (33.8°C - 34.5°C)
           </div>
         </div>
 
         {/* Card 2: Internal Colony Humidity */}
-        <div className="card p-5 bg-white border-blue-100 hover:shadow-md transition-shadow relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-1 bg-blue-500 w-full" />
+        <div className="group relative overflow-hidden bg-gradient-to-br from-[#f9fcff] via-white to-blue-50/70 p-6 rounded-3xl border border-blue-200/90 shadow-sm hover:shadow-lg hover:border-blue-400 transition-all">
           <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                <span>Relative Humidity</span>
-              </div>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-3xl font-black text-blue-800 tracking-tight font-mono">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-blue-900/70 uppercase tracking-wider">
+                Relative Humidity
+              </span>
+              <div className="flex items-baseline gap-1.5 pt-1">
+                <span className="text-4xl font-black text-blue-900 tracking-tight font-mono">
                   {latest.humidity.toFixed(1)}
                 </span>
-                <span className="text-sm font-bold text-blue-700">% RH</span>
+                <span className="text-lg font-bold text-blue-600">% RH</span>
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-2">
-                <span>Ambient: <b className="text-gray-700">{latest.ambientHum}%</b></span>
-                <span className="font-mono text-gray-400">SHT31-D</span>
-              </div>
-              <span className="badge badge-info mt-2.5 text-[10px] font-bold block text-center">
-                ✓ Honey Curing Range (55-70%)
-              </span>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-xl shrink-0">
+
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
               💧
             </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between text-xs text-blue-900/70 border-t border-blue-100 pt-3">
+            <span>Ambient: <b className="text-blue-950 font-bold">{latest.ambientHum}%</b></span>
+            <span className="font-mono bg-blue-100/70 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200">
+              SHT31-D
+            </span>
+          </div>
+
+          <div className="mt-3.5 bg-blue-50 text-blue-800 border border-blue-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
+            ✓ Honey Curing Range (55-70%)
           </div>
         </div>
 
         {/* Card 3: 4-Point Net Hive Weight */}
-        <div className="card p-5 bg-white border-emerald-100 hover:shadow-md transition-shadow relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-1 bg-emerald-500 w-full" />
+        <div className="group relative overflow-hidden bg-gradient-to-br from-[#f8fdfa] via-white to-emerald-50/70 p-6 rounded-3xl border border-emerald-200/90 shadow-sm hover:shadow-lg hover:border-emerald-400 transition-all">
           <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                <span>Net Hive Mass (4-Cell)</span>
-              </div>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-3xl font-black text-emerald-800 tracking-tight font-mono">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-emerald-900/70 uppercase tracking-wider">
+                Net Hive Mass (4-Cell)
+              </span>
+              <div className="flex items-baseline gap-1.5 pt-1">
+                <span className="text-4xl font-black text-emerald-900 tracking-tight font-mono">
                   {latest.weight.toFixed(3)}
                 </span>
-                <span className="text-sm font-bold text-emerald-700">KG</span>
+                <span className="text-lg font-bold text-emerald-600">KG</span>
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-2">
-                <span>Tare: <b className="text-gray-700">18.20 kg</b></span>
-                <span className="font-mono text-gray-400">HX711 24b</span>
-              </div>
-              <span className="badge bg-emerald-50 text-emerald-800 border border-emerald-200 mt-2.5 text-[10px] font-bold block text-center">
-                +{(latest.weight - 18.2).toFixed(2)} kg Honey Accumulation
-              </span>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xl shrink-0">
+
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
               ⚖️
             </div>
           </div>
-        </div>
 
-        {/* Card 4: Foraging Activity — TEMPORARILY DISABLED */}
+          <div className="mt-4 flex items-center justify-between text-xs text-emerald-900/70 border-t border-emerald-100 pt-3">
+            <span>Tare: <b className="text-emerald-950 font-bold">18.20 kg</b></span>
+            <span className="font-mono bg-emerald-100/70 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+              HX711 24b
+            </span>
+          </div>
+
+          <div className="mt-3.5 bg-emerald-50 text-emerald-800 border border-emerald-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
+            +{(latest.weight - 18.2).toFixed(2)} kg Honey Accumulation
+          </div>
+        </div>
       </div>
 
       {/* ─── Real-time Waveform Telemetry Charts ─────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Live Brood & Ambient Temperature Area Chart */}
-        <div className="card p-5 bg-white border-gray-200 flex flex-col shadow-xs">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-gradient-to-b from-white to-amber-50/30 p-6 rounded-3xl border border-amber-200/90 shadow-sm flex flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <h3 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 pulse-dot" />
                 Brood Temperature Waveform (Live Stream)
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">High-frequency SHT31-D thermistor probe readings</p>
+              <p className="text-[11px] text-amber-900/60 mt-0.5">High-frequency SHT31-D thermistor probe readings</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-bold">
-                Target: 34.0°C
-              </span>
-            </div>
+            <span className="text-[11px] font-mono bg-amber-100/90 text-amber-900 border border-amber-300/80 px-2.5 py-1 rounded-lg font-bold">
+              Target: 34.0°C
+            </span>
           </div>
 
-          <div className="h-56 pt-2 w-full">
+          <div className="h-60 pt-2 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45} />
                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#fef3c7" />
                 <XAxis
                   dataKey="timeLabel"
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
-                  axisLine={{ stroke: "#e5e7eb" }}
+                  tick={{ fontSize: 10, fill: "#92400e" }}
+                  axisLine={{ stroke: "#fde68a" }}
                   tickLine={false}
                   minTickGap={25}
                 />
                 <YAxis
-                  domain={[33.5, 35.0]}
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
+                  domain={[33.8, 34.6]}
+                  tick={{ fontSize: 10, fill: "#92400e" }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(val) => `${Number(val).toFixed(1)}°`}
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: "10px",
-                    border: "1px solid #fed7aa",
-                    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                    borderRadius: "14px",
+                    border: "1px solid #fde68a",
+                    boxShadow: "0 10px 20px -3px rgba(180, 83, 9, 0.15)",
                     fontSize: "11px",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#fffdfa",
                   }}
-                  labelStyle={{ color: "#4b5563", fontWeight: "bold", marginBottom: "4px" }}
+                  labelStyle={{ color: "#78350f", fontWeight: "bold", marginBottom: "4px" }}
                   formatter={(value: any) => [`${value}°C`, "Brood Temp"]}
                 />
-                <ReferenceLine y={34.0} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: "Optimal 34°C", fill: "#d97706", fontSize: 10, position: "right" }} />
+                <ReferenceLine
+                  y={34.0}
+                  stroke="#d97706"
+                  strokeDasharray="4 4"
+                  label={{ value: "Optimal 34°C", fill: "#b45309", fontSize: 10, position: "right" }}
+                />
                 <Area
                   isAnimationActive={false}
                   type="monotone"
                   dataKey="temperature"
                   stroke="#d97706"
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   fill="url(#tempGradient)"
                 />
               </AreaChart>
@@ -493,53 +506,53 @@ export default function BeekeeperIoTPage() {
         </div>
 
         {/* Live Net Hive Mass & Daily Inflow Area Chart */}
-        <div className="card p-5 bg-white border-gray-200 flex flex-col shadow-xs">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-gradient-to-b from-white to-emerald-50/30 p-6 rounded-3xl border border-emerald-200/90 shadow-sm flex flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <h3 className="text-sm font-extrabold text-emerald-950 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
                 Net Hive Mass Accumulation (HX711 24-Bit ADC)
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">Real-time honey accumulation & nectar weight delta</p>
+              <p className="text-[11px] text-emerald-900/60 mt-0.5">Real-time honey accumulation & nectar weight delta</p>
             </div>
-            <span className="text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold">
+            <span className="text-[11px] font-mono bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 px-2.5 py-1 rounded-lg font-bold">
               +0.65 kg Today
             </span>
           </div>
 
-          <div className="h-56 pt-2 w-full">
+          <div className="h-60 pt-2 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d1fae5" />
                 <XAxis
                   dataKey="timeLabel"
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
-                  axisLine={{ stroke: "#e5e7eb" }}
+                  tick={{ fontSize: 10, fill: "#065f46" }}
+                  axisLine={{ stroke: "#a7f3d0" }}
                   tickLine={false}
                   minTickGap={25}
                 />
                 <YAxis
-                  domain={[38.0, 39.0]}
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
+                  domain={[38.35, 38.5]}
+                  tick={{ fontSize: 10, fill: "#065f46" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(val) => `${Number(val).toFixed(1)} kg`}
+                  tickFormatter={(val) => `${Number(val).toFixed(2)} kg`}
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: "10px",
+                    borderRadius: "14px",
                     border: "1px solid #a7f3d0",
-                    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                    boxShadow: "0 10px 20px -3px rgba(5, 150, 105, 0.15)",
                     fontSize: "11px",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#f7fdfa",
                   }}
-                  labelStyle={{ color: "#4b5563", fontWeight: "bold", marginBottom: "4px" }}
+                  labelStyle={{ color: "#065f46", fontWeight: "bold", marginBottom: "4px" }}
                   formatter={(value: any) => [`${value} kg`, "Net Weight"]}
                 />
                 <Area
@@ -547,7 +560,7 @@ export default function BeekeeperIoTPage() {
                   type="monotone"
                   dataKey="weight"
                   stroke="#059669"
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   fill="url(#weightGradient)"
                 />
               </AreaChart>
@@ -557,18 +570,18 @@ export default function BeekeeperIoTPage() {
       </div>
 
       {/* ─── Real Hardware Terminal: Live Telemetry Packet Stream ────────── */}
-      <div className="card p-5 bg-gray-950 text-gray-100 border border-gray-800 rounded-2xl shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-800">
+      <div className="p-6 bg-gradient-to-b from-[#1b140b] via-[#241a0f] to-[#150e07] text-amber-100 border border-amber-700/40 rounded-3xl shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-amber-800/40">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 pulse-dot" />
+            <div className="w-3 h-3 rounded-full bg-emerald-400 pulse-dot" />
             <div>
-              <h3 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+              <h3 className="text-sm font-bold text-amber-50 font-mono flex items-center gap-2">
                 <span>ESP32 Hardware Telemetry Ingestion Console</span>
-                <span className="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700 font-sans">
+                <span className="text-[10px] bg-amber-950/80 text-amber-300 px-2.5 py-0.5 rounded border border-amber-700/60 font-sans">
                   MQTT Broker: /apiary/{selectedHiveCode || "H001"}/telemetry
                 </span>
               </h3>
-              <p className="text-[11px] text-gray-400 font-sans mt-0.5">
+              <p className="text-[11px] text-amber-200/60 font-sans mt-0.5">
                 Real-time hex & JSON telemetry packets received from ESP32-WROOM node
               </p>
             </div>
@@ -577,43 +590,43 @@ export default function BeekeeperIoTPage() {
           <div className="flex items-center gap-2 text-xs">
             <button
               onClick={() => setRawViewMode(rawViewMode === "json" ? "hex" : "json")}
-              className="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 font-mono transition-colors"
+              className="px-3 py-1 rounded-xl bg-amber-950/90 hover:bg-amber-900/80 border border-amber-600/50 text-amber-200 font-mono transition-colors cursor-pointer"
             >
               Mode: {rawViewMode.toUpperCase()}
             </button>
-            <span className="text-[11px] text-gray-500 font-mono">QoS: 1 (TLS 1.3)</span>
+            <span className="text-[11px] text-amber-400/80 font-mono">QoS: 1 (TLS 1.3)</span>
           </div>
         </div>
 
         {/* Packet Stream Window */}
         <div
           ref={packetContainerRef}
-          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1.5 bg-black/60 p-3.5 rounded-xl border border-gray-800/80 scrollbar-thin scrollbar-thumb-gray-800"
+          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-2 bg-black/50 p-4 rounded-2xl border border-amber-900/40 scrollbar-thin scrollbar-thumb-amber-800"
         >
           {packetLogs.map((pkt) => (
-            <div key={pkt.id} className="flex items-start gap-2 hover:bg-gray-900/60 p-1 rounded transition-colors">
-              <span className="text-gray-500 shrink-0">[{pkt.timestamp}]</span>
-              <span className="text-emerald-400 font-semibold shrink-0">[RX]</span>
-              <span className="text-amber-400 font-bold shrink-0">{pkt.nodeId}</span>
-              <span className="text-blue-400 shrink-0">PKT#{pkt.seq}</span>
-              <span className="text-purple-400 shrink-0">[{pkt.rssi}dBm]</span>
+            <div key={pkt.id} className="flex items-start gap-2 hover:bg-amber-950/40 p-1.5 rounded-lg transition-colors">
+              <span className="text-amber-500/70 shrink-0">[{pkt.timestamp}]</span>
+              <span className="text-emerald-400 font-bold shrink-0">[RX]</span>
+              <span className="text-amber-300 font-bold shrink-0">{pkt.nodeId}</span>
+              <span className="text-sky-300 shrink-0">PKT#{pkt.seq}</span>
+              <span className="text-purple-300 shrink-0">[{pkt.rssi}dBm]</span>
               {rawViewMode === "json" ? (
-                <span className="text-gray-300 break-all">
-                  Payload: <span className="text-green-300">{pkt.payload}</span>
+                <span className="text-amber-100/90 break-all">
+                  Payload: <span className="text-emerald-300">{pkt.payload}</span>
                 </span>
               ) : (
-                <span className="text-gray-400 break-all">
+                <span className="text-amber-300/80 break-all">
                   HEX: <span className="text-yellow-300">0xAA 0x12 0x7F {pkt.crc} 0xDE 0xAD 0xBE 0xEF</span>
                 </span>
               )}
-              <span className="text-emerald-500 font-bold ml-auto shrink-0 font-mono">
+              <span className="text-emerald-400 font-bold ml-auto shrink-0 font-mono">
                 {pkt.crc} [{pkt.status}]
               </span>
             </div>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 border-t border-gray-800/60 text-[11px] text-gray-400 font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-amber-800/40 text-[11px] text-amber-300/70 font-mono">
           <div className="flex items-center gap-4">
             <span>Payload Codec: Protobuf / JSON</span>
             <span>Security: SHA256 / Device-Token Handshake</span>
@@ -623,54 +636,54 @@ export default function BeekeeperIoTPage() {
       </div>
 
       {/* ─── Hardware Sensor Diagnostics & Calibration Matrix ─────────────── */}
-      <div className="card p-5 bg-white border-amber-100 shadow-xs">
-        <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+      <div className="bg-gradient-to-r from-amber-50/50 via-white to-amber-50/40 p-6 rounded-3xl border border-amber-200/90 shadow-sm">
+        <h3 className="text-sm font-extrabold text-amber-950 mb-4 flex items-center gap-2">
           <span>🔧</span> Sensor Hardware Diagnostics & Calibration Matrix
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+          <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs hover:border-amber-400 transition-colors">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-bold text-gray-800 font-mono">SHT31-D Dual-Probe</span>
+              <span className="font-bold text-amber-950 font-mono">SHT31-D Dual-Probe</span>
               <span className="badge badge-verified text-[10px]">NOMINAL</span>
             </div>
-            <p className="text-gray-500 text-[11px]">Brood & Ambient Temp/RH</p>
-            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+            <p className="text-amber-900/60 text-[11px]">Brood & Ambient Temp/RH</p>
+            <div className="mt-2.5 text-[10px] text-amber-800/80 font-mono space-y-0.5">
               <p>Bus: I2C (0x44)</p>
               <p>Accuracy: ±0.2°C / ±2% RH</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+          <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs hover:border-amber-400 transition-colors">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-bold text-gray-800 font-mono">HX711 24-bit ADC</span>
+              <span className="font-bold text-amber-950 font-mono">HX711 24-bit ADC</span>
               <span className="badge badge-verified text-[10px]">NOMINAL</span>
             </div>
-            <p className="text-gray-500 text-[11px]">4-Point Wheatstone Bridge</p>
-            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+            <p className="text-amber-900/60 text-[11px]">4-Point Wheatstone Bridge</p>
+            <div className="mt-2.5 text-[10px] text-amber-800/80 font-mono space-y-0.5">
               <p>Gain: 128x (Channel A)</p>
               <p>Tare Zero: 18.200 kg</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+          <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs hover:border-amber-400 transition-colors">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-bold text-gray-800 font-mono">Optical / Acoustic</span>
+              <span className="font-bold text-amber-950 font-mono">Optical / Acoustic</span>
               <span className="badge badge-verified text-[10px]">NOMINAL</span>
             </div>
-            <p className="text-gray-500 text-[11px]">Colony Flight Traffic & Hz</p>
-            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+            <p className="text-amber-900/60 text-[11px]">Colony Flight Traffic & Hz</p>
+            <div className="mt-2.5 text-[10px] text-amber-800/80 font-mono space-y-0.5">
               <p>Sampling: 1000 Hz</p>
               <p>Threshold: 240-260 Hz</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+          <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs hover:border-amber-400 transition-colors">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-bold text-gray-800 font-mono">Solar MPPT & BMS</span>
-              <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px]">CHARGING</span>
+              <span className="font-bold text-amber-950 font-mono">Solar MPPT & BMS</span>
+              <span className="badge bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px]">CHARGING</span>
             </div>
-            <p className="text-gray-500 text-[11px]">LiPo 3.7V 3200mAh Battery</p>
-            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+            <p className="text-amber-900/60 text-[11px]">LiPo 3.7V 3200mAh Battery</p>
+            <div className="mt-2.5 text-[10px] text-amber-800/80 font-mono space-y-0.5">
               <p>Inflow: +420mA (Solar)</p>
               <p>Cutoff: 4.20V (Active)</p>
             </div>
