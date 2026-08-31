@@ -28,7 +28,7 @@ export default function TracePage() {
       try {
         setLoading(true);
         const res = await fetch(`/api/trace/${encodeURIComponent(batchId)}`);
-        
+
         if (!res.ok) {
           const errData = await res.json();
           setError(errData.error || "Batch not found on the blockchain.");
@@ -57,7 +57,7 @@ export default function TracePage() {
   };
 
   const STATUS_LABELS = [
-    "Created", "Harvested", "Processing", "Quality Tested", 
+    "Created", "Harvested", "Processing", "Quality Tested",
     "Distributed", "Retail", "Completed"
   ];
   const currentStatus = STATUS_LABELS[Number(batchData?.status)] || "Unknown";
@@ -181,7 +181,7 @@ export default function TracePage() {
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-red-900">Anti-Counterfeit Geolocation Alert</h3>
               <p className="text-xs text-red-700">
-                This QR code has been scanned across geographically incongruent locations in a short timeframe. 
+                This QR code has been scanned across geographically incongruent locations in a short timeframe.
                 Physical sample duplication or unauthorized counterfeit distribution detected.
               </p>
             </div>
@@ -190,7 +190,7 @@ export default function TracePage() {
 
         {/* Batch Overview & QR Passport */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-          
+
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
