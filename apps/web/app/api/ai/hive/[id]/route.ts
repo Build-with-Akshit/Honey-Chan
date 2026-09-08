@@ -26,7 +26,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     const simSolar = url.searchParams.get("solar");
 
     // Find hive by ID or hiveCode
-    const hive = await prisma.hive.findFirst({
+    let hive: any = await prisma.hive.findFirst({
       where: {
         OR: [
           { hiveCode: hiveIdentifier },
@@ -43,15 +43,25 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     });
 
     if (!hive) {
-      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
+      if (["H001", "H002", "H003", "H004"].includes(hiveIdentifier)) {
+        hive = {
+          id: hiveIdentifier === "H001" ? 101 : hiveIdentifier === "H002" ? 102 : 103,
+          hiveCode: hiveIdentifier,
+          location: hiveIdentifier === "H001" ? "Sonipat Mustard Apiary" : hiveIdentifier === "H002" ? "Acacia Forest Belt" : "Sector 1 Mustard Zone",
+          sensorReadings: [],
+          beekeeper: { name: user?.name || "Akshit" }
+        };
+      } else {
+        return NextResponse.json({ error: "Hive not found" }, { status: 404 });
+      }
     }
 
     const latestReading = hive.sensorReadings[0];
 
     // Generate unique, realistic baseline telemetry for hives without sensor logs
-    const hiveHash = (hive.hiveCode || "H001")
+    const hiveHash = String(hive.hiveCode || "H001")
       .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      .reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
     const pseudoRand = (hiveHash % 100) / 100;
 
     const defaultTemp = Number((33.9 + pseudoRand * 0.8).toFixed(2));

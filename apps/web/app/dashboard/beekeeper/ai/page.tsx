@@ -23,45 +23,62 @@ interface DetectionBox {
 }
 
 export default function BeekeeperAIPage() {
-  const [aiData, setAiData] = useState<any>({
-    healthScore: 94,
-    riskLevel: "LOW",
-    productivityKg: 16.5,
-    confidence: 0.94,
-    windowDays: 7,
-    recommendation: "Maintain standard inspection schedule. Flow conditions and brood climate are optimal.",
-    explanation: "Analysis based on 4-point real-time telemetry (Temp: 34.2°C, Hum: 64.8%, Weight: 38.45kg, Activity: 88%).",
-    features: { acoustic_hz: 224 },
-    anomalyDetection: {
-      broodCoolingRisk: "Optimal (34.2°C)",
-      varroaMiteRisk: "Low (<1.5% Infestation)",
-      swarmingProbability: 0.08,
-    },
-    factors: [
-      {
-        name: "Brood Chamber Thermal Regulation",
-        value: "34.2°C (Target: 34.0°C)",
-        status: "optimal",
+  const [selectedHive, setSelectedHive] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("honeychain_active_hive") || "H001";
+    }
+    return "H001";
+  });
+
+  const [aiData, setAiData] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const active = localStorage.getItem("honeychain_active_hive") || "H001";
+      const cached = localStorage.getItem(`honeychain_ai_cache_${active}`);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return {
+      healthScore: 94,
+      riskLevel: "LOW",
+      productivityKg: 16.5,
+      confidence: 0.94,
+      windowDays: 7,
+      recommendation: "Maintain standard inspection schedule. Flow conditions and brood climate are optimal.",
+      explanation: "Analysis based on 4-point real-time telemetry (Temp: 34.2°C, Hum: 64.8%, Weight: 38.45kg, Activity: 88%).",
+      features: { acoustic_hz: 224 },
+      anomalyDetection: {
+        broodCoolingRisk: "Optimal (34.2°C)",
+        varroaMiteRisk: "Low (<1.5% Infestation)",
+        swarmingProbability: 0.08,
       },
-      {
-        name: "Colony Relative Humidity",
-        value: "64.8% (Target: 55-70%)",
-        status: "optimal",
-      },
-      {
-        name: "Foraging & Flight Activity Index",
-        value: "88% (Peak Floral Flow)",
-        status: "optimal",
-      },
-      {
-        name: "Net Hive Scale & Honey Super Mass",
-        value: "38.45 kg (+20.3 kg Super)",
-        status: "optimal",
-      },
-    ],
+      factors: [
+        {
+          name: "Brood Chamber Thermal Regulation",
+          value: "34.2°C (Target: 34.0°C)",
+          status: "optimal",
+        },
+        {
+          name: "Colony Relative Humidity",
+          value: "64.8% (Target: 55-70%)",
+          status: "optimal",
+        },
+        {
+          name: "Foraging & Flight Activity Index",
+          value: "88% (Peak Floral Flow)",
+          status: "optimal",
+        },
+        {
+          name: "Net Hive Scale & Honey Super Mass",
+          value: "38.45 kg (+20.3 kg Super)",
+          status: "optimal",
+        },
+      ],
+    };
   });
   const [hives, setHives] = useState<any[]>([]);
-  const [selectedHive, setSelectedHive] = useState("H001");
   const [loading, setLoading] = useState(false);
 
   // ─── Active Tab / View ────────────────────────────────────────────────
@@ -162,7 +179,12 @@ export default function BeekeeperAIPage() {
     setLoading(true);
     try {
       const res = await honeyApi.getHiveAI(hiveCode);
-      setAiData(res);
+      if (res && (res.health_score !== undefined || res.healthScore !== undefined)) {
+        setAiData(res);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`honeychain_ai_cache_${hiveCode}`, JSON.stringify(res));
+        }
+      }
       if (res?.sensor_data) {
         setSimTemp(res.sensor_data.temperature ?? 34.2);
         setSimHum(res.sensor_data.humidity ?? 64.8);
@@ -183,48 +205,76 @@ export default function BeekeeperAIPage() {
     }
   };
 
+  const handleHiveChange = (hiveCode: string) => {
+    setSelectedHive(hiveCode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("honeychain_active_hive", hiveCode);
+    }
+    setIsSimulating(false);
+    fetchAI(hiveCode);
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
         const list = await honeyApi.getHives();
+        let allHives: any[] = [];
         if (list && list.length > 0) {
-          const enhanced = list.map((h: any, idx: number) => ({
+          allHives = list.map((h: any, idx: number) => ({
             ...h,
             isSentinel: idx < 2 || h.hiveCode === "H001" || h.hiveCode === "H002",
             displayLabel: (idx < 2 || h.hiveCode === "H001" || h.hiveCode === "H002")
               ? `📡 ${h.hiveCode} • [Sentinel IoT Hub 1:50] ${h.location || "Master Telemetry Node"}`
               : `📦 ${h.hiveCode} • [Satellite Box] ${h.location || "Zero-Cost CV/Voice Box"}`
           }));
-          if (enhanced.length < 3) {
-            enhanced.push(
+
+          // Always ensure Sentinel Hub H001 is included for live SIH demonstration
+          if (!allHives.some((h: any) => h.hiveCode === "H001")) {
+            allHives.unshift({
+              id: "sentinel-h001",
+              hiveCode: "H001",
+              location: "Sonipat Mustard Apiary",
+              isSentinel: true,
+              displayLabel: "📡 H001 • [Sentinel IoT Hub 1:50] Sonipat Mustard Belt"
+            });
+          }
+
+          if (allHives.length < 4) {
+            allHives.push(
               { id: "sat-3", hiveCode: "H003", location: "Sector 1 (Mustard Zone)", isSentinel: false, displayLabel: "📦 H003 • [Satellite Box #14] Zero-Cost Box (CV & Voice)" },
               { id: "sat-4", hiveCode: "H004", location: "Sector 1 (Mustard Zone)", isSentinel: false, displayLabel: "📦 H004 • [Satellite Box #28] Zero-Cost Box (CV & Voice)" }
             );
           }
-          setHives(enhanced);
-          setSelectedHive(enhanced[0].hiveCode || "H001");
         } else {
-          setHives([
+          allHives = [
             { id: "h1", hiveCode: "H001", location: "Sonipat Mustard Apiary", isSentinel: true, displayLabel: "📡 H001 • [Sentinel IoT Hub 1:50] Sonipat Mustard Belt" },
             { id: "h2", hiveCode: "H002", location: "Acacia Forest Belt", isSentinel: true, displayLabel: "📡 H002 • [Sentinel IoT Hub 1:50] Acacia Forest Sector 2" },
             { id: "h3", hiveCode: "H003", location: "Sector 1 Box #14", isSentinel: false, displayLabel: "📦 H003 • [Satellite Box #14] Zero-Cost Box (CV & Voice)" },
             { id: "h4", hiveCode: "H004", location: "Sector 1 Box #28", isSentinel: false, displayLabel: "📦 H004 • [Satellite Box #28] Zero-Cost Box (CV & Voice)" },
-          ]);
-          setSelectedHive("H001");
+          ];
         }
+
+        setHives(allHives);
+
+        // Resolve active hive: Respect what user previously chose, or fallback to first available
+        const savedHive = typeof window !== "undefined" ? localStorage.getItem("honeychain_active_hive") : null;
+        const validHive = (savedHive && allHives.some((h: any) => h.hiveCode === savedHive))
+          ? savedHive
+          : allHives[0].hiveCode;
+
+        setSelectedHive(validHive);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("honeychain_active_hive", validHive);
+        }
+
+        // Single coordinated fetch on mount
+        await fetchAI(validHive);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load hives:", err);
       }
     };
     loadData();
   }, []);
-
-  useEffect(() => {
-    if (selectedHive) {
-      setIsSimulating(false);
-      fetchAI(selectedHive);
-    }
-  }, [selectedHive]);
 
   useEffect(() => {
     if (messagesContainerRef.current) {
@@ -693,7 +743,7 @@ export default function BeekeeperAIPage() {
               <span className="text-xs font-bold text-amber-900/60">Selected Hive:</span>
               <select
                 value={selectedHive}
-                onChange={(e) => setSelectedHive(e.target.value)}
+                onChange={(e) => handleHiveChange(e.target.value)}
                 className="text-xs font-extrabold text-amber-950 bg-transparent focus:outline-none cursor-pointer max-w-[280px] truncate"
               >
                 {hives.length > 0 ? (
@@ -703,7 +753,11 @@ export default function BeekeeperAIPage() {
                     </option>
                   ))
                 ) : (
-                  <option value="H001">📡 H001 • [Sentinel IoT Hub 1:50] Sonipat Apiary</option>
+                  <option value={selectedHive || "H001"}>
+                    {selectedHive === "H001"
+                      ? "📡 H001 • [Sentinel IoT Hub 1:50] Sonipat Apiary"
+                      : `📡 ${selectedHive} • Master Telemetry Node`}
+                  </option>
                 )}
               </select>
             </div>
