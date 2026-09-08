@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-guard";
+import { prisma } from "@/lib/prisma";
+import { encryptChatMessage } from "@/lib/crypto-chat";
 
 interface ChatTelemetry {
   temperature?: number;
@@ -13,13 +15,16 @@ interface ChatTelemetry {
 
 interface ChatMessage {
   role: "user" | "assistant";
-  content: string;
+  content?: string;
+  text?: string;
 }
 
 export async function POST(req: Request) {
   try {
     const { user, errorResponse } = await requireAuth();
-    if (errorResponse) return errorResponse;
+    if (errorResponse || !user) {
+      return errorResponse || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const {
@@ -44,12 +49,16 @@ export async function POST(req: Request) {
     const currentAct = Number(telemetry.beeActivity ?? 0.88);
     const currentScore = Number(telemetry.healthScore ?? 94);
 
+    let reply = "";
+    let provider = "HoneyChain Agro-Inference Engine (KVIC & ICAR Standards)";
+
     // 1. Attempt Gemini API if key is present
     const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (geminiKey) {
       try {
         const systemPrompt = `You are HoneyChain AI Agronomist & Biosecurity Officer for KVIC Honey Mission & Indian Beekeepers.
-You provide intelligent, actionable, scientific, and practical guidance on apiculture (Apis mellifera & Apis cerana indica).
+You provide helpful, friendly, scientific, and practical guidance on apiculture (Apis mellifera & Apis cerana indica).
+
 Active Hive Context:
 - Hive Code: ${hiveCode}
 - Brood Temperature: ${currentTemp}°C (Optimal: 34.0°C - 35.0°C)
@@ -58,12 +67,29 @@ Active Hive Context:
 - Flight & Foraging Activity: ${Math.round(currentAct * 100)}%
 - Health Index: ${currentScore}/100
 
-Guidelines:
-1. Respond in the EXACT language used by the user (Hindi, Hinglish, or English).
-2. If asked in Hindi or Hinglish, reply with natural, polite, and practical Hinglish/Hindi beekeeper terminology (e.g. 'Rani makhi', 'Makkhiyon ka jhund/swarming', 'Chhatte ka tapman', 'Shahad nikasi').
-3. Keep responses structured, concise, and helpful with bullet points and relevant emojis.
-4. Reference the live hive telemetry whenever applicable.
-5. Emphasize organic KVIC & ICAR biosecurity standards (avoid synthetic antibiotics; recommend Formic/Oxalic acid for Varroa, good ventilation, clean water).`;
+CRITICAL CONVERSATIONAL RULES:
+1. If the user says a greeting (like 'hi', 'hello', 'hey', 'namaste', 'kaise ho'), respond warmly and politely in 2-3 sentences. DO NOT dump a full technical telemetry inspection report on a simple greeting!
+2. Match the exact language of the user: Hindi, Hinglish, or English.
+3. When answering beekeeping questions (e.g. Varroa mites, honey extraction timing, swarming, sugar syrup), be concise, actionable, and structured with clear bullet points.
+4. Only include specific sensor numbers if relevant to what the user asked (or if they asked for a status/report).`;
+
+        // Format conversation history for Gemini multi-turn
+        const geminiContents: any[] = [];
+        if (Array.isArray(history)) {
+          for (const msg of history.slice(-4)) {
+            const textContent = msg.text || msg.content;
+            if (textContent) {
+              geminiContents.push({
+                role: msg.role === "assistant" ? "model" : "user",
+                parts: [{ text: textContent }],
+              });
+            }
+          }
+        }
+        geminiContents.push({
+          role: "user",
+          parts: [{ text: `${systemPrompt}\n\nUser Question: ${query}` }],
+        });
 
         const geminiRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
@@ -71,15 +97,10 @@ Guidelines:
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [{ text: `${systemPrompt}\n\nUser Question: ${query}` }],
-                },
-              ],
+              contents: geminiContents,
               generationConfig: {
                 maxOutputTokens: 800,
-                temperature: 0.4,
+                temperature: 0.5,
               },
             }),
             signal: AbortSignal.timeout(5000),
@@ -88,41 +109,67 @@ Guidelines:
 
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
-          const replyText =
-            geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const replyText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (replyText) {
-            return NextResponse.json({
-              reply: replyText,
-              provider: "Gemini 1.5 Flash (Live)",
-              hiveCode,
-              telemetry: {
-                temperature: currentTemp,
-                humidity: currentHum,
-                weight: currentWeight,
-                activity: currentAct,
-              },
-            });
+            reply = replyText;
+            provider = "Google Gemini 1.5 Flash (Live)";
           }
         }
       } catch (geminiErr) {
-        console.warn("[AI Chat] Gemini API error, falling back to Expert Agronomist Engine:", geminiErr);
+        console.warn("[AI Chat] Gemini API unavailable, using Expert Agronomist Engine:", geminiErr);
       }
     }
 
-    // 2. High-Precision Expert Apiculture NLP Inference Engine
-    const reply = generateExpertAgronomistResponse({
-      query,
-      hiveCode,
-      temp: currentTemp,
-      hum: currentHum,
-      weight: currentWeight,
-      act: currentAct,
-      score: currentScore,
-    });
+    // 2. High-Precision Expert Apiculture NLP Inference Engine (Fallback / Primary)
+    if (!reply) {
+      reply = generateExpertAgronomistResponse({
+        query,
+        hiveCode,
+        temp: currentTemp,
+        hum: currentHum,
+        weight: currentWeight,
+        act: currentAct,
+        score: currentScore,
+      });
+      provider = "HoneyChain Agro-Inference Engine (KVIC & ICAR Standards)";
+    }
+
+    // 3. Encrypted Chat Persistence Per User Account (AES-256-GCM)
+    try {
+      if (user?.id) {
+        const userEncrypted = encryptChatMessage(query, user.id);
+        const aiEncrypted = encryptChatMessage(reply, user.id);
+
+        await prisma.aiEncryptedChat.createMany({
+          data: [
+            {
+              userId: user.id,
+              hiveCode: hiveCode || "H001",
+              role: "user",
+              encryptedText: userEncrypted.encryptedText,
+              iv: userEncrypted.iv,
+              tag: userEncrypted.tag,
+            },
+            {
+              userId: user.id,
+              hiveCode: hiveCode || "H001",
+              role: "assistant",
+              encryptedText: aiEncrypted.encryptedText,
+              iv: aiEncrypted.iv,
+              tag: aiEncrypted.tag,
+              provider,
+            },
+          ],
+        });
+      }
+    } catch (dbErr) {
+      console.error("[AI Chat Persistence] Failed to save encrypted chats:", dbErr);
+      // Non-blocking for the response, but logged
+    }
 
     return NextResponse.json({
       reply,
-      provider: "HoneyChain Agro-Inference Engine (KVIC & ICAR Standards)",
+      provider,
       hiveCode,
       telemetry: {
         temperature: currentTemp,
@@ -130,6 +177,7 @@ Guidelines:
         weight: currentWeight,
         activity: currentAct,
       },
+      encrypted: true,
     });
   } catch (error) {
     console.error("[AI Chat Route] Error:", error);
@@ -162,13 +210,68 @@ function generateExpertAgronomistResponse({
 
   // Check language preference (Hindi / Hinglish / English)
   const isHindiOrHinglish =
-    /karein|kare|kaise|kab|kya|kyun|kyu|hai|hoga|madhumakkhi|makkhi|shahad|rani|chhatta|tapman|beemari|rog|chori|dawai|nikal|ilaj|batao|khatra|sardi|garmi|barish|jhund|pani/i.test(
+    /karein|kare|kaise|kese|kab|kya|kyun|kyu|hai|hoga|madhumakkhi|makkhi|shahad|rani|chhatta|tapman|beemari|rog|chori|dawai|nikal|ilaj|batao|khatra|sardi|garmi|barish|jhund|pani|kripya|namaste|pranam|haall|haal/i.test(
       query
     );
 
-  // ─── 1. Harvest Timing / Honey Yield (Shahad Nikasi) ─────────────────
+  // ─── 1. Casual Greetings & Pleasantries (Hi, Hello, Namaste) ──────────
   if (
-    /harvest|yield|honey extraction|nikalna|nikasi|kitna honey|kitna shahad|harvest window/i.test(
+    /^(hi|hello|hey|namaste|namaskar|pranam|halo|hola|kya haal|kaise ho|kese ho|good morning|good afternoon|good evening|adaab|sat sri akal|ram ram|sup)(\s|!|\.|\?|$)/i.test(
+      q
+    ) ||
+    /^(hi|hello|hey|namaste|kaise ho)$/i.test(q)
+  ) {
+    if (isHindiOrHinglish) {
+      return `Namaste! 🙏 Main aapka **HoneyChain AI Agronomist & Biosecurity Officer** hoon.
+
+Main aapke chhatton (hives) ki live telemetry, shahad nikasi (honey harvest window), rani makhi ki vitality, aur Varroa mite jaise rogon ki dekhbhal mein sahayata karta hoon.
+
+Aap mujhse beekeeping ke kisi bhi vishay par pooch sakte hain, jaise:
+• 🍯 *Shahad kab nikalna chahiye?*
+• 🛡️ *Varroa mite aur rogon se bachav kaise karein?*
+• 🌡️ *Chhatte ka tapman aur nami theek hai?*
+• 👑 *Rani makhi aur swarming ka khatra kaisa hai?*
+
+Aap aaj kis bare mein janna chahte hain?`;
+    }
+    return `Hello! 👋 I am your **HoneyChain AI Agronomist & Biosecurity Assistant**.
+
+I help you monitor live hive micro-climates, project honey harvest readiness, detect Varroa mites and colony stress, and ensure adherence to KVIC & ICAR apiculture standards.
+
+How can I assist your apiary today? Feel free to ask about harvest timing, temperature regulation, swarm prevention, or pest control!`;
+  }
+
+  // ─── 2. Identity & System Capabilities (Who are you / Tum kaun ho) ───
+  if (/who are you|aap kaun|tum kaun|kya kar sakte|what can you do|about you|introduce|parichay/i.test(q)) {
+    if (isHindiOrHinglish) {
+      return `Main **HoneyChain Intelligent Agro-Assistant** hoon, jo vishesh roop se KVIC Honey Mission aur Bhartiya beekeepers ke liye design kiya gaya hai.
+
+Mere mukhya karya hain:
+1. 📊 **Live Sensor Telemetry Monitor:** Brood chamber ka tapman (${temp.toFixed(1)}°C), nami (${hum.toFixed(1)}%), aur hive weight (${weight.toFixed(1)} kg) par nazar rakhna.
+2. 🍯 **Shahad Utpadan & Harvest Forecast:** AI models ke zariye sahi harvest window ka anumaan lagana.
+3. 🛡️ **Rog & Biosecurity Advisory:** Varroa mites, wax moth, aur brood diseases ke liye organic upaay sujhana.
+4. 🎙️ **Multilingual Voice Support:** Hindi aur English dono bhashaon mein baat karna taaki bee-suit pehne beekeeper hath bina lagaye jaankari le sakein.`;
+    }
+    return `I am the **HoneyChain AI Agronomist**, tailored for the KVIC Honey Mission and modern apiculture.
+
+My core capabilities include:
+1. 📊 **Real-time Telemetry Tracking:** Monitoring brood thermal stability (${temp.toFixed(1)}°C), relative humidity (${hum.toFixed(1)}%), and hive mass scale (${weight.toFixed(1)} kg).
+2. 🍯 **Harvest Window Estimator:** Predicting prime honey extraction dates with surplus weight tracking (+${surplusKg} kg).
+3. 🛡️ **Biosecurity & IPM Advisor:** Prescribing organic treatment protocols (Formic/Oxalic acids) for Varroa mites without synthetic residues.
+4. 🎙️ **Hands-free Voice Mode:** Allowing beekeepers wearing full protective apiary suits to command and listen via speech.`;
+  }
+
+  // ─── 3. Gratitude & Farewells ─────────────────────────────────────────
+  if (/^(thank you|thanks|dhanyawad|shukriya|bahut accha|shabash|bye|alvida|good night)(\s|!|\.|$)/i.test(q)) {
+    if (isHindiOrHinglish) {
+      return `Aapka bohot bohot swagat hai! 🐝 Shubh madhumakkhi palan (Happy Beekeeping)! Agar hives ya honey batches ke baare mein koi aur sawaal ho, toh bejhijhak poochein. 🙏🍯`;
+    }
+    return `You're very welcome! 🐝 Wishing your colonies high vitality and abundant nectar flow. Feel free to reach out anytime! 🍯`;
+  }
+
+  // ─── 4. Harvest Timing / Honey Yield (Shahad Nikasi) ─────────────────
+  if (
+    /harvest|yield|honey extraction|nikalna|nikasi|kitna honey|kitna shahad|harvest window|katai|extraction/i.test(
       q
     )
   ) {
@@ -193,8 +296,8 @@ function generateExpertAgronomistResponse({
   - Register the extracted lot on the HoneyChain portal to mint your Sepolia tamper-proof origin batch!`;
   }
 
-  // ─── 2. Varroa Destructor Mites & Parasite Biosecurity ─────────────────
-  if (/varroa|mite|parasite|keeda|bimari|disease|infection|foulbrood|chalkbrood|ilaj|dawai/i.test(q)) {
+  // ─── 5. Varroa Destructor Mites & Parasite Biosecurity ─────────────────
+  if (/varroa|mite|parasite|keeda|bimari|disease|infection|foulbrood|chalkbrood|ilaj|dawai|fungus/i.test(q)) {
     const miteStatus = hum > 72 ? "Elevated (Moderate Risk)" : "Low Risk (<1.5% Infestation)";
     if (isHindiOrHinglish) {
       return `🛡️ **Varroa Mite & Rog Nivaran Advisory (${hiveCode})**:
@@ -215,11 +318,11 @@ function generateExpertAgronomistResponse({
   - **Zero Chemical Residue:** HoneyChain strictly enforces zero synthetic acaricide residue to pass C4 sugar & pesticide NMR screening.`;
   }
 
-  // ─── 3. Swarming & Queen Status (Rani Makhi & Jhund) ────────────────────
+  // ─── 6. Swarming & Queen Status (Rani Makhi & Jhund) ────────────────────
   if (/swarm|queen|rani|jhund|abscond|supersedure|laying|anda|queenless/i.test(q)) {
     const swarmRisk = act > 0.9 ? "Moderate (~25%)" : "Low (~8%)";
     if (isHindiOrHinglish) {
-      return `👑 **Rani Makhi & Swarm (Jhund) Niikalan Analysis (${hiveCode})**:
+      return `👑 **Rani Makhi & Swarm (Jhund) Niyantran Analysis (${hiveCode})**:
 - **Swarming Probability:** **${swarmRisk}** (Foraging traffic: ${Math.round(act * 100)}%).
 - **Colony Queen Condition:** Current flight activity aur weight stability se rani makhi active aur egg-laying state mein pratit hoti hai.
 - **Agronomist Tips for Swarm Prevention:**
@@ -236,7 +339,7 @@ function generateExpertAgronomistResponse({
   - **Regular Brood Comb Inspection:** Check frame bottom bars for downward-pointing peanut-shaped swarm cells.`;
   }
 
-  // ─── 4. Temperature & Humidity Micro-Climate (Tapman aur Nami) ──────────
+  // ─── 7. Temperature & Humidity Micro-Climate (Tapman aur Nami) ──────────
   if (/temperature|tapman|temp|garmi|sardi|chilling|overheating|humidity|nami|moisture/i.test(q)) {
     const isCold = temp < 33.0;
     const isHot = temp > 36.5;
@@ -266,7 +369,7 @@ function generateExpertAgronomistResponse({
   ${!isCold && !isHot ? "- System is self-regulating at peak metabolic efficiency." : ""}`;
   }
 
-  // ─── 5. Feeding / Sugar Syrup (Bhojan aur Chini ka Ghol) ────────────────
+  // ─── 8. Feeding / Sugar Syrup (Bhojan aur Chini ka Ghol) ────────────────
   if (/feed|feeding|sugar|chini|pollen|khana|syrup|dearth|sukha/i.test(q)) {
     if (isHindiOrHinglish) {
       return `🍯 **Beekeeping Feeding & Nutrition Protocol (${hiveCode})**:
@@ -285,18 +388,17 @@ function generateExpertAgronomistResponse({
 - **Protein Patties:** Provide gamma-irradiated or certified pollen substitute during monsoon floral dearth.`;
   }
 
-  // ─── 6. Working / Setup / AI System Status (Working Kaise Hai) ───────────
+  // ─── 9. Working / Setup / AI System Status ─────────────────────────────
   if (/working|work|kaam|kaise kaam|setup|not working|chal|theek|test/i.test(q)) {
     if (isHindiOrHinglish) {
       return `✅ **HoneyChain AI System 100% Active & Operational!**
 - **Connected Hive:** **${hiveCode}**
 - **Live Health Index:** **${score}/100** (Grade A Optimal)
 - **Sensor Telemetry Sync:** Temp: **${temp.toFixed(1)}°C** | Hum: **${hum.toFixed(1)}%** | Mass: **${weight.toFixed(2)} kg** | Activity: **${Math.round(act * 100)}%**
-- **AI Modules Active:**
-  1. **XGBoost Health & Yield Classifier:** Sensor reading ke basis par daily colony stress aur surplus projection calculate kar raha hai.
-  2. **ResNet-50 Computer Vision Scanner:** Comb frames ki photo scan karke Varroa mites, capped brood, aur queen cups spot karta hai.
-  3. **Biosecurity Agronomist:** KVIC aur ICAR guidelines ke mutabiq aapke har sawal ka turant hal deta hai.
-Aap mujhse beekeeping, harvest date, swarm prevention, ya rog nivaran ke bare mein kuch bhi pooch sakte hain!`;
+- **Active Modules:**
+  1. **XGBoost Health & Yield Classifier:** Daily colony stress aur surplus projection calculate kar raha hai.
+  2. **ResNet-50 Computer Vision Scanner:** Comb frames ki photo scan karke Varroa mites aur capped cells spot karta hai.
+  3. **Biosecurity Agronomist:** KVIC aur ICAR guidelines ke mutabiq live recommendations deta hai.`;
     }
     return `✅ **HoneyChain AI Engine is Fully Active & Synchronized!**
 - **Active Hive Node:** **${hiveCode}**
@@ -305,30 +407,38 @@ Aap mujhse beekeeping, harvest date, swarm prevention, ya rog nivaran ke bare me
 - **Operational AI Capabilities:**
   - **Predictive Harvest Window:** Machine learning estimator based on weight gain velocity.
   - **ResNet-50 Vision Screening:** Computer vision frame inspection for comb regularity and parasite detection.
-  - **Biosecurity Expert Engine:** Automated KVIC & ICAR agronomy recommendations.
-Feel free to ask any question regarding hive management, harvest timing, disease treatment, or quality standards!`;
+  - **Biosecurity Expert Engine:** Automated KVIC & ICAR agronomy recommendations.`;
   }
 
-  // ─── 7. Default Rich Comprehensive Agronomist Guidance ──────────────────
+  // ─── 10. Hive Status / Health Check (Explicitly asked for condition) ───
+  if (/status|health|kaisa hai|haal|condition|report|check|jaanch/i.test(q)) {
+    if (isHindiOrHinglish) {
+      return `🐝 **Hive Health & Status Report (${hiveCode})**:
+- **Health Score:** **${score}/100** (KVIC Grade A Colony)
+- **Honey Super Surplus:** **+${surplusKg} kg** accumulated honey.
+- **Sensors:** Temp: **${temp.toFixed(1)}°C** (Ideal) | Humidity: **${hum.toFixed(1)}%** | Foraging Activity: **${Math.round(act * 100)}%**.
+- **Inspection Checklist:**
+  - Brood frames par brood pattern concentric aur clean hai.
+  - Bottom board par wax debris aur mite drop check karein.
+  - Water feeder ko clean aur fresh paani se bhar kar rakhein.`;
+    }
+    return `🐝 **Hive Health & Diagnostic Report (${hiveCode})**:
+- **Colony Health Index:** **${score}/100** with **+${surplusKg} kg** surplus honey.
+- **Telemetry:** Brood Temp: **${temp.toFixed(1)}°C** | Humidity: **${hum.toFixed(1)}%** | Foraging Flow: **${Math.round(act * 100)}%**.
+- **Biosecurity Status:** Colony thermoregulation is tight, disease risk is minimal, and flight activity shows strong floral nectar intake.`;
+  }
+
+  // ─── 11. General Apiculture Advisory (Fallback for other queries) ─────
   if (isHindiOrHinglish) {
-    return `🐝 **HoneyChain AI Agronomist Analysis for Hive ${hiveCode}**:
-- **Colony Status:** Health Score **${score}/100** (Surplus Honey: **+${surplusKg} kg**).
-- **Live Sensors:** Temp: **${temp.toFixed(1)}°C** | Hum: **${hum.toFixed(1)}%** | Activity: **${Math.round(act * 100)}%**.
-- **Observation:** Brood chamber ka micro-climate healthy aur active hai. Queen egg-laying pattern consistent hai aur worker bees ki foraging normal hai.
-- **Beekeeper Quick Tips:**
-  - Haftewar (weekly) routine inspection mein central brood frames par cappings ka texture aur queen activity notice karein.
-  - Box ke paas clean, fresh water bowl rakhein jisme pathar ya tinke hon taaki makkhiyan doobe bina paani pee sakein.
-  - Nectar flow peak par hone par naya super frame add karein taaki honey production maximum ho sake.
-Aap mujhse harvest timing, swarm control, ya disease prevention ke bare mein detail mein pooch sakte hain!`;
+    return `🐝 **HoneyChain AI Agronomist Guidance (${hiveCode})**:
+Aapka sawal madhumakkhi palan aur chhatte ki dekhbhal ke sandarbh mein darj kiya gaya hai.
+- **Live Hive Status:** Brood temperature **${temp.toFixed(1)}°C** aur humidity **${hum.toFixed(1)}%** bilkul santusht janak hai. Surplus honey **+${surplusKg} kg** hai.
+- **Best Practice Tip:** Routine hive inspection hamesha dhoop wale din subah 10 baje se dopehar 2 baje ke beech karein jab worker bees foraging par gayi hon.
+- **Kya aapko kisi vishesh cheez ki jaankari chahiye?** (e.g. *varroa mite ka ilaj*, *shahad extraction*, ya *queen swarming*?)`;
   }
 
-  return `🐝 **HoneyChain AI Agronomist Field Report (${hiveCode})**:
-- **Colony Vitality:** Health Score **${score}/100** with **+${surplusKg} kg** accumulated honey super surplus.
-- **Sensor Metrics:** Internal Temp: **${temp.toFixed(1)}°C** | Relative Humidity: **${hum.toFixed(1)}%** | Foraging Activity: **${Math.round(act * 100)}%**.
-- **Biosecurity Overview:** All critical telemetry parameters are within ideal KVIC bounds. Brood thermoregulation is tight and no acute stress vectors are detected.
-- **Action Items:**
-  - Maintain bi-weekly bottom board sanitation checks.
-  - Keep hive entrance clear of tall weeds and ants.
-  - Monitor honey capping progression for upcoming extraction window.
-What specific aspect of hive management or disease screening would you like to explore?`;
+  return `🐝 **HoneyChain Apiculture Guidance (${hiveCode})**:
+- **Current Colony State:** Vitality index is **${score}/100** with **+${surplusKg} kg** surplus stored in honey supers.
+- **Telemetry Overview:** Internal temperature at **${temp.toFixed(1)}°C** and humidity at **${hum.toFixed(1)}%** confirm healthy physiological regulation.
+- **Recommendation:** Routine inspection is advised during warm hours. Would you like specific details on Varroa screening, honey harvesting windows, or queen management?`;
 }

@@ -60,6 +60,8 @@ export const honeyApi = {
     fetchApi<any>("/ai/analyze-report", { method: "POST", body: JSON.stringify(data) }),
   chatAI: (data: { query: string; hiveCode?: string; telemetry?: any; history?: any[] }) =>
     fetchApi<any>("/ai/chat", { method: "POST", body: JSON.stringify(data) }),
+  getChatHistory: () => fetchApi<{ messages: any[]; count: number; encrypted: boolean }>("/ai/chat/history"),
+  clearChatHistory: () => fetchApi<any>("/ai/chat/history", { method: "DELETE" }),
   verifyBatch: (batchId: string) => fetchApi<any>(`/verify/${batchId}`),
   getUsers: () => fetchApi<any[]>("/users"),
 };

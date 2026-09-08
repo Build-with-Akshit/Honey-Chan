@@ -50,6 +50,8 @@ export default function BeekeeperAIPage() {
       provider: "KVIC Honey Mission AI Engine",
     },
   ]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
   const [aiChatQuery, setAiChatQuery] = useState("");
   const [askingAI, setAskingAI] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -116,6 +118,47 @@ export default function BeekeeperAIPage() {
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, askingAI]);
+
+  // Load user's private AES-256-GCM encrypted chat history on mount
+  useEffect(() => {
+    const loadEncryptedHistory = async () => {
+      try {
+        setLoadingHistory(true);
+        const res = await honeyApi.getChatHistory();
+        if (res?.messages && res.messages.length > 0) {
+          setMessages(res.messages);
+        }
+      } catch (err) {
+        console.warn("[AI Chat] Encrypted history fetch note:", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    loadEncryptedHistory();
+  }, []);
+
+  const handleClearHistory = async () => {
+    if (!window.confirm("Kya aap apni private encrypted chat history delete karna chahte hain?")) {
+      return;
+    }
+    setClearingHistory(true);
+    try {
+      await honeyApi.clearChatHistory();
+      setMessages([
+        {
+          id: "welcome-reset",
+          role: "assistant",
+          text: `Encrypted chat history clear ho chuki hai. Hive **${selectedHive}** telemetry active hai. Aap apna naya sawal pooch sakte hain!`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          provider: "HoneyChain Agro-Inference Engine",
+        },
+      ]);
+    } catch (err) {
+      console.error("Failed to clear chat history:", err);
+    } finally {
+      setClearingHistory(false);
+    }
+  };
 
   // ─── Live Telemetry Simulator Handler ──────────────────────────────────
   const handleApplySimulation = async (
@@ -769,32 +812,36 @@ export default function BeekeeperAIPage() {
 
               {/* Conversational AI Chat Window */}
               <div className="pt-4 border-t border-amber-200/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-black text-amber-950 flex items-center gap-2">
-                    <span>🤖</span> Google Gemini & HoneyChain Voice Agronomist
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      <span>🤖</span> Google Gemini & HoneyChain Voice Agronomist
+                    </p>
                     <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
-                      Online • Hindi & English Voice
+                      Online • Hindi & English
                     </span>
-                  </p>
+                    <span className="text-[10px] font-bold bg-amber-100/90 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300/80 flex items-center gap-1 shadow-2xs">
+                      <span>🔒</span> AES-256-GCM Encrypted (Account Private)
+                    </span>
+                  </div>
 
                   {messages.length > 1 && (
                     <button
-                      onClick={() =>
-                        setMessages([
-                          {
-                            id: "welcome-reset",
-                            role: "assistant",
-                            text: `Chat cleared. Hive **${selectedHive}** telemetry active. Aap apna sawal pooch sakte hain!`,
-                            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                          },
-                        ])
-                      }
-                      className="text-[10px] font-bold text-amber-800/60 hover:text-amber-950 transition-colors cursor-pointer"
+                      onClick={handleClearHistory}
+                      disabled={clearingHistory}
+                      className="text-[10px] font-bold text-amber-800/70 hover:text-amber-950 transition-colors cursor-pointer flex items-center gap-1 bg-white/70 hover:bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs"
                     >
-                      Clear History
+                      <span>🗑️</span> {clearingHistory ? "Clearing..." : "Clear History"}
                     </button>
                   )}
                 </div>
+
+                {loadingHistory && (
+                  <div className="flex items-center gap-2 text-[10px] text-amber-800/70 font-mono py-1">
+                    <div className="animate-spin h-3 w-3 border-2 border-amber-500 border-t-transparent rounded-full" />
+                    <span>Decrypting private chat history for your account...</span>
+                  </div>
+                )}
 
                 {/* Chat Messages Log */}
                 <div className="max-h-72 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
@@ -810,10 +857,11 @@ export default function BeekeeperAIPage() {
                             : "bg-white text-amber-950 border border-amber-200/90 rounded-bl-xs"
                         }`}
                       >
-                        {m.role === "assistant" && (
+                        {m.role === "assistant" ? (
                           <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-amber-700/80 mb-1.5 pb-1 border-b border-amber-100">
                             <span className="flex items-center gap-1">
                               <span>✨</span> {m.provider || "HoneyChain Agronomist"}
+                              <span className="text-[9px] font-normal text-emerald-700 ml-1">🔒 Decrypted</span>
                             </span>
                             <button
                               onClick={() => handleSpeak(m.text)}
@@ -822,6 +870,10 @@ export default function BeekeeperAIPage() {
                             >
                               <span>{isSpeaking ? "⏹️ Stop" : "🔊 Suniye (Listen)"}</span>
                             </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1 text-[9px] text-amber-100/90 font-medium mb-1">
+                            <span>🔒 Account Encrypted</span>
                           </div>
                         )}
                         <div
