@@ -547,8 +547,8 @@ export default function BeekeeperAIPage() {
                 HoneyChain AI Intelligence Suite
               </h1>
               <span className="flex items-center gap-1.5 bg-blue-500/15 text-blue-800 border border-blue-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-blue-500 pulse-dot" />
-                3-TIER HYBRID AI STACK
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 pulse-dot" />
+                4-TIER AI/ML/LLM STACK (SIH 2026)
               </span>
               {isSimulating && (
                 <span className="flex items-center gap-1.5 bg-amber-500/20 text-amber-900 border border-amber-400 text-xs font-black px-3 py-1 rounded-full animate-pulse">
@@ -557,8 +557,8 @@ export default function BeekeeperAIPage() {
               )}
             </div>
 
-            <p className="text-xs text-amber-900/70 mt-2 font-medium">
-              Tier 1: XGBoost Telemetry ML • Tier 2: ResNet-50 Comb Vision • Tier 3: Google Gemini Multilingual Voice Agronomist
+            <p className="text-xs text-amber-900/80 mt-2 font-medium">
+              Tier 1: XGBoost Telemetry ML • Tier 2: YOLO/ResNet Comb Vision • Tier 3: Google Gemini Multilingual Voice Agronomist • Tier 4: FSSAI EA-IRMS Screener
             </p>
           </div>
 
@@ -598,13 +598,13 @@ export default function BeekeeperAIPage() {
           </div>
         </div>
 
-        {/* ─── AI Navigation Pills ────────────────────────────────────────── */}
+        {/* ─── AI Navigation Pills (4 Tiers) ─────────────────────────────── */}
         <div className="mt-5 pt-4 border-t border-amber-200/70 flex flex-wrap gap-2">
           {[
-            { id: "overview", label: "📊 Hive Health & Telemetry", icon: "🌱" },
-            { id: "comb_vision", label: "📸 ResNet Comb Vision (YOLO)", icon: "🔍" },
-            { id: "chat_voice", label: "🗣️ Gemini Voice Agronomist", icon: "✨" },
-            { id: "lab_screener", label: "📑 FSSAI C4 Sugar Lab Screener", icon: "🛡️" },
+            { id: "overview", label: "Tier 1: Telemetry ML (XGBoost)", icon: "📊" },
+            { id: "comb_vision", label: "Tier 2: Comb Vision (YOLO/ResNet)", icon: "📸" },
+            { id: "chat_voice", label: "Tier 3: Gemini Voice Agronomist", icon: "🗣️" },
+            { id: "lab_screener", label: "Tier 4: FSSAI C4 Sugar Screener", icon: "📑" },
           ].map((tab) => (
             <button
               key={tab.id}
