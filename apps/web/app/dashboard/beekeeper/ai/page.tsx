@@ -588,10 +588,7 @@ export default function BeekeeperAIPage() {
               <h1 className="text-2xl lg:text-3xl font-black text-amber-950 tracking-tight">
                 HoneyChain AI Intelligence Suite
               </h1>
-              <span className="flex items-center gap-1.5 bg-blue-500/15 text-blue-800 border border-blue-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 pulse-dot" />
-                4-TIER AI/ML/LLM STACK (SIH 2026)
-              </span>
+
               {isSimulating && (
                 <span className="flex items-center gap-1.5 bg-amber-500/20 text-amber-900 border border-amber-400 text-xs font-black px-3 py-1 rounded-full animate-pulse">
                   <span>🧪</span> SIMULATION ACTIVE
@@ -599,9 +596,6 @@ export default function BeekeeperAIPage() {
               )}
             </div>
 
-            <p className="text-xs text-amber-900/80 mt-2 font-medium">
-              Tier 1: XGBoost Telemetry ML • Tier 2: YOLO/ResNet Comb Vision • Tier 3: Google Gemini Multilingual Voice Agronomist • Tier 4: FSSAI EA-IRMS Screener
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
