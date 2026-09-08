@@ -57,6 +57,14 @@ export default function BeekeeperAIPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chipsRef = useRef<HTMLDivElement>(null);
+
+  const scrollChips = (direction: "left" | "right") => {
+    if (chipsRef.current) {
+      const scrollAmount = direction === "left" ? -220 : 220;
+      chipsRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // ─── FSSAI Lab Report Screener State ───────────────────────────────────
   const [reportType, setReportType] = useState<"pure_raw_honey" | "adulterated_c4_syrup" | "custom">("pure_raw_honey");
@@ -903,24 +911,49 @@ export default function BeekeeperAIPage() {
                   <div ref={chatBottomRef} />
                 </div>
 
-                {/* Quick Prompt Suggestion Chips */}
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {[
-                    "🌾 Shahad kab nikalna chahiye?",
-                    "🛡️ Varroa mite aur rog check karein",
-                    "🐝 Is there any swarming danger?",
-                    "🌡️ Chhatte ka tapman aur nami theek hai?",
-                    "🍯 Sugar syrup feeding ratio kitna rakhein?",
-                    "📋 KVIC Honey Mission biosecurity guide",
-                  ].map((prompt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleAskAI(prompt.replace(/^[^\w]+/, "").trim())}
-                      className="text-[11px] font-bold px-3 py-1.5 bg-white/90 hover:bg-amber-100/90 text-amber-900 border border-amber-200 rounded-xl transition-all shadow-2xs cursor-pointer"
-                    >
-                      💬 {prompt}
-                    </button>
-                  ))}
+                {/* Quick Prompt Suggestion Chips (Single-Line Sliding Carousel) */}
+                <div className="relative flex items-center gap-1.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => scrollChips("left")}
+                    className="shrink-0 w-6 h-6 rounded-lg bg-white/95 border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
+                    title="Slide suggestions left"
+                  >
+                    ◀
+                  </button>
+
+                  <div
+                    ref={chipsRef}
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1"
+                  >
+                    {[
+                      "🌾 Shahad kab nikalna chahiye?",
+                      "🛡️ Varroa mite aur rog check karein",
+                      "🐝 Is there any swarming danger?",
+                      "🌡️ Chhatte ka tapman aur nami theek hai?",
+                      "🍯 Sugar syrup feeding ratio kitna rakhein?",
+                      "📋 KVIC Honey Mission biosecurity guide",
+                    ].map((prompt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => handleAskAI(prompt.replace(/^[^\w]+/, "").trim())}
+                        className="shrink-0 text-[11px] font-bold px-3 py-1.5 bg-white/95 hover:bg-amber-100 text-amber-900 border border-amber-200/90 hover:border-amber-300 rounded-xl transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 active:scale-95"
+                      >
+                        <span>💬</span>
+                        <span>{prompt}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => scrollChips("right")}
+                    className="shrink-0 w-6 h-6 rounded-lg bg-white/95 border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
+                    title="Slide suggestions right"
+                  >
+                    ▶
+                  </button>
                 </div>
 
                 {/* Chat & Voice Input Bar */}
