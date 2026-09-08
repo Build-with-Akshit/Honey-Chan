@@ -7,8 +7,8 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // ─── API Configuration (Next.js Vercel URL) ──────────────────────────────
-// E.g. "https://honey-chan.vercel.app/api/iot" or local dev URL
-const char* api_url = "http://192.168.1.100:3000/api/iot";
+// E.g. "https://honey-chan.vercel.app/api/iot/readings" or local dev URL
+const char* api_url = "https://honey-chan.vercel.app/api/iot/readings";
 const char* api_key = "secret_device_key_123"; // Optional security token
 
 // ─── Hive Configuration ──────────────────────────────────────────────────

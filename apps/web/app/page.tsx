@@ -90,22 +90,44 @@ export default function Home() {
             </Link>
           </div>
         ) : !isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
 
             {/* Beekeeper Portal */}
             <Link
               href="/login"
-              className="card p-8 border-amber-200 bg-white hover:border-amber-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
+              className="card p-6 border-amber-200 bg-white hover:border-amber-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
             >
               <div className="flex flex-col h-full">
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform origin-left">🐝</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Beekeeper Portal</h2>
-                <p className="text-sm text-gray-500 flex-grow mb-6">
-                  IoT • AI • Hives<br />
-                  Harvest • Batches
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">🐝</div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Beekeeper Portal</h2>
+                <p className="text-xs text-gray-500 flex-grow mb-4">
+                  IoT Sensor Nodes • Hive Setup • Digital Harvest Logging
                 </p>
-                <div className="flex justify-between items-center text-amber-600 font-bold text-sm border-t border-gray-100 pt-4">
+                <div className="flex justify-between items-center text-amber-600 font-bold text-xs border-t border-gray-100 pt-3">
                   <span>Enter Portal</span>
+                  <span>→</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* 3-Tier AI Suite */}
+            <Link
+              href="/dashboard/beekeeper/ai"
+              className="card p-6 border-amber-300 bg-gradient-to-br from-amber-500/10 via-white to-orange-500/10 hover:border-amber-500 hover:shadow-xl transition-all hover:-translate-y-1 group relative overflow-hidden"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-4xl group-hover:scale-110 transition-transform origin-left">🧠</div>
+                  <span className="badge bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-extrabold">
+                    AI SUITE
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">AI Agronomist Suite</h2>
+                <p className="text-xs text-gray-500 flex-grow mb-4">
+                  XGBoost Health • ResNet-50 Vision • Gemini Voice • FSSAI C4 Screener
+                </p>
+                <div className="flex justify-between items-center text-amber-800 font-bold text-xs border-t border-amber-200/80 pt-3">
+                  <span>Launch AI Suite</span>
                   <span>→</span>
                 </div>
               </div>
@@ -114,16 +136,15 @@ export default function Home() {
             {/* Supply Chain Portal */}
             <Link
               href="/login"
-              className="card p-8 border-orange-200 bg-white hover:border-orange-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
+              className="card p-6 border-orange-200 bg-white hover:border-orange-400 hover:shadow-xl transition-all hover:-translate-y-1 group"
             >
               <div className="flex flex-col h-full">
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform origin-left">🏭</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Supply Chain Portal</h2>
-                <p className="text-sm text-gray-500 flex-grow mb-6">
-                  Factory • Lab • Distributor<br />
-                  Wholesaler • Retailer
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">🏭</div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Supply Chain Portal</h2>
+                <p className="text-xs text-gray-500 flex-grow mb-4">
+                  Factory Processing • Lab Testing • Custody Transfers • Retail
                 </p>
-                <div className="flex justify-between items-center text-orange-600 font-bold text-sm border-t border-gray-100 pt-4">
+                <div className="flex justify-between items-center text-orange-600 font-bold text-xs border-t border-gray-100 pt-3">
                   <span>Enter Portal</span>
                   <span>→</span>
                 </div>
