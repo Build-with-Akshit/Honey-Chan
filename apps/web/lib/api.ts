@@ -48,9 +48,18 @@ export const honeyApi = {
     fetchApi<any>(`/batches/${id}/recall`, { method: "POST", body: JSON.stringify(data) }),
   submitQualityTest: (data: any) =>
     fetchApi<any>("/quality/submit", { method: "POST", body: JSON.stringify(data) }),
-  getHiveAI: (id: string) => fetchApi<any>(`/ai/hive/${id}`),
+  getHiveAI: (id: string, params?: { temp?: number; humidity?: number; weight?: number; activity?: number }) => {
+    const qs = params ? "?" + new URLSearchParams(params as any).toString() : "";
+    return fetchApi<any>(`/ai/hive/${id}${qs}`);
+  },
+  simulateHiveAI: (id: string, data: any) =>
+    fetchApi<any>(`/ai/hive/${id}`, { method: "POST", body: JSON.stringify(data) }),
   analyzeImage: (data: any) =>
     fetchApi<any>("/ai/analyze-image", { method: "POST", body: JSON.stringify(data) }),
+  analyzeReport: (data: any) =>
+    fetchApi<any>("/ai/analyze-report", { method: "POST", body: JSON.stringify(data) }),
+  chatAI: (data: { query: string; hiveCode?: string; telemetry?: any; history?: any[] }) =>
+    fetchApi<any>("/ai/chat", { method: "POST", body: JSON.stringify(data) }),
   verifyBatch: (batchId: string) => fetchApi<any>(`/verify/${batchId}`),
   getUsers: () => fetchApi<any[]>("/users"),
 };

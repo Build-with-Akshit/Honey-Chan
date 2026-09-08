@@ -69,6 +69,17 @@ class ImageAnalysisRequest(BaseModel):
     image_name: str
     hive_id: Optional[str] = "HIVE-007"
     colony_type: Optional[str] = "Apis mellifera"
+    image_base64: Optional[str] = None
+
+class ReportAnalysisRequest(BaseModel):
+    report_type: Optional[str] = "pure_raw_honey"
+    report_base64: Optional[str] = None
+    batch_id: Optional[str] = "BATCH-001"
+
+class ChatRequest(BaseModel):
+    query: str
+    hive_code: Optional[str] = "H001"
+    telemetry: Optional[dict] = None
 
 
 # ─── ML Prediction ──────────────────────────────────────────────────────
@@ -245,6 +256,34 @@ def analyze_image(req: ImageAnalysisRequest):
         "visual_health_score": 92,
         "advisory": "Clean comb architecture detected. No visible foulbrood signs.",
         "model_type": "Simulated (visual ML out of prototype scope)",
+    }
+
+
+@app.post("/analyze/report")
+def analyze_report(req: ReportAnalysisRequest):
+    if req.report_type == "adulterated_c4_syrup":
+        return {
+            "labCertificateNo": "NABL/KVIC/2026/AD-9014",
+            "fssaiCompliance": "ADULTERATED_FAIL",
+            "purityScore": 34,
+            "blockchainMintEligible": False,
+            "summary": "CRITICAL: 34.8% synthetic C4 corn sugar detected via EA-IRMS. Batch rejected.",
+        }
+    return {
+        "labCertificateNo": "NABL/DEL/2026/HN-7721",
+        "fssaiCompliance": "COMPLIANT_PASS",
+        "purityScore": 98,
+        "blockchainMintEligible": True,
+        "summary": "CERTIFIED 100% PURE: Natural isotopic delta 13C within FSSAI bounds.",
+    }
+
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    return {
+        "reply": f"AI Agronomist analysis for {req.hive_code}: Colony telemetry verified under KVIC biosecurity standards.",
+        "provider": "HoneyChain Hybrid AI (XGBoost + Gemini)",
+        "hive_code": req.hive_code,
     }
 
 

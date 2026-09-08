@@ -117,10 +117,10 @@ export default function AdminClustersPage() {
               labPassRate: 97.5,
               blockchainAuditCoverage: 98.9,
               activeAlerts: c.avgHealth < 80 ? 4 : 1,
-              status: c.avgHealth >= 85 ? "OPTIMAL" : c.avgHealth >= 80 ? "WATCH" : "ACTION_REQUIRED",
+              status: (c.avgHealth >= 85 ? "OPTIMAL" : c.avgHealth >= 80 ? "WATCH" : "ACTION_REQUIRED") as "OPTIMAL" | "ACTION_REQUIRED" | "WATCH",
             }));
             // Combine with default flagship clusters if DB has few
-            const combined = [...enriched];
+            const combined: ClusterData[] = [...enriched];
             DEFAULT_KVIC_CLUSTERS.forEach((def) => {
               if (!combined.some((x) => x.name === def.name)) {
                 combined.push(def);
