@@ -340,93 +340,140 @@ export default function BeekeeperIoTPage() {
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-mono bg-amber-200/60 text-amber-800 border border-amber-300 px-3 py-1 rounded-full whitespace-nowrap self-start sm:self-auto font-semibold">
-            Active Mode: <strong className="text-amber-900">{anomalyMode}</strong>
+          <span className={`text-xs font-mono px-3.5 py-1 rounded-full whitespace-nowrap self-start sm:self-auto font-bold border shadow-2xs ${
+            anomalyMode === "NORMAL"
+              ? "bg-emerald-100 text-emerald-950 border-emerald-300"
+              : anomalyMode === "CHILLING"
+              ? "bg-sky-100 text-sky-950 border-sky-300"
+              : anomalyMode === "HEAT"
+              ? "bg-rose-100 text-rose-950 border-rose-300"
+              : anomalyMode === "ABSCONDING"
+              ? "bg-amber-100 text-amber-950 border-amber-300"
+              : "bg-amber-100 text-amber-950 border-amber-300"
+          }`}>
+            Active Mode: <strong>{anomalyMode}</strong>
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+          {/* 1. Optimal Climate */}
           <button
             onClick={() => setAnomalyMode("NORMAL")}
-            className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border-2 font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
               anomalyMode === "NORMAL"
-                ? "bg-emerald-600 border-emerald-400 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]"
-                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]"
+                : "bg-white border-amber-200 text-amber-950 hover:bg-emerald-50/50 hover:border-emerald-300"
             }`}
           >
-            <span className="text-base">🟢</span>
-            <span>Optimal Climate</span>
-            <span className="text-[9px] text-emerald-600 font-normal">34.2°C • 65% RH</span>
+            <span className="text-lg">🟢</span>
+            <span className={anomalyMode === "NORMAL" ? "text-white font-black" : "text-amber-950 font-bold"}>
+              Optimal Climate
+            </span>
+            <span className={`text-[10px] font-semibold ${anomalyMode === "NORMAL" ? "text-emerald-100" : "text-emerald-700"}`}>
+              34.2°C • 65% RH
+            </span>
           </button>
 
+          {/* 2. Brood Chilling */}
           <button
             onClick={() => setAnomalyMode("CHILLING")}
-            className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border-2 font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
               anomalyMode === "CHILLING"
-                ? "bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30 scale-[1.02]"
-                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                ? "bg-sky-600 border-sky-500 text-white shadow-lg shadow-sky-600/30 scale-[1.02]"
+                : "bg-white border-amber-200 text-amber-950 hover:bg-sky-50/50 hover:border-sky-300"
             }`}
           >
-            <span className="text-base">❄️</span>
-            <span>Brood Chilling</span>
-            <span className="text-[9px] text-blue-600 font-normal">&lt; 30°C • Fungal Risk</span>
+            <span className="text-lg">❄️</span>
+            <span className={anomalyMode === "CHILLING" ? "text-white font-black" : "text-amber-950 font-bold"}>
+              Brood Chilling
+            </span>
+            <span className={`text-[10px] font-semibold ${anomalyMode === "CHILLING" ? "text-sky-100" : "text-sky-700"}`}>
+              &lt; 30°C • Fungal Risk
+            </span>
           </button>
 
+          {/* 3. Heat Stress */}
           <button
             onClick={() => setAnomalyMode("HEAT")}
-            className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border-2 font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
               anomalyMode === "HEAT"
-                ? "bg-red-600 border-red-400 text-white shadow-lg shadow-red-600/30 scale-[1.02]"
-                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                ? "bg-rose-600 border-rose-500 text-white shadow-lg shadow-rose-600/30 scale-[1.02]"
+                : "bg-white border-amber-200 text-amber-950 hover:bg-rose-50/50 hover:border-rose-300"
             }`}
           >
-            <span className="text-base">🔥</span>
-            <span>Heat Stress</span>
-            <span className="text-[9px] text-red-600 font-normal">&gt; 38.5°C • Comb Melt</span>
+            <span className="text-lg">🔥</span>
+            <span className={anomalyMode === "HEAT" ? "text-white font-black" : "text-amber-950 font-bold"}>
+              Heat Stress
+            </span>
+            <span className={`text-[10px] font-semibold ${anomalyMode === "HEAT" ? "text-rose-100" : "text-rose-700"}`}>
+              &gt; 38.5°C • Comb Melt
+            </span>
           </button>
 
+          {/* 4. Absconding Loss */}
           <button
             onClick={() => setAnomalyMode("ABSCONDING")}
-            className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border-2 font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
               anomalyMode === "ABSCONDING"
-                ? "bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30 scale-[1.02]"
-                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                ? "bg-orange-600 border-orange-500 text-white shadow-lg shadow-orange-600/30 scale-[1.02]"
+                : "bg-white border-amber-200 text-amber-950 hover:bg-orange-50/50 hover:border-orange-400"
             }`}
           >
-            <span className="text-base">⚠️</span>
-            <span>Absconding Loss</span>
-            <span className="text-[9px] text-orange-600 font-normal">Weight Drop -6kg</span>
+            <span className="text-lg">⚠️</span>
+            <span className={anomalyMode === "ABSCONDING" ? "text-white font-black" : "text-amber-950 font-bold"}>
+              Absconding Loss
+            </span>
+            <span className={`text-[10px] font-semibold ${anomalyMode === "ABSCONDING" ? "text-orange-100" : "text-orange-800"}`}>
+              Weight Drop -6kg
+            </span>
           </button>
 
+          {/* 5. Peak Nectar Flow */}
           <button
             onClick={() => setAnomalyMode("NECTAR_PEAK")}
-            className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border-2 font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
               anomalyMode === "NECTAR_PEAK"
-                ? "bg-amber-500 border-amber-300 text-amber-950 shadow-lg shadow-amber-500/30 scale-[1.02]"
-                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                ? "bg-amber-500 border-amber-400 text-amber-950 shadow-lg shadow-amber-500/30 scale-[1.02]"
+                : "bg-white border-amber-200 text-amber-950 hover:bg-amber-50/50 hover:border-amber-400"
             }`}
           >
-            <span className="text-base">🍯</span>
-            <span>Peak Nectar Flow</span>
-            <span className="text-[9px] text-amber-900 font-normal">Harvest: 3-5 days</span>
+            <span className="text-lg">🍯</span>
+            <span className={anomalyMode === "NECTAR_PEAK" ? "text-amber-950 font-black" : "text-amber-950 font-bold"}>
+              Peak Nectar Flow
+            </span>
+            <span className={`text-[10px] font-semibold ${anomalyMode === "NECTAR_PEAK" ? "text-amber-900 font-bold" : "text-amber-700 font-medium"}`}>
+              Harvest: 3-5 days
+            </span>
           </button>
         </div>
 
         {/* Dynamic AI Diagnostic Advisory based on anomalyMode */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 text-xs">
-          <span className="text-2xl mt-0.5">🤖</span>
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-amber-800 text-sm">
+        <div className={`p-4 rounded-2xl border-2 flex items-start gap-3.5 text-xs transition-colors shadow-2xs ${
+          anomalyMode === "NORMAL"
+            ? "bg-emerald-50/90 border-emerald-300"
+            : anomalyMode === "CHILLING"
+            ? "bg-sky-50/90 border-sky-300"
+            : anomalyMode === "HEAT"
+            ? "bg-rose-50/90 border-rose-300"
+            : anomalyMode === "ABSCONDING"
+            ? "bg-orange-50/90 border-orange-300"
+            : "bg-amber-50/90 border-amber-300"
+        }`}>
+          <span className="text-2xl mt-0.5 shrink-0">🤖</span>
+          <div className="flex-1 space-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-black text-amber-950 text-sm">
                 {anomalyMode === "NORMAL" && "AI Diagnostic: Optimal Colony Homeostasis (Risk: LOW • Health: 95/100)"}
                 {anomalyMode === "CHILLING" && "AI Diagnostic: Brood Chilling Hazard Detected (Risk: HIGH • Health: 52/100)"}
                 {anomalyMode === "HEAT" && "AI Diagnostic: Severe Hyperthermia / Wax Melt Hazard (Risk: CRITICAL • Health: 38/100)"}
                 {anomalyMode === "ABSCONDING" && "AI Diagnostic: Colony Depletion / Swarming Suspected (Risk: HIGH • Health: 48/100)"}
                 {anomalyMode === "NECTAR_PEAK" && "AI Diagnostic: High Surplus Accumulation (Productivity: 14.8 KG • Harvest Ready)"}
               </p>
-              <span className="text-[10px] text-amber-600 font-mono">FastAPI XGBoost Engine</span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-900 shadow-2xs">
+                FastAPI XGBoost Engine
+              </span>
             </div>
-            <p className="text-amber-700 text-[11px] leading-relaxed">
+            <p className="text-amber-950/85 text-xs leading-relaxed font-medium">
               {anomalyMode === "NORMAL" && "Colony thermoregulation and foraging traffic are steady within biological optima. Standard inspection routine maintained."}
               {anomalyMode === "CHILLING" && "Internal temperature dropped below 30°C with elevated humidity (81.4%). Extreme risk of chalkbrood fungal infection. Recommended action: Check hive bottom entrance, reduce airflow, and verify brood cluster density within 24 hours."}
               {anomalyMode === "HEAT" && "Internal core temperature exceeding 38.5°C with heavy fanning vibration. Extreme danger of honey comb structural melting. Recommended action: Erect reflective shade canopy and replenish apiary water source immediately."}
