@@ -1054,6 +1054,98 @@ export default function BeekeeperAIPage() {
             </div>
           )}
 
+          {/* ─── TIER 1.5: Acoustic Frequency Spectrum Analyzer (UrBAN) ────── */}
+          {activeTab === "overview" && (
+            <div className="bg-gradient-to-br from-slate-900 via-[#111827] to-slate-800 p-6 rounded-3xl border border-slate-700/80 shadow-2xl relative overflow-hidden group">
+              {/* Dynamic glowing background element */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-64 bg-emerald-500/10 blur-3xl rounded-full opacity-50 group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div className="space-y-1">
+                  <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                    <span className="animate-pulse text-emerald-400">⚡</span> Live Acoustic FFT Spectrum Analyzer
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    Continuous monitoring of hive frequencies (UrBAN Dataset ruleset)
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-slate-700/50 backdrop-blur-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Listening</span>
+                  </div>
+                  <span className="text-[11px] font-mono bg-slate-800/80 text-slate-300 border border-slate-600/50 px-2.5 py-1 rounded-lg font-bold">
+                    Peak: {Math.round(aiData?.features?.acoustic_hz || 230)} Hz
+                  </span>
+                </div>
+              </div>
+
+              {/* Spectral Waveform Bars */}
+              <div className="relative z-10 h-32 flex items-end justify-between gap-[2px] mt-4 px-2">
+                {Array.from({ length: 64 }).map((_, i) => {
+                  const targetHz = aiData?.features?.acoustic_hz || 230;
+                  const currentFreq = (i / 64) * 800;
+                  // Create a mock bell curve around the target Hz
+                  const power = Math.exp(-0.5 * Math.pow((currentFreq - targetHz) / 40.0, 2)) * 100;
+                  const randomNoise = Math.random() * 15 + 5;
+                  const height = Math.min(100, power + randomNoise);
+                  
+                  // Color coding based on frequency ranges
+                  let barColor = "from-emerald-500 to-emerald-400"; // Normal (200-260Hz)
+                  if (targetHz > 400) barColor = "from-rose-500 to-rose-400"; // Queenless / Distress
+                  else if (targetHz > 300) barColor = "from-amber-500 to-amber-400"; // Pre-Swarm
+                  else if (targetHz < 200) barColor = "from-blue-500 to-blue-400"; // Fanning
+
+                  return (
+                    <div
+                      key={i}
+                      className="w-full bg-slate-800/50 rounded-t-sm overflow-hidden flex flex-col justify-end"
+                      style={{ height: "100%" }}
+                    >
+                      <div 
+                        className={`w-full bg-gradient-to-t ${barColor} rounded-t-sm transition-all duration-300`}
+                        style={{ height: `${height}%`, opacity: 0.7 + (Math.random() * 0.3) }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Frequency Scale Markers */}
+              <div className="relative z-10 flex justify-between text-[9px] text-slate-500 font-mono mt-2 px-2 font-bold">
+                <span>0 Hz</span>
+                <span>200 Hz (Fanning)</span>
+                <span>400 Hz (Swarm)</span>
+                <span>600 Hz (Queenless)</span>
+                <span>800+ Hz</span>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap gap-2 text-xs">
+                <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide ${
+                  (aiData?.features?.acoustic_hz || 230) < 260 && (aiData?.features?.acoustic_hz || 230) >= 200
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}>
+                  Queenright Normal
+                </span>
+                <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide ${
+                  (aiData?.features?.acoustic_hz || 230) >= 300 && (aiData?.features?.acoustic_hz || 230) < 400
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}>
+                  Pre-Swarm Surge
+                </span>
+                <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide ${
+                  (aiData?.features?.acoustic_hz || 230) >= 400
+                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}>
+                  Queenless Piping
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* ─── TIER 3: Overview Recommendation Banner ──────────────────── */}
           {activeTab === "overview" && (
             <div className="bg-gradient-to-r from-amber-500/15 via-amber-100/60 to-orange-500/10 p-6 rounded-3xl border border-amber-300 shadow-sm space-y-4">

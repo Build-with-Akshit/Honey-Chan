@@ -21,6 +21,7 @@ MODELS_DIR = os.path.join(SCRIPT_DIR, "models")
 
 FEATURES = [
     "temperature",
+    "temp_delta_c",  # Difference between internal and ambient temp
     "humidity",
     "weight",
     "bee_activity",
@@ -63,6 +64,8 @@ def generate_dataset(num_samples=2500, random_seed=42):
             solar = round(random.uniform(3.5, 9.0), 1) if (8 <= hour <= 16) else 0.0
             disease_risk = round(random.uniform(0.01, 0.12), 2)
             score = random.randint(88, 99)
+            ambient_temp = round(random.uniform(28.0, 32.0), 1)
+            temp_delta = round(temp - ambient_temp, 1)
 
         elif p < 0.80:
             status = 1 # STRESSED
@@ -80,6 +83,8 @@ def generate_dataset(num_samples=2500, random_seed=42):
             solar = round(random.uniform(1.0, 6.0), 1) if (8 <= hour <= 16) else 0.0
             disease_risk = round(random.uniform(0.20, 0.45), 2)
             score = random.randint(70, 85)
+            ambient_temp = round(random.uniform(26.0, 34.0), 1)
+            temp_delta = round(temp - ambient_temp, 1)
 
         elif p < 0.92:
             status = 2 # AT_RISK (Chilling / Overheating / High Moisture / Foulbrood VOC odor)
@@ -98,6 +103,8 @@ def generate_dataset(num_samples=2500, random_seed=42):
             solar = round(random.uniform(0.5, 4.0), 1) if (8 <= hour <= 16) else 0.0
             disease_risk = round(random.uniform(0.48, 0.75), 2)
             score = random.randint(45, 68)
+            ambient_temp = round(random.uniform(22.0, 38.0), 1)
+            temp_delta = round(temp - ambient_temp, 1)
 
         else:
             status = 3 # CRITICAL (Queenless collapse, Absconding, Severe Robbing, Foulbrood)
@@ -115,6 +122,8 @@ def generate_dataset(num_samples=2500, random_seed=42):
             solar = round(random.uniform(0.0, 2.0), 1)
             disease_risk = round(random.uniform(0.78, 0.98), 2)
             score = random.randint(12, 42)
+            ambient_temp = round(random.uniform(20.0, 42.0), 1)
+            temp_delta = round(temp - ambient_temp, 1)
 
         pressure = round(random.uniform(998.0, 1022.0), 1)
         surplus = max(0.0, weight - 18.2)
@@ -123,6 +132,7 @@ def generate_dataset(num_samples=2500, random_seed=42):
         records.append({
             "id": i,
             "temperature": temp,
+            "temp_delta_c": temp_delta,
             "humidity": hum,
             "weight": weight,
             "bee_activity": activity,
