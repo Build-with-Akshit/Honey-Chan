@@ -66,6 +66,7 @@ export default function BeekeeperAIPage() {
   const [askingAI, setAskingAI] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +135,12 @@ export default function BeekeeperAIPage() {
   }, [selectedHive]);
 
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages, askingAI]);
 
   // Load sessions and initial messages on mount
@@ -1180,7 +1186,7 @@ export default function BeekeeperAIPage() {
                 </div>
 
                 {/* Messages Canvas */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin">
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin">
                   {loadingSessionMessages ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
                       <div className="animate-spin h-7 w-7 border-3 border-amber-500 border-t-transparent rounded-full" />
@@ -1384,14 +1390,25 @@ export default function BeekeeperAIPage() {
                     </button>
                   </div>
 
-                  {/* Floating Rounded Input Pill */}
-                  <div className="relative flex items-center gap-2 bg-white rounded-2xl border border-amber-300/90 shadow-sm p-1.5 pl-4 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200/50 transition-all">
+                  {/* Floating Rounded Input Pill Form */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAskAI();
+                    }}
+                    className="relative flex items-center gap-2 bg-white rounded-2xl border border-amber-300/90 shadow-sm p-1.5 pl-4 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200/50 transition-all"
+                  >
                     <input
                       type="text"
                       placeholder="Ask anything in Hindi or English (e.g. 'shahad kab nikale', 'varroa ilaj')..."
                       value={aiChatQuery}
                       onChange={(e) => setAiChatQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAskAI()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAskAI();
+                        }
+                      }}
                       className="flex-1 text-xs bg-transparent focus:outline-none font-medium text-amber-950 placeholder-amber-800/40"
                     />
 
@@ -1411,15 +1428,14 @@ export default function BeekeeperAIPage() {
 
                     {/* Send Button */}
                     <button
-                      type="button"
-                      onClick={() => handleAskAI()}
+                      type="submit"
                       disabled={askingAI || !aiChatQuery.trim()}
                       className="w-8 h-8 rounded-xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center text-xs font-bold transition-transform cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-xs"
                       title="Send message"
                     >
                       {askingAI ? <span className="animate-spin text-[10px]">⏳</span> : "↑"}
                     </button>
-                  </div>
+                  </form>
 
                   {/* Privacy Note */}
                   <p className="text-[10px] text-center text-amber-800/50 font-medium">
