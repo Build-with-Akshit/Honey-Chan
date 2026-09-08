@@ -90,6 +90,13 @@ export default function BeekeeperAIPage() {
   const [simHum, setSimHum] = useState(64.8);
   const [simWeight, setSimWeight] = useState(38.45);
   const [simAct, setSimAct] = useState(0.88);
+  const [simVoc, setSimVoc] = useState(52.0);
+  const [simAcoustic, setSimAcoustic] = useState(224.0);
+  const [simIrIn, setSimIrIn] = useState(58);
+  const [simIrOut, setSimIrOut] = useState(54);
+  const [simPir, setSimPir] = useState(0);
+  const [simBattery, setSimBattery] = useState(4.08);
+  const [simSolar, setSimSolar] = useState(5.2);
 
   const fetchAI = async (hiveCode: string) => {
     if (!hiveCode) return;
@@ -102,6 +109,13 @@ export default function BeekeeperAIPage() {
         setSimHum(res.sensor_data.humidity ?? 64.8);
         setSimWeight(res.sensor_data.weight ?? 38.45);
         setSimAct(res.sensor_data.bee_activity ?? 0.88);
+        if (res.sensor_data.voc_ppm !== undefined) setSimVoc(res.sensor_data.voc_ppm);
+        if (res.sensor_data.acoustic_hz !== undefined) setSimAcoustic(res.sensor_data.acoustic_hz);
+        if (res.sensor_data.ir_entrance_in !== undefined) setSimIrIn(res.sensor_data.ir_entrance_in);
+        if (res.sensor_data.ir_entrance_out !== undefined) setSimIrOut(res.sensor_data.ir_entrance_out);
+        if (res.sensor_data.pir_motion !== undefined) setSimPir(res.sensor_data.pir_motion);
+        if (res.sensor_data.battery_v !== undefined) setSimBattery(res.sensor_data.battery_v);
+        if (res.sensor_data.solar_w !== undefined) setSimSolar(res.sensor_data.solar_w);
       }
     } catch (err) {
       console.error("AI fetch failed:", err);
@@ -261,13 +275,27 @@ export default function BeekeeperAIPage() {
     t: number,
     h: number,
     w: number,
-    a: number
+    a: number,
+    v?: number,
+    ac?: number,
+    iri?: number,
+    iro?: number,
+    p?: number,
+    bat?: number,
+    sol?: number
   ) => {
     setIsSimulating(true);
     setSimTemp(t);
     setSimHum(h);
     setSimWeight(w);
     setSimAct(a);
+    if (v !== undefined) setSimVoc(v);
+    if (ac !== undefined) setSimAcoustic(ac);
+    if (iri !== undefined) setSimIrIn(iri);
+    if (iro !== undefined) setSimIrOut(iro);
+    if (p !== undefined) setSimPir(p);
+    if (bat !== undefined) setSimBattery(bat);
+    if (sol !== undefined) setSimSolar(sol);
 
     try {
       const res = await honeyApi.simulateHiveAI(selectedHive, {
@@ -275,6 +303,13 @@ export default function BeekeeperAIPage() {
         humidity: h,
         weight: w,
         bee_activity: a,
+        voc_ppm: v ?? simVoc,
+        acoustic_hz: ac ?? simAcoustic,
+        ir_entrance_in: iri ?? simIrIn,
+        ir_entrance_out: iro ?? simIrOut,
+        pir_motion: p ?? simPir,
+        battery_v: bat ?? simBattery,
+        solar_w: sol ?? simSolar,
       });
       setAiData(res);
     } catch (err) {
@@ -362,6 +397,13 @@ export default function BeekeeperAIPage() {
         weight: simWeight,
         beeActivity: simAct,
         healthScore: aiData?.healthScore ?? 94,
+        voc_ppm: simVoc,
+        acoustic_hz: simAcoustic,
+        ir_entrance_in: simIrIn,
+        ir_entrance_out: simIrOut,
+        pir_motion: simPir,
+        battery_v: simBattery,
+        solar_w: simSolar,
       };
 
       const res = await honeyApi.chatAI({
@@ -647,23 +689,27 @@ export default function BeekeeperAIPage() {
             {/* Quick Scenario Preset Chips */}
             <div className="flex flex-wrap gap-2 pt-1">
               {[
-                { label: "🌸 Peak Spring Flow (Optimal)", t: 34.4, h: 62.0, w: 43.5, a: 0.92 },
-                { label: "🔥 Summer Heatwave Stress (39°C)", t: 39.2, h: 46.0, w: 35.8, a: 0.65 },
-                { label: "🌧️ Monsoon Moisture Hazard (86%)", t: 33.6, h: 86.0, w: 32.5, a: 0.42 },
-                { label: "❄️ Winter Brood Chilling (28.5°C)", t: 28.5, h: 74.0, w: 29.8, a: 0.32 },
-                { label: "⚠️ Swarm Alert (Weight Loss)", t: 35.6, h: 66.0, w: 23.0, a: 0.96 },
+                { label: "🌸 Peak Spring Flow (Optimal)", t: 34.4, h: 62.0, w: 43.5, a: 0.92, v: 48, ac: 224, iri: 65, iro: 62, p: 0, bat: 4.15 },
+                { label: "🔥 Summer Heatwave (39°C)", t: 39.2, h: 46.0, w: 35.8, a: 0.65, v: 75, ac: 245, iri: 38, iro: 40, p: 0, bat: 4.05 },
+                { label: "🌧️ Monsoon Moisture (86%)", t: 33.6, h: 86.0, w: 32.5, a: 0.42, v: 110, ac: 195, iri: 20, iro: 18, p: 0, bat: 3.80 },
+                { label: "🚨 Foulbrood Rot (VOC: 240 ppm)", t: 35.0, h: 78.0, w: 26.5, a: 0.35, v: 240, ac: 260, iri: 15, iro: 20, p: 0, bat: 3.90 },
+                { label: "🔊 UrBAN Queenless (520 Hz)", t: 32.5, h: 68.0, w: 28.0, a: 0.40, v: 65, ac: 520, iri: 25, iro: 30, p: 0, bat: 4.00 },
+                { label: "🐝 Robbing Exodus (IR Out Surge)", t: 34.8, h: 64.0, w: 24.0, a: 0.75, v: 80, ac: 380, iri: 25, iro: 185, p: 0, bat: 4.02 },
+                { label: "🐾 Predator Alarm (PIR Active)", t: 34.2, h: 63.0, w: 36.0, a: 0.60, v: 55, ac: 680, iri: 30, iro: 35, p: 1, bat: 4.05 },
               ].map((sc, i) => (
                 <button
                   key={i}
-                  onClick={() => handleApplySimulation(sc.t, sc.h, sc.w, sc.a)}
-                  className="text-[11px] font-bold px-3 py-1.5 bg-white hover:bg-amber-100/90 text-amber-900 border border-amber-200/90 rounded-xl transition-all shadow-2xs cursor-pointer"
+                  onClick={() =>
+                    handleApplySimulation(sc.t, sc.h, sc.w, sc.a, sc.v, sc.ac, sc.iri, sc.iro, sc.p, sc.bat)
+                  }
+                  className="text-[11px] font-bold px-3 py-1.5 bg-white hover:bg-amber-100/90 text-amber-900 border border-amber-200/90 rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95"
                 >
                   {sc.label}
                 </button>
               ))}
             </div>
 
-            {/* 4 Interactive Sliders */}
+            {/* Interactive Sliders: Smart-Beehive-Monitor & UrBAN Spectrum */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/80 p-4 rounded-2xl border border-amber-200">
               <div>
                 <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
@@ -681,7 +727,7 @@ export default function BeekeeperAIPage() {
                   }
                   className="w-full accent-amber-600 cursor-pointer"
                 />
-                <span className="text-[10px] text-amber-700/60 block font-medium">Optimal: 33.5 - 35.8°C</span>
+                <span className="text-[10px] text-amber-700/60 block font-medium">Target: 33.5 - 35.8°C</span>
               </div>
 
               <div>
@@ -700,17 +746,17 @@ export default function BeekeeperAIPage() {
                   }
                   className="w-full accent-amber-600 cursor-pointer"
                 />
-                <span className="text-[10px] text-amber-700/60 block font-medium">Optimal: 55 - 72%</span>
+                <span className="text-[10px] text-amber-700/60 block font-medium">Target: 55 - 72%</span>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
-                  <span>Hive Scale Mass:</span>
+                  <span>Hive Scale (100kg):</span>
                   <span className="font-mono text-amber-800">{simWeight.toFixed(2)} kg</span>
                 </div>
                 <input
                   type="range"
-                  min="18"
+                  min="16"
                   max="55"
                   step="0.2"
                   value={simWeight}
@@ -724,21 +770,107 @@ export default function BeekeeperAIPage() {
 
               <div>
                 <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
-                  <span>Foraging Traffic:</span>
-                  <span className="font-mono text-amber-800">{Math.round(simAct * 100)}%</span>
+                  <span>UrBAN Acoustics (Hz):</span>
+                  <span className="font-mono text-amber-800">{simAcoustic.toFixed(0)} Hz</span>
                 </div>
                 <input
                   type="range"
-                  min="0.1"
-                  max="1.0"
-                  step="0.02"
-                  value={simAct}
+                  min="180"
+                  max="650"
+                  step="5"
+                  value={simAcoustic}
                   onChange={(e) =>
-                    handleApplySimulation(simTemp, simHum, simWeight, parseFloat(e.target.value))
+                    handleApplySimulation(simTemp, simHum, simWeight, simAct, simVoc, parseFloat(e.target.value))
                   }
                   className="w-full accent-amber-600 cursor-pointer"
                 />
-                <span className="text-[10px] text-amber-700/60 block font-medium">Healthy: &gt; 65% Traffic</span>
+                <span className="text-[10px] text-amber-700/60 block font-medium">
+                  {simAcoustic > 400 ? "⚠️ Queenless Piping" : simAcoustic > 300 ? "Pre-Swarm Energy" : "Normal 200-250Hz"}
+                </span>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
+                  <span>MQ-135 VOC Air (ppm):</span>
+                  <span className="font-mono text-amber-800">{simVoc.toFixed(0)} ppm</span>
+                </div>
+                <input
+                  type="range"
+                  min="30"
+                  max="320"
+                  step="5"
+                  value={simVoc}
+                  onChange={(e) =>
+                    handleApplySimulation(simTemp, simHum, simWeight, simAct, parseFloat(e.target.value))
+                  }
+                  className="w-full accent-amber-600 cursor-pointer"
+                />
+                <span className="text-[10px] text-amber-700/60 block font-medium">
+                  {simVoc > 160 ? "🚨 Foulbrood Decay Risk" : simVoc > 85 ? "Elevated Moisture" : "Clean Air (<80 ppm)"}
+                </span>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
+                  <span>IR Entrance Traffic:</span>
+                  <span className="font-mono text-amber-800">In:{simIrIn} | Out:{simIrOut}</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="180"
+                  step="5"
+                  value={simIrOut}
+                  onChange={(e) =>
+                    handleApplySimulation(simTemp, simHum, simWeight, simAct, simVoc, simAcoustic, simIrIn, parseInt(e.target.value))
+                  }
+                  className="w-full accent-amber-600 cursor-pointer"
+                />
+                <span className="text-[10px] text-amber-700/60 block font-medium">
+                  {simIrOut > simIrIn * 1.8 ? "🚨 Robbing Outbound Spike" : "Balanced Traffic"}
+                </span>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
+                  <span>Solar BMS Li-ion:</span>
+                  <span className="font-mono text-amber-800">{simBattery.toFixed(2)}V</span>
+                </div>
+                <input
+                  type="range"
+                  min="3.1"
+                  max="4.2"
+                  step="0.05"
+                  value={simBattery}
+                  onChange={(e) =>
+                    handleApplySimulation(simTemp, simHum, simWeight, simAct, simVoc, simAcoustic, simIrIn, simIrOut, simPir, parseFloat(e.target.value))
+                  }
+                  className="w-full accent-amber-600 cursor-pointer"
+                />
+                <span className="text-[10px] text-amber-700/60 block font-medium">
+                  {simBattery >= 3.7 ? "Nominal / Charged (3.7-4.2V)" : "⚠️ Critical Low Battery"}
+                </span>
+              </div>
+
+              <div className="flex flex-col justify-between">
+                <div className="flex justify-between text-xs font-bold text-amber-950 mb-1">
+                  <span>PIR Predator Sensor:</span>
+                  <span className="font-mono text-amber-800">{simPir ? "🚨 Motion" : "Clear"}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleApplySimulation(simTemp, simHum, simWeight, simAct, simVoc, simAcoustic, simIrIn, simIrOut, simPir ? 0 : 1)
+                  }
+                  className={`w-full py-2 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-all ${
+                    simPir
+                      ? "bg-rose-500 text-white border-rose-600 shadow-xs"
+                      : "bg-white hover:bg-amber-50 text-amber-950 border-amber-200"
+                  }`}
+                >
+                  {simPir ? "🚨 Predator Detected (HC-SR501)" : "🟢 No Predator Motion"}
+                </button>
+                <span className="text-[10px] text-amber-700/60 block font-medium mt-1">Hornet/Wasp motion trigger</span>
               </div>
             </div>
           </div>
@@ -1209,32 +1341,44 @@ export default function BeekeeperAIPage() {
                         </p>
                       </div>
 
-                      {/* Quick Starter Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+                      {/* Quick Starter Grid (Smart-Beehive-Monitor, UrBAN & Supply Chain Blockchain) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full text-left">
                         {[
                           {
-                            title: "Harvest Readiness",
-                            desc: "Shahad kab nikalna chahiye? Weight aur moisture check karein.",
-                            query: "Shahad kab nikalna chahiye? Weight aur moisture check karein",
-                            icon: "🌾",
+                            title: "UrBAN Acoustic Diagnosis",
+                            desc: "520 Hz frequency par Queen presence aur colony distress check karein.",
+                            query: "UrBAN acoustic frequency reading 520 Hz ka kya matlab hai aur Queen theek hai?",
+                            icon: "🔊",
+                          },
+                          {
+                            title: "VOC Air Quality (MQ-135)",
+                            desc: "Air quality check karein aur foulbrood anaerobic decay odor pehchanein.",
+                            query: "VOC sensor 240 ppm reading dikha raha hai, kya foulbrood ka khatra hai?",
+                            icon: "🌱",
+                          },
+                          {
+                            title: "Harvest Timing (100kg Scale)",
+                            desc: "Shahad kab nikalna chahiye? Weight surplus plateau check karein.",
+                            query: "Shahad kab nikalna chahiye? 100kg load cell weight aur moisture check karein",
+                            icon: "⚖️",
+                          },
+                          {
+                            title: "IR Entrance & Robbing",
+                            desc: "In/Out traffic ratio se robbing aur foraging analyze karein.",
+                            query: "IR entrance counter se robbing kaise pehchanein aur bachav kaise karein?",
+                            icon: "👁️",
                           },
                           {
                             title: "Varroa Mite Biosecurity",
-                            desc: "Varroa mite aur rog ke lakshan aur approved treatment batayein.",
-                            query: "Varroa mite aur brood rog check karein aur ilaj batayein",
+                            desc: "Formic aur Oxalic acid organic IPM treatment protocol.",
+                            query: "Varroa mite aur rog ke lakshan aur approved organic ilaj batayein",
                             icon: "🛡️",
                           },
                           {
-                            title: "Swarming Risk Check",
-                            desc: "Is there any swarming danger based on current colony activity?",
-                            query: "Is there any swarming danger based on current colony activity?",
-                            icon: "🐝",
-                          },
-                          {
-                            title: "Micro-climate Audit",
-                            desc: "Chhatte ka tapman aur nami theek hai ya cooling karni padegi?",
-                            query: "Chhatte ka tapman aur nami theek hai?",
-                            icon: "🌡️",
+                            title: "Blockchain Supply Chain",
+                            desc: "Sepolia smart contract batch custody aur NABL EA-IRMS lab verify karein.",
+                            query: "Blockchain supply chain mein batch transfer aur lab purity test kaise verify hota hai?",
+                            icon: "⛓️",
                           },
                         ].map((card, i) => (
                           <button
@@ -1361,12 +1505,15 @@ export default function BeekeeperAIPage() {
                       className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-0.5 flex-1"
                     >
                       {[
-                        "🌾 Shahad kab nikalna chahiye?",
+                        "🔊 UrBAN acoustic reading 520 Hz ka kya matlab hai?",
+                        "🌱 VOC sensor 240 ppm reading kyu dikha raha hai?",
+                        "👁️ IR entrance counter se robbing kaise pehchanein?",
+                        "🚨 PIR predator motion alert aaya hai kya karein?",
+                        "⚖️ 100kg load cell se shahad harvest timing",
+                        "☀️ Solar BMS battery 3.2V low ho gayi hai",
+                        "⛓️ Blockchain supply chain mein batch verify kaise karein?",
                         "🛡️ Varroa mite aur rog check karein",
-                        "🐝 Is there any swarming danger?",
-                        "🌡️ Chhatte ka tapman aur nami theek hai?",
                         "🍯 Sugar syrup feeding ratio kitna rakhein?",
-                        "📋 KVIC Honey Mission biosecurity guide",
                       ].map((prompt, i) => (
                         <button
                           key={i}

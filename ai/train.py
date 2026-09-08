@@ -18,7 +18,22 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(SCRIPT_DIR, "hive_dataset.csv")
 MODELS_DIR = os.path.join(SCRIPT_DIR, "models")
 
-FEATURES = ["temperature", "humidity", "weight", "bee_activity", "pressure", "hour_of_day", "season_code"]
+FEATURES = [
+    "temperature",
+    "humidity",
+    "weight",
+    "bee_activity",
+    "pressure",
+    "voc_ppm",
+    "acoustic_hz",
+    "ir_entrance_in",
+    "ir_entrance_out",
+    "pir_motion",
+    "battery_v",
+    "solar_w",
+    "hour_of_day",
+    "season_code"
+]
 
 
 def main():
