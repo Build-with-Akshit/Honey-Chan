@@ -23,10 +23,46 @@ interface DetectionBox {
 }
 
 export default function BeekeeperAIPage() {
-  const [aiData, setAiData] = useState<any>(null);
+  const [aiData, setAiData] = useState<any>({
+    healthScore: 94,
+    riskLevel: "LOW",
+    productivityKg: 16.5,
+    confidence: 0.94,
+    windowDays: 7,
+    recommendation: "Maintain standard inspection schedule. Flow conditions and brood climate are optimal.",
+    explanation: "Analysis based on 4-point real-time telemetry (Temp: 34.2°C, Hum: 64.8%, Weight: 38.45kg, Activity: 88%).",
+    features: { acoustic_hz: 224 },
+    anomalyDetection: {
+      broodCoolingRisk: "Optimal (34.2°C)",
+      varroaMiteRisk: "Low (<1.5% Infestation)",
+      swarmingProbability: 0.08,
+    },
+    factors: [
+      {
+        name: "Brood Chamber Thermal Regulation",
+        value: "34.2°C (Target: 34.0°C)",
+        status: "optimal",
+      },
+      {
+        name: "Colony Relative Humidity",
+        value: "64.8% (Target: 55-70%)",
+        status: "optimal",
+      },
+      {
+        name: "Foraging & Flight Activity Index",
+        value: "88% (Peak Floral Flow)",
+        status: "optimal",
+      },
+      {
+        name: "Net Hive Scale & Honey Super Mass",
+        value: "38.45 kg (+20.3 kg Super)",
+        status: "optimal",
+      },
+    ],
+  });
   const [hives, setHives] = useState<any[]>([]);
   const [selectedHive, setSelectedHive] = useState("H001");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // ─── Active Tab / View ────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<"overview" | "comb_vision" | "chat_voice" | "lab_screener">("overview");
@@ -999,18 +1035,11 @@ export default function BeekeeperAIPage() {
 
         {/* ─── Right Content Area ─── */}
         <div className="flex-1 min-w-0 space-y-6">
-          {loading && !aiData ? (
-        <div className="p-16 text-center text-amber-900/60 bg-white/60 rounded-3xl border border-amber-100">
-          <div className="animate-spin h-8 w-8 border-3 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-xs font-bold font-mono">Running Predictive AI Analysis...</p>
-        </div>
-      ) : (
-        <>
           {/* ─── Top 3 Metric Cards (Tier 1: XGBoost Telemetry) ───────────── */}
           {activeTab === "overview" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
             {/* Card 1: Colony Health Index */}
-            <div className={`group relative overflow-hidden p-6 rounded-3xl border shadow-sm hover:shadow-lg transition-all ${
+            <div className={`group relative overflow-hidden p-6 rounded-2xl border shadow-sm hover:shadow-md transition-colors duration-200 ${
               riskLevel === "LOW"
                 ? "bg-gradient-to-br from-[#f6fdf9] via-white to-emerald-50/70 border-emerald-200/90 hover:border-emerald-400"
                 : riskLevel === "MEDIUM"
@@ -1032,7 +1061,7 @@ export default function BeekeeperAIPage() {
                   </div>
                 </div>
 
-                <div className={`w-12 h-12 rounded-2xl shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform text-white ${
+                <div className={`w-12 h-12 min-w-12 min-h-12 max-w-12 max-h-12 shrink-0 aspect-square rounded-2xl shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform text-white ${
                   healthScore >= 85
                     ? "bg-gradient-to-br from-emerald-400 to-teal-600"
                     : healthScore >= 70
@@ -1071,7 +1100,7 @@ export default function BeekeeperAIPage() {
             </div>
 
             {/* Card 2: Honey Yield Forecast */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-[#f8fcff] via-white to-blue-50/70 p-6 rounded-3xl border border-blue-200/90 shadow-sm hover:shadow-lg hover:border-blue-400 transition-all">
+            <div className="group relative overflow-hidden bg-gradient-to-br from-[#f8fcff] via-white to-blue-50/70 p-6 rounded-2xl border border-blue-200/90 shadow-sm hover:shadow-md hover:border-blue-400 transition-colors duration-200">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-bold text-blue-900/70 uppercase tracking-wider">
@@ -1085,7 +1114,7 @@ export default function BeekeeperAIPage() {
                   </div>
                 </div>
 
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 min-w-12 min-h-12 max-w-12 max-h-12 shrink-0 aspect-square rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
                   🍯
                 </div>
               </div>
@@ -1105,7 +1134,7 @@ export default function BeekeeperAIPage() {
             </div>
 
             {/* Card 3: Colony Behavior & Queen */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-[#fffef7] via-white to-amber-50/70 p-6 rounded-3xl border border-amber-200/90 shadow-sm hover:shadow-lg hover:border-amber-400 transition-all">
+            <div className="group relative overflow-hidden bg-gradient-to-br from-[#fffef7] via-white to-amber-50/70 p-6 rounded-2xl border border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-400 transition-colors duration-200">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider">
@@ -1118,7 +1147,7 @@ export default function BeekeeperAIPage() {
                   </div>
                 </div>
 
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 min-w-12 min-h-12 max-w-12 max-h-12 shrink-0 aspect-square rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
                   👑
                 </div>
               </div>
@@ -2537,8 +2566,6 @@ export default function BeekeeperAIPage() {
               )}
             </div>
           )}
-        </>
-      )}
         </div>
       </div>
     </div>
