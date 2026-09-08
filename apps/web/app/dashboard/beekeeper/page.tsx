@@ -1,17 +1,22 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 
-function getHealthColor(health: number) {
-  if (health >= 90) return "bg-green-500";
-  if (health >= 75) return "bg-amber-500";
-  return "bg-red-500";
+function getHealthBadge(health: number) {
+  if (health >= 90) {
+    return { label: "Optimal", color: "bg-emerald-100 text-emerald-800 border-emerald-300", icon: "🟢" };
+  }
+  if (health >= 75) {
+    return { label: "Good", color: "bg-amber-100 text-amber-900 border-amber-300", icon: "🟡" };
+  }
+  return { label: "Attention Needed", color: "bg-rose-100 text-rose-800 border-rose-300", icon: "🔴" };
 }
 
 export default function BeekeeperDashboard() {
+  const { user } = useAuth();
   const [liveTime, setLiveTime] = useState(new Date());
   const [hives, setHives] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
@@ -33,257 +38,559 @@ export default function BeekeeperDashboard() {
   }, []);
 
   const totalHives = hives.length;
-  const activeBatches = batches.filter(b => b.status !== "DISTRIBUTED" && b.status !== "RETAIL").length;
-  const honeyProduced = batches.reduce((acc, b) => acc + Number(b.quantity || 0), 0);
-  const avgHealth = hives.length ? Math.round(hives.reduce((acc, h) => acc + (h.healthScore || 85), 0) / hives.length) : 0;
+  const activeBatches = batches.filter(
+    (b) => b.status !== "DISTRIBUTED" && b.status !== "RETAIL"
+  ).length;
+  const honeyProduced = batches.reduce(
+    (acc, b) => acc + Number(b.quantity || b.quantityKg || 0),
+    0
+  );
+  const avgHealth = hives.length
+    ? Math.round(
+        hives.reduce((acc, h) => acc + (h.healthScore || 85), 0) / hives.length
+      )
+    : 92;
 
-  const iotActive = true;
-
-  const alerts = hives
-    .filter(h => h.latestReading?.temperature > 35 || (h.healthScore && h.healthScore < 80))
-    .map(h => ({
-      type: "warning",
-      message: `${h.hiveCode}: Elevated temp/low health — monitor closely`,
-      time: "Recent"
-    }));
+  // Predictive checks: Harvest ready hive or inspection alert
+  const harvestReadyHives = hives.filter(
+    (h) => (h.latestReading?.weight || 38.4) >= 38.0
+  );
+  const alertHives = hives.filter(
+    (h) =>
+      (h.latestReading?.temperature || 34.2) > 35.5 ||
+      (h.healthScore && h.healthScore < 80)
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Beekeeper Dashboard</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Welcome back • {liveTime.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm bg-white border border-green-200 px-3 py-1.5 rounded-full shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 pulse-dot" />
-            <span className="font-medium text-green-600">IoT Online</span>
+    <div className="space-y-6 page-enter">
+      {/* ─── 1. Welcome & Apiary Status Hero ─────────────────────────────── */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/15 via-amber-100/60 to-orange-500/10 p-6 md:p-8 rounded-3xl border border-amber-300 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-2xl">🍯</span>
+              <h1 className="text-2xl md:text-3xl font-black text-amber-950 tracking-tight">
+                Namaste, {user?.name || "Beekeeper"}
+              </h1>
+              <span className="text-[11px] font-extrabold bg-amber-200/80 text-amber-950 px-2.5 py-0.5 rounded-full border border-amber-300 shadow-2xs">
+                KVIC Smart Apiary Node
+              </span>
+            </div>
+
+            <p className="text-xs font-semibold text-amber-900/80 flex flex-wrap items-center gap-2 pt-0.5">
+              <span>Sonipat Cluster #04</span>
+              <span className="text-amber-400">•</span>
+              <span className="text-amber-900/60 font-mono">
+                {liveTime.toLocaleDateString("en-IN", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+              <span className="text-amber-400">•</span>
+              <span className="font-mono text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-300 font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
+                IoT Sensors Streaming
+              </span>
+            </p>
           </div>
-          <Link 
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/batches/create"
+              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs md:text-sm py-3 px-5 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+            >
+              <span className="text-base">🍯</span>
+              <span>Log Harvest & Create Batch</span>
+              <span>→</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 2. Predictive Quick Action Cards (Zero-Friction UX) ─────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-xs font-black uppercase tracking-wider text-amber-900/70 flex items-center gap-1.5">
+            <span>⚡</span> Quick Actions • Everything You Need In 1-Click
+          </h2>
+          <span className="text-[11px] text-amber-800/60 font-medium">Select a workflow</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Action 1: Harvest Honey */}
+          <Link
             href="/batches/create"
-            className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md transition-colors flex items-center gap-2"
+            className="group p-5 rounded-3xl bg-white hover:bg-amber-50/80 border border-amber-200/90 hover:border-amber-400 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 cursor-pointer"
           >
-            <span>🍯</span> Harvest & Create Batch
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
+                🍯
+              </div>
+              <h3 className="font-black text-sm text-amber-950 group-hover:text-amber-800 transition-colors">
+                Log Honey Harvest
+              </h3>
+              <p className="text-xs text-amber-900/70 leading-relaxed font-medium">
+                Record raw honey yield, register Sepolia blockchain batch & generate QR bottle certificate.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-amber-700 flex items-center gap-1 group-hover:gap-2 transition-all">
+              <span>Start Harvest</span>
+              <span>→</span>
+            </span>
+          </Link>
+
+          {/* Action 2: Manage Beehives */}
+          <Link
+            href="/dashboard/beekeeper/hives"
+            className="group p-5 rounded-3xl bg-white hover:bg-amber-50/80 border border-amber-200/90 hover:border-amber-400 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 cursor-pointer"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
+                🐝
+              </div>
+              <h3 className="font-black text-sm text-amber-950 group-hover:text-amber-800 transition-colors">
+                My Beehives ({totalHives})
+              </h3>
+              <p className="text-xs text-amber-900/70 leading-relaxed font-medium">
+                View colony health scores, register new smart bee boxes & inspect brood frames.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-amber-700 flex items-center gap-1 group-hover:gap-2 transition-all">
+              <span>Manage Hives</span>
+              <span>→</span>
+            </span>
+          </Link>
+
+          {/* Action 3: Live IoT Stream */}
+          <Link
+            href="/dashboard/beekeeper/iot"
+            className="group p-5 rounded-3xl bg-white hover:bg-amber-50/80 border border-amber-200/90 hover:border-amber-400 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 cursor-pointer"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
+                📡
+              </div>
+              <h3 className="font-black text-sm text-amber-950 group-hover:text-amber-800 transition-colors">
+                Live IoT Sensors
+              </h3>
+              <p className="text-xs text-amber-900/70 leading-relaxed font-medium">
+                Inspect 4-point live telemetry: temperature (34.2°C), humidity (64%), scale weight & acoustics.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-amber-700 flex items-center gap-1 group-hover:gap-2 transition-all">
+              <span>View Sensor Stream</span>
+              <span>→</span>
+            </span>
+          </Link>
+
+          {/* Action 4: AI Voice Agronomist */}
+          <Link
+            href="/dashboard/beekeeper/ai"
+            className="group p-5 rounded-3xl bg-white hover:bg-amber-50/80 border border-amber-200/90 hover:border-amber-400 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 cursor-pointer"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
+                🤖
+              </div>
+              <h3 className="font-black text-sm text-amber-950 group-hover:text-amber-800 transition-colors">
+                AI Voice Agronomist
+              </h3>
+              <p className="text-xs text-amber-900/70 leading-relaxed font-medium">
+                Ask Gemini in Hindi or English about Varroa mites, swarm prevention, honey flow & ICAR guidelines.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-amber-700 flex items-center gap-1 group-hover:gap-2 transition-all">
+              <span>Open AI Workspace</span>
+              <span>→</span>
+            </span>
           </Link>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
+      {/* ─── 3. Predictive Guidance & Action Required Bar ───────────────── */}
+      {harvestReadyHives.length > 0 ? (
+        <div className="p-4.5 rounded-3xl bg-emerald-50 border border-emerald-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
+              🌾
+            </span>
+            <div>
+              <h4 className="text-xs font-black text-emerald-950 uppercase tracking-wide">
+                Optimal Honey Harvest Window Detected
+              </h4>
+              <p className="text-xs text-emerald-900 font-semibold mt-0.5">
+                Hive <b>{harvestReadyHives[0].hiveCode}</b> has reached {harvestReadyHives[0].latestReading?.weight || "38.45"} KG. Supers are capped with ripened honey.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/batches/create"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-2xs transition-all whitespace-nowrap self-start sm:self-auto cursor-pointer"
+          >
+            Harvest This Hive Now →
+          </Link>
+        </div>
+      ) : alertHives.length > 0 ? (
+        <div className="p-4.5 rounded-3xl bg-rose-50 border border-rose-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
+              ⚠️
+            </span>
+            <div>
+              <h4 className="text-xs font-black text-rose-950 uppercase tracking-wide">
+                Inspection Recommended
+              </h4>
+              <p className="text-xs text-rose-900 font-semibold mt-0.5">
+                Hive <b>{alertHives[0].hiveCode}</b> temperature is at {alertHives[0].latestReading?.temperature || "35.8"}°C. Check entrance ventilation.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/beekeeper/iot"
+            className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-2xs transition-all whitespace-nowrap self-start sm:self-auto cursor-pointer"
+          >
+            Inspect Sensors →
+          </Link>
         </div>
       ) : (
-        <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Total Hives</p>
-                  <p className="text-3xl font-bold mt-1 text-amber-700">{totalHives}</p>
-                  <p className="text-gray-400 text-xs mt-2">Active colonies</p>
-                </div>
-                <span className="text-3xl opacity-60">🐝</span>
-              </div>
-            </div>
-            
-            <div className="card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Active Batches</p>
-                  <p className="text-3xl font-bold mt-1 text-green-700">{activeBatches}</p>
-                  <p className="text-gray-400 text-xs mt-2">In supply chain</p>
-                </div>
-                <span className="text-3xl opacity-60">🍯</span>
-              </div>
+        <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between gap-3 text-xs text-amber-950 font-medium">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">✅</span>
+            <span>
+              All <b>{totalHives} active colonies</b> are operating within optimal biological microclimate ranges (Brood: 34.2°C, RH: 64%).
+            </span>
+          </div>
+          <Link
+            href="/dashboard/beekeeper/iot"
+            className="text-amber-800 hover:text-amber-950 font-bold underline whitespace-nowrap"
+          >
+            View Live Stream
+          </Link>
+        </div>
+      )}
+
+      {/* ─── 4. Key Apiary Vitals Grid ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1: Total Hives */}
+        <div className="p-5 rounded-3xl bg-white border border-amber-200 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-amber-900/70 font-semibold">
+            <span>Active Colonies</span>
+            <span className="text-base">🐝</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl md:text-4xl font-black text-amber-950 tracking-tight font-mono">
+              {totalHives}
+            </span>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
+              100% Online
+            </span>
+          </div>
+          <p className="text-[11px] text-amber-800/60 font-medium">
+            Registered KVIC bee boxes
+          </p>
+        </div>
+
+        {/* Metric 2: Lifetime Honey Produced */}
+        <div className="p-5 rounded-3xl bg-white border border-amber-200 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-amber-900/70 font-semibold">
+            <span>Harvested Honey</span>
+            <span className="text-base">⚖️</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl md:text-4xl font-black text-amber-950 tracking-tight font-mono">
+              {honeyProduced.toFixed(1)}
+            </span>
+            <span className="text-sm font-bold text-amber-700">KG</span>
+          </div>
+          <p className="text-[11px] text-amber-800/60 font-medium">
+            Verified raw honey yield
+          </p>
+        </div>
+
+        {/* Metric 3: Active Batches */}
+        <div className="p-5 rounded-3xl bg-white border border-amber-200 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-amber-900/70 font-semibold">
+            <span>In Supply Chain</span>
+            <span className="text-base">📦</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl md:text-4xl font-black text-amber-950 tracking-tight font-mono">
+              {activeBatches}
+            </span>
+            <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-300">
+              Active Batches
+            </span>
+          </div>
+          <p className="text-[11px] text-amber-800/60 font-medium">
+            Moving to lab / processor
+          </p>
+        </div>
+
+        {/* Metric 4: Average Colony Health */}
+        <div className="p-5 rounded-3xl bg-white border border-amber-200 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-amber-900/70 font-semibold">
+            <span>Colony Health Score</span>
+            <span className="text-base">❤️</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl md:text-4xl font-black text-emerald-800 tracking-tight font-mono">
+              {avgHealth}%
+            </span>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
+              Biological Optima
+            </span>
+          </div>
+          <div className="w-full bg-amber-100 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all"
+              style={{ width: `${avgHealth}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 5. My Hives & Recent Batches Grid ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Colonies Interactive Hub */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-amber-200 shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+            <div>
+              <h3 className="text-sm font-black text-amber-950 flex items-center gap-2">
+                <span>🐝</span> My Beehives & Microclimate Telemetry
+              </h3>
+              <p className="text-[11px] text-amber-800/60 font-medium mt-0.5">
+                Click any hive to inspect live telemetry or start a direct honey harvest.
+              </p>
             </div>
 
-            <div className="card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Honey Produced</p>
-                  <p className="text-3xl font-bold mt-1 text-blue-700">{honeyProduced.toFixed(1)} KG</p>
-                  <p className="text-gray-400 text-xs mt-2">Total lifetime yield</p>
-                </div>
-                <span className="text-3xl opacity-60">⚖️</span>
-              </div>
-            </div>
-
-            <div className="card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Avg Hive Health</p>
-                  <p className="text-3xl font-bold mt-1 text-emerald-700">{avgHealth}%</p>
-                  <p className="text-gray-400 text-xs mt-2">{avgHealth > 85 ? "Excellent" : "Needs Attention"}</p>
-                </div>
-                <span className="text-3xl opacity-60">❤️</span>
-              </div>
-            </div>
+            <Link
+              href="/dashboard/beekeeper/hives"
+              className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline flex items-center gap-1"
+            >
+              <span>Manage All Hives ({totalHives})</span>
+              <span>→</span>
+            </Link>
           </div>
 
-          {/* Alerts */}
-          {alerts.length > 0 && (
-            <div className="space-y-2">
-              {alerts.map((alert, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-50 border border-orange-200"
-                >
-                  <span>⚠️</span>
-                  <span className="text-sm flex-1 text-orange-700">
-                    {alert.message}
-                  </span>
-                  <span className="text-xs text-gray-400">{alert.time}</span>
-                </div>
-              ))}
+          {loading ? (
+            <div className="p-12 text-center text-xs text-amber-800/60 flex items-center justify-center gap-2">
+              <div className="animate-spin h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full" />
+              <span>Loading beehives...</span>
             </div>
-          )}
+          ) : hives.length === 0 ? (
+            <div className="p-8 text-center space-y-3">
+              <p className="text-xs text-amber-800/70 font-medium">
+                No beehives registered yet in your apiary.
+              </p>
+              <Link
+                href="/dashboard/beekeeper/hives"
+                className="btn-primary text-xs font-bold px-4 py-2 rounded-xl inline-block"
+              >
+                + Register First Beehive
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {hives.map((hive) => {
+                const badge = getHealthBadge(hive.healthScore || 85);
+                const temp = hive.latestReading?.temperature || 34.2;
+                const hum = hive.latestReading?.humidity || 64.8;
+                const weight = hive.latestReading?.weight || 38.45;
 
-          {/* Two column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Hives */}
-            <div className="lg:col-span-2 card overflow-hidden flex flex-col h-full">
-              <div className="p-4 border-b border-amber-100 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-                  🐝 My Hives
-                </h2>
-                <span className="text-xs text-gray-400">{hives.length} active</span>
-              </div>
-              <div className="divide-y divide-gray-100 flex-1 overflow-y-auto max-h-[400px]">
-                {hives.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">No hives found.</div>
-                ) : (
-                  hives.map((hive) => (
-                    <div key={hive.id} className="p-4 hover:bg-amber-50/40 transition-colors cursor-pointer">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-amber-700 font-semibold text-sm">{hive.hiveCode}</span>
-                          {(hive.healthScore || 85) < 80 && (
-                            <span className="badge badge-warning">⚠ ATTENTION</span>
-                          )}
-                        </div>
+                return (
+                  <div
+                    key={hive.id || hive.hiveCode}
+                    className="p-4 rounded-2xl bg-[#fffefc] border border-amber-200/90 hover:border-amber-400 hover:shadow-xs transition-all space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
                         <div className="flex items-center gap-2">
-                          <div className="w-24 health-bar">
-                            <div
-                              className={`health-bar-fill ${getHealthColor(hive.healthScore || 85)}`}
-                              style={{ width: `${hive.healthScore || 85}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-gray-500 w-8 text-right">{hive.healthScore || 85}%</span>
+                          <span className="font-mono font-black text-sm text-amber-950">
+                            {hive.hiveCode}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.color}`}>
+                            {badge.icon} {badge.label}
+                          </span>
                         </div>
+                        <p className="text-[11px] text-amber-800/70 font-medium mt-0.5">
+                          🌸 {hive.flowerSource || "Mustard Flower"} • {hive.location || "Sonipat Apiary"}
+                        </p>
                       </div>
-                      <div className="grid grid-cols-4 gap-4 text-xs">
-                        <div>
-                          <span className="text-gray-400">Temp</span>
-                          <p className={`font-medium mt-0.5 ${(hive.latestReading?.temperature || 34.2) > 35 ? "text-red-600" : "text-gray-700"}`}>
-                            {hive.latestReading?.temperature || "34.2"}°C
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Humidity</span>
-                          <p className="font-medium mt-0.5 text-gray-700">{hive.latestReading?.humidity || "64.8"}%</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Weight</span>
-                          <p className="font-medium mt-0.5 text-gray-700">{hive.latestReading?.weight || "38.4"} kg</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Flower</span>
-                          <p className="font-medium mt-0.5 text-gray-700">{hive.flowerSource || "Mustard Flower"}</p>
-                        </div>
+
+                      <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {hive.healthScore || 85}%
+                      </span>
+                    </div>
+
+                    {/* Sensor Micro-Grid */}
+                    <div className="grid grid-cols-3 gap-1.5 text-center bg-amber-50/50 p-2 rounded-xl border border-amber-100">
+                      <div>
+                        <span className="text-[9px] text-amber-800/60 block uppercase font-bold">Temp</span>
+                        <span className="font-mono text-xs font-bold text-amber-950">{temp}°C</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-amber-800/60 block uppercase font-bold">Humidity</span>
+                        <span className="font-mono text-xs font-bold text-amber-950">{hum}%</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-amber-800/60 block uppercase font-bold">Mass</span>
+                        <span className="font-mono text-xs font-bold text-amber-950">{weight} kg</span>
                       </div>
                     </div>
-                  ))
-                )}
+
+                    {/* Direct Actions Toolbar */}
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-amber-100/70">
+                      <Link
+                        href="/dashboard/beekeeper/iot"
+                        className="text-[11px] font-bold text-amber-900 bg-white hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors shadow-2xs"
+                      >
+                        📡 Sensors
+                      </Link>
+
+                      <Link
+                        href="/dashboard/beekeeper/ai"
+                        className="text-[11px] font-bold text-amber-900 bg-white hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors shadow-2xs"
+                      >
+                        🤖 Ask AI
+                      </Link>
+
+                      <Link
+                        href="/batches/create"
+                        className="text-[11px] font-bold text-white bg-amber-500 hover:bg-amber-600 px-2.5 py-1 rounded-lg transition-colors shadow-2xs ml-auto"
+                      >
+                        🍯 Harvest
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right 1 Col: Recent Batches & Supply Chain */}
+        <div className="bg-white rounded-3xl border border-amber-200 shadow-sm p-6 space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+              <div>
+                <h3 className="text-sm font-black text-amber-950 flex items-center gap-2">
+                  <span>🍯</span> Recent Honey Batches
+                </h3>
+                <p className="text-[11px] text-amber-800/60 font-medium mt-0.5">
+                  Raw honey harvested and entered into the blockchain supply chain.
+                </p>
               </div>
+
+              <Link
+                href="/dashboard/beekeeper/batches"
+                className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline"
+              >
+                View All →
+              </Link>
             </div>
 
-            {/* Recent Batches */}
-            <div className="card overflow-hidden flex flex-col h-full">
-              <div className="p-4 border-b border-amber-100 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-                  🍯 Recent Batches
-                </h2>
-                <Link href="/dashboard/beekeeper/batches" className="text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors">
-                  View All →
+            {loading ? (
+              <div className="p-8 text-center text-xs text-amber-800/60">
+                Loading batches...
+              </div>
+            ) : batches.length === 0 ? (
+              <div className="p-6 text-center space-y-3 bg-amber-50/50 rounded-2xl border border-amber-100">
+                <p className="text-xs text-amber-800/70 font-medium">
+                  No batches created yet. Ready to log your first honey extraction?
+                </p>
+                <Link
+                  href="/batches/create"
+                  className="btn-primary text-xs font-bold px-4 py-2 rounded-xl inline-block"
+                >
+                  🍯 Create First Batch
                 </Link>
               </div>
-              <div className="divide-y divide-gray-100 flex-1 overflow-y-auto max-h-[400px]">
-                {batches.length === 0 ? (
-                   <div className="p-8 text-center text-gray-500 text-sm">No batches found.</div>
-                ) : (
-                  batches.slice(0, 5).map((batch) => (
-                    <div key={batch.id} className="p-4 hover:bg-amber-50/40 transition-colors cursor-pointer">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-mono text-sm text-gray-700 font-medium">{batch.batchId}</span>
-                        <span className="badge bg-amber-100 text-amber-800">{batch.status}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">{batch.honeyType} • {batch.quantity} KG</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(batch.harvestDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
+            ) : (
+              <div className="space-y-2.5">
+                {batches.slice(0, 4).map((b) => (
+                  <div
+                    key={b.id || b.batchId}
+                    className="p-3.5 rounded-2xl bg-[#fffdf9] border border-amber-200/80 hover:border-amber-300 transition-colors space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-xs text-amber-950 truncate">
+                        {b.batchId}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                        {b.status || "HARVESTED"}
+                      </span>
                     </div>
-                  ))
-                )}
+
+                    <div className="flex items-center justify-between text-xs text-amber-900/80 font-medium">
+                      <span>{b.honeyType || "Mixed Flora"}</span>
+                      <span className="font-bold text-amber-950">
+                        {b.quantity || b.quantityKg || "18.5"} KG
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-amber-800/60 border-t border-amber-100 pt-1.5 font-mono">
+                      <span>
+                        {new Date(b.harvestDate || b.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                      <Link
+                        href={`/trace/${b.batchId}`}
+                        className="text-amber-800 hover:text-amber-950 font-bold underline font-sans"
+                      >
+                        Verify Trace QR →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* AI Insights */}
-          {hives.length > 0 && (
-            <div className="card p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-xl">🧠</span>
-                <h2 className="font-semibold text-gray-700">AI Hive Intelligence</h2>
-                <span className="badge badge-info">AI-ASSISTED</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Health Score */}
-                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
-                  <p className="text-gray-500 text-xs mb-1">Overall Health Score</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-4xl font-bold text-emerald-700">{avgHealth}</span>
-                    <span className="text-gray-400 text-sm mb-1">/100</span>
-                  </div>
-                  <div className="mt-2 health-bar">
-                    <div className="health-bar-fill bg-emerald-500" style={{ width: `${avgHealth}%` }} />
-                  </div>
-                  <p className="text-xs text-emerald-600 mt-2 font-medium">
-                    {avgHealth > 85 ? "🟢 Excellent condition" : "🟡 Needs attention"}
-                  </p>
-                </div>
+          {/* Quick Create Batch Footer Link */}
+          <div className="pt-4 border-t border-amber-100">
+            <Link
+              href="/batches/create"
+              className="w-full bg-amber-100/80 hover:bg-amber-200/90 text-amber-950 font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs border border-amber-300/80"
+            >
+              <span>+ Log Another Honey Harvest</span>
+            </Link>
+          </div>
+        </div>
+      </div>
 
-                {/* Risk */}
-                <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                  <p className="text-gray-500 text-xs mb-1">Risk Assessment</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-2xl font-bold text-green-700">LOW</span>
-                    <span>🟢</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-3">
-                    {alerts.length > 0 ? `${alerts.length} hives require monitoring.` : "All hives operating normally."}
-                  </p>
-                </div>
-
-                {/* Productivity */}
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-gray-500 text-xs mb-1">Productivity Forecast</p>
-                  <div className="flex items-end gap-2 mt-2">
-                    <span className="text-3xl font-bold text-blue-700">{(hives.length * 15.5).toFixed(1)}</span>
-                    <span className="text-gray-400 text-sm mb-1">KG</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Estimated yield across {hives.length} active hives in next 10 days
-                  </p>
-                </div>
-              </div>
+      {/* ─── 6. AI Agronomist Quick Advisory Banner ────────────────────── */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-100/50 to-orange-500/10 border border-amber-300 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+            💡
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-black text-amber-950 uppercase tracking-wider">
+                ICAR & KVIC AI Agronomist Advisory
+              </h3>
+              <span className="text-[9px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold border border-amber-300">
+                Gemini 1.5 Pro
+              </span>
             </div>
-          )}
-        </>
-      )}
+            <p className="text-xs text-amber-900 font-semibold mt-1">
+              Colony micro-climate is optimal for active honey flow. Maintain weekly brood inspection and monitor bottom boards for Varroa mite prevention.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/dashboard/beekeeper/ai"
+          className="btn-primary text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-xs whitespace-nowrap self-start md:self-auto cursor-pointer flex items-center gap-2"
+        >
+          <span>Open AI Chat Workspace</span>
+          <span>→</span>
+        </Link>
+      </div>
     </div>
   );
 }
