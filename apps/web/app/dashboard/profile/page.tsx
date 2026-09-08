@@ -168,7 +168,7 @@ export default function ProfilePage() {
                       else alert("Failed to link wallet: " + (await res.json()).error);
                     }
                   }}
-                  className="w-full py-2 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
                 >
                   <span>🦊</span> Bind MetaMask Wallet
                 </button>

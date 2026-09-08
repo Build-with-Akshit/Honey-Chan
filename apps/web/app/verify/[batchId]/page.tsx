@@ -168,20 +168,20 @@ export default function VerifyPage() {
         )}
 
         {/* SIH 2026 Judge Interactive Evaluation Panel */}
-        <div className="card p-4 bg-gradient-to-r from-gray-900 via-amber-950 to-gray-900 text-white border border-amber-500/40 shadow-lg">
+        <div className="card p-4 bg-gradient-to-r from-amber-50 via-amber-100/80 to-orange-50 border-2 border-amber-300 shadow-md">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-base">⚡</span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800">
                 SIH 2026 Judge Interactive Evaluation Panel
               </h3>
             </div>
-            <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-semibold">
+            <span className="text-[10px] bg-amber-200/60 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-mono font-semibold">
               Live Attack Simulation
             </span>
           </div>
 
-          <p className="text-[11px] text-gray-300 mb-3">
+          <p className="text-[11px] text-amber-700 mb-3">
             Demonstrate how HoneyChain mathematically catches unauthorized off-chain database tampering and food safety recalls:
           </p>
 
@@ -228,7 +228,7 @@ export default function VerifyPage() {
           </div>
 
           {actionNotice && (
-            <div className="mt-2.5 p-2 rounded bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 text-center font-medium">
+            <div className="mt-2.5 p-2 rounded bg-amber-100 border border-amber-300 text-[11px] text-amber-900 text-center font-medium">
               {actionNotice}
             </div>
           )}
@@ -331,55 +331,55 @@ export default function VerifyPage() {
           </div>
 
           {/* Cryptographic Proof Comparison Panel */}
-          <div className="mt-4 p-3 rounded-lg bg-gray-900 text-left text-[10px] font-mono text-gray-300 space-y-1 overflow-hidden">
-            <p className="text-gray-400 font-bold uppercase tracking-wider text-[9px] mb-1.5 text-amber-400">
+          <div className="mt-4 p-3 rounded-lg bg-amber-50/80 border border-amber-200 text-left text-[10px] font-mono text-amber-900 space-y-1 overflow-hidden">
+            <p className="text-amber-700 font-bold uppercase tracking-wider text-[9px] mb-1.5">
               Keccak-256 Hash Comparison:
             </p>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 w-16 shrink-0">On-Chain:</span>
-              <span className="text-emerald-400 truncate">{data?.onChainHash}</span>
+              <span className="text-amber-600 w-16 shrink-0">On-Chain:</span>
+              <span className="text-emerald-700 truncate">{data?.onChainHash}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 w-16 shrink-0">Computed:</span>
+              <span className="text-amber-600 w-16 shrink-0">Computed:</span>
               <span
                 className={
                   data?.hashMatch
-                    ? "text-emerald-400 truncate"
-                    : "text-red-400 truncate font-bold"
+                    ? "text-emerald-700 truncate"
+                    : "text-red-700 truncate font-bold"
                 }
               >
                 {data?.currentDataHash}
               </span>
             </div>
-            <div className="pt-1 mt-1 border-t border-gray-800 flex items-center justify-between text-[9px] text-gray-400">
-              <span>Blockchain Status: <strong className="text-amber-300">{data?.onChainStatus || "Active"}</strong></span>
-              <span>DB Status: <strong className="text-amber-300">{data?.dbStatus}</strong></span>
+            <div className="pt-1 mt-1 border-t border-amber-200 flex items-center justify-between text-[9px] text-amber-600">
+              <span>Blockchain Status: <strong className="text-amber-800">{data?.onChainStatus || "Active"}</strong></span>
+              <span>DB Status: <strong className="text-amber-800">{data?.dbStatus}</strong></span>
             </div>
           </div>
 
           {/* Tamper Diff Callout */}
           {data?.isTampered && data?.originalDataBeforeTamper && (
-            <div className="mt-3 p-3 rounded-lg bg-red-950/80 border border-red-700/60 text-[11px] text-red-200 text-left space-y-1.5">
-              <p className="font-bold text-red-400 uppercase tracking-wide text-[10px]">
+            <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-[11px] text-red-800 text-left space-y-1.5">
+              <p className="font-bold text-red-700 uppercase tracking-wide text-[10px]">
                 ⚠️ Off-Chain Mutation Evidence Detected:
               </p>
               <div className="grid grid-cols-2 gap-2 text-[10px]">
-                <div className="p-2 rounded bg-red-900/40 border border-red-800">
-                  <span className="text-gray-400 block">On-Chain Registered:</span>
-                  <span className="font-bold text-emerald-300">
+                <div className="p-2 rounded bg-emerald-50 border border-emerald-200">
+                  <span className="text-gray-500 block">On-Chain Registered:</span>
+                  <span className="font-bold text-emerald-700">
                     {data.originalDataBeforeTamper.quantity} KG
                   </span>
-                  <span className="text-gray-400 block text-[9px] truncate">({data.originalDataBeforeTamper.honeyType})</span>
+                  <span className="text-gray-500 block text-[9px] truncate">({data.originalDataBeforeTamper.honeyType})</span>
                 </div>
-                <div className="p-2 rounded bg-red-900/40 border border-red-800">
-                  <span className="text-gray-400 block">Modified Database Value:</span>
-                  <span className="font-bold text-red-400">
+                <div className="p-2 rounded bg-red-100 border border-red-300">
+                  <span className="text-gray-500 block">Modified Database Value:</span>
+                  <span className="font-bold text-red-700">
                     {data.quantity}
                   </span>
-                  <span className="text-red-300 block text-[9px] truncate">({data.honeyType})</span>
+                  <span className="text-red-600 block text-[9px] truncate">({data.honeyType})</span>
                 </div>
               </div>
-              <p className="text-[10px] text-red-300 italic pt-1">
+              <p className="text-[10px] text-red-600 italic pt-1">
                 Notice: The database row was altered without smart contract consensus, immediately breaking the cryptographic hash validation.
               </p>
             </div>

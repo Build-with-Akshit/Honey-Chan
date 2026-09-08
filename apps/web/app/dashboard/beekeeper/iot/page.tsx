@@ -324,24 +324,24 @@ export default function BeekeeperIoTPage() {
       </div>
 
       {/* ─── Anomaly & Hive Stress Simulator Toolbar (SIH 2026 Interactive Demo) ─── */}
-      <div className="bg-gradient-to-r from-gray-900 via-amber-950 to-gray-900 p-5 rounded-3xl border border-amber-500/40 text-white shadow-lg space-y-4">
+      <div className="bg-gradient-to-r from-amber-50 via-amber-100/80 to-orange-50 p-5 rounded-3xl border-2 border-amber-300 shadow-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <span className="text-xl">🧪</span>
             <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-2">
                 <span>Smart Hive Anomaly Injection & AI Stress Simulator</span>
-                <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">
+                <span className="text-[9px] bg-amber-200/60 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-mono">
                   SIH 2026 Judge Tool
                 </span>
               </h2>
-              <p className="text-[11px] text-gray-300 mt-0.5">
+              <p className="text-[11px] text-amber-700 mt-0.5">
                 Inject real-world microclimate anomalies to demonstrate instant XGBoost AI detection and early risk alerts:
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full whitespace-nowrap self-start sm:self-auto font-semibold">
-            Active Mode: <strong className="text-white">{anomalyMode}</strong>
+          <span className="text-[11px] font-mono bg-amber-200/60 text-amber-800 border border-amber-300 px-3 py-1 rounded-full whitespace-nowrap self-start sm:self-auto font-semibold">
+            Active Mode: <strong className="text-amber-900">{anomalyMode}</strong>
           </span>
         </div>
 
@@ -351,12 +351,12 @@ export default function BeekeeperIoTPage() {
             className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
               anomalyMode === "NORMAL"
                 ? "bg-emerald-600 border-emerald-400 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]"
-                : "bg-white/10 border-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
             }`}
           >
             <span className="text-base">🟢</span>
             <span>Optimal Climate</span>
-            <span className="text-[9px] text-emerald-200 font-normal">34.2°C • 65% RH</span>
+            <span className="text-[9px] text-emerald-600 font-normal">34.2°C • 65% RH</span>
           </button>
 
           <button
@@ -364,12 +364,12 @@ export default function BeekeeperIoTPage() {
             className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
               anomalyMode === "CHILLING"
                 ? "bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30 scale-[1.02]"
-                : "bg-white/10 border-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
             }`}
           >
             <span className="text-base">❄️</span>
             <span>Brood Chilling</span>
-            <span className="text-[9px] text-blue-200 font-normal">&lt; 30°C • Fungal Risk</span>
+            <span className="text-[9px] text-blue-600 font-normal">&lt; 30°C • Fungal Risk</span>
           </button>
 
           <button
@@ -377,12 +377,12 @@ export default function BeekeeperIoTPage() {
             className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
               anomalyMode === "HEAT"
                 ? "bg-red-600 border-red-400 text-white shadow-lg shadow-red-600/30 scale-[1.02]"
-                : "bg-white/10 border-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
             }`}
           >
             <span className="text-base">🔥</span>
             <span>Heat Stress</span>
-            <span className="text-[9px] text-red-200 font-normal">&gt; 38.5°C • Comb Melt</span>
+            <span className="text-[9px] text-red-600 font-normal">&gt; 38.5°C • Comb Melt</span>
           </button>
 
           <button
@@ -390,12 +390,12 @@ export default function BeekeeperIoTPage() {
             className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
               anomalyMode === "ABSCONDING"
                 ? "bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30 scale-[1.02]"
-                : "bg-white/10 border-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
             }`}
           >
             <span className="text-base">⚠️</span>
             <span>Absconding Loss</span>
-            <span className="text-[9px] text-orange-200 font-normal">Weight Drop -6kg</span>
+            <span className="text-[9px] text-orange-600 font-normal">Weight Drop -6kg</span>
           </button>
 
           <button
@@ -403,7 +403,7 @@ export default function BeekeeperIoTPage() {
             className={`p-3 rounded-2xl border font-bold flex flex-col items-center gap-1 transition-all ${
               anomalyMode === "NECTAR_PEAK"
                 ? "bg-amber-500 border-amber-300 text-amber-950 shadow-lg shadow-amber-500/30 scale-[1.02]"
-                : "bg-white/10 border-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
             }`}
           >
             <span className="text-base">🍯</span>
@@ -413,20 +413,20 @@ export default function BeekeeperIoTPage() {
         </div>
 
         {/* Dynamic AI Diagnostic Advisory based on anomalyMode */}
-        <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-3 text-xs">
+        <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 text-xs">
           <span className="text-2xl mt-0.5">🤖</span>
           <div className="flex-1 space-y-1">
             <div className="flex items-center justify-between">
-              <p className="font-bold text-amber-300 text-sm">
+              <p className="font-bold text-amber-800 text-sm">
                 {anomalyMode === "NORMAL" && "AI Diagnostic: Optimal Colony Homeostasis (Risk: LOW • Health: 95/100)"}
                 {anomalyMode === "CHILLING" && "AI Diagnostic: Brood Chilling Hazard Detected (Risk: HIGH • Health: 52/100)"}
                 {anomalyMode === "HEAT" && "AI Diagnostic: Severe Hyperthermia / Wax Melt Hazard (Risk: CRITICAL • Health: 38/100)"}
                 {anomalyMode === "ABSCONDING" && "AI Diagnostic: Colony Depletion / Swarming Suspected (Risk: HIGH • Health: 48/100)"}
                 {anomalyMode === "NECTAR_PEAK" && "AI Diagnostic: High Surplus Accumulation (Productivity: 14.8 KG • Harvest Ready)"}
               </p>
-              <span className="text-[10px] text-gray-400 font-mono">FastAPI XGBoost Engine</span>
+              <span className="text-[10px] text-amber-600 font-mono">FastAPI XGBoost Engine</span>
             </div>
-            <p className="text-gray-300 text-[11px] leading-relaxed">
+            <p className="text-amber-700 text-[11px] leading-relaxed">
               {anomalyMode === "NORMAL" && "Colony thermoregulation and foraging traffic are steady within biological optima. Standard inspection routine maintained."}
               {anomalyMode === "CHILLING" && "Internal temperature dropped below 30°C with elevated humidity (81.4%). Extreme risk of chalkbrood fungal infection. Recommended action: Check hive bottom entrance, reduce airflow, and verify brood cluster density within 24 hours."}
               {anomalyMode === "HEAT" && "Internal core temperature exceeding 38.5°C with heavy fanning vibration. Extreme danger of honey comb structural melting. Recommended action: Erect reflective shade canopy and replenish apiary water source immediately."}

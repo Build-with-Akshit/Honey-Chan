@@ -346,7 +346,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     }
                   }}
                   disabled={wallet.isConnecting}
-                  className="text-xs font-bold text-white bg-gray-800 hover:bg-gray-900 px-4 py-1.5 rounded-full shadow-sm transition-all flex items-center gap-1.5 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-1.5 rounded-full shadow-sm transition-all flex items-center gap-1.5 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>🦊</span> {wallet.isConnecting ? "Connecting..." : "Connect Wallet"}
                 </button>
