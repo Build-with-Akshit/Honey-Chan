@@ -50,6 +50,16 @@ export default function BeekeeperAIPage() {
       provider: "KVIC Honey Mission AI Engine",
     },
   ]);
+  const [sessions, setSessions] = useState<{ id: string; title: string; hiveCode: string; createdAt?: string; updatedAt?: string; messageCount?: number }[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentSessionTitle, setCurrentSessionTitle] = useState<string>("New chat");
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingSessionMessages, setLoadingSessionMessages] = useState(false);
+  const [chatSidebarOpen, setChatSidebarOpen] = useState(true);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitleText, setEditingTitleText] = useState("");
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [clearingHistory, setClearingHistory] = useState(false);
   const [aiChatQuery, setAiChatQuery] = useState("");
@@ -127,23 +137,95 @@ export default function BeekeeperAIPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, askingAI]);
 
-  // Load user's private AES-256-GCM encrypted chat history on mount
+  // Load sessions and initial messages on mount
   useEffect(() => {
-    const loadEncryptedHistory = async () => {
-      try {
-        setLoadingHistory(true);
-        const res = await honeyApi.getChatHistory();
-        if (res?.messages && res.messages.length > 0) {
-          setMessages(res.messages);
-        }
-      } catch (err) {
-        console.warn("[AI Chat] Encrypted history fetch note:", err);
-      } finally {
-        setLoadingHistory(false);
-      }
-    };
-    loadEncryptedHistory();
+    loadSessions();
   }, []);
+
+  // ─── Multi-Chat Sessions API Actions ──────────────────────────────────
+  const loadSessions = async () => {
+    try {
+      setLoadingSessions(true);
+      const res = await honeyApi.getChatSessions();
+      if (res?.sessions && res.sessions.length > 0) {
+        setSessions(res.sessions);
+        if (!currentSessionId) {
+          selectSession(res.sessions[0].id, res.sessions[0].title);
+        }
+      }
+    } catch (err) {
+      console.warn("[AI Sessions] Could not load sessions:", err);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const selectSession = async (sessionId: string, title?: string) => {
+    setCurrentSessionId(sessionId);
+    if (title) setCurrentSessionTitle(title);
+    setLoadingSessionMessages(true);
+    try {
+      const res = await honeyApi.getSessionMessages(sessionId);
+      if (res?.messages) {
+        setMessages(res.messages);
+      }
+      if (res?.session?.title) {
+        setCurrentSessionTitle(res.session.title);
+      }
+    } catch (err) {
+      console.error("Failed to load session messages:", err);
+    } finally {
+      setLoadingSessionMessages(false);
+    }
+  };
+
+  const handleStartNewChat = () => {
+    setCurrentSessionId(null);
+    setCurrentSessionTitle("New chat");
+    setMessages([]);
+  };
+
+  const handleDeleteSession = async (sessionId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this conversation thread?")) return;
+    try {
+      await honeyApi.deleteChatSession(sessionId);
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      if (currentSessionId === sessionId) {
+        handleStartNewChat();
+      }
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+    }
+  };
+
+  const handleSaveRename = async (sessionId: string, e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingTitleText.trim()) {
+      setEditingSessionId(null);
+      return;
+    }
+    try {
+      await honeyApi.renameChatSession(sessionId, editingTitleText.trim());
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, title: editingTitleText.trim() } : s))
+      );
+      if (currentSessionId === sessionId) {
+        setCurrentSessionTitle(editingTitleText.trim());
+      }
+      setEditingSessionId(null);
+    } catch (err) {
+      console.error("Failed to rename session:", err);
+    }
+  };
+
+  const handleCopyMessage = (id: string, text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedMessageId(id);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    }
+  };
 
   const handleClearHistory = async () => {
     if (!window.confirm("Kya aap apni private encrypted chat history delete karna chahte hain?")) {
@@ -279,6 +361,7 @@ export default function BeekeeperAIPage() {
       const res = await honeyApi.chatAI({
         query,
         hiveCode: selectedHive,
+        sessionId: currentSessionId || undefined,
         telemetry: currentTelemetry,
         history: messages.slice(-4),
       });
@@ -292,6 +375,40 @@ export default function BeekeeperAIPage() {
       };
 
       setMessages((prev) => [...prev, aiMsg]);
+
+      // If a session ID was returned, sync with sessions list
+      if (res?.sessionId) {
+        setCurrentSessionId(res.sessionId);
+        if (res.sessionTitle) {
+          setCurrentSessionTitle(res.sessionTitle);
+        }
+        setSessions((prev) => {
+          const exists = prev.some((s) => s.id === res.sessionId);
+          if (exists) {
+            return prev.map((s) =>
+              s.id === res.sessionId
+                ? {
+                    ...s,
+                    title: res.sessionTitle || s.title,
+                    updatedAt: new Date().toISOString(),
+                    messageCount: (s.messageCount || 0) + 2,
+                  }
+                : s
+            );
+          } else {
+            return [
+              {
+                id: res.sessionId,
+                title: res.sessionTitle || query.slice(0, 32),
+                hiveCode: selectedHive,
+                updatedAt: new Date().toISOString(),
+                messageCount: 2,
+              },
+              ...prev,
+            ];
+          }
+        });
+      }
     } catch (err: any) {
       console.error("AI Chat error:", err);
       const fallbackMsg: ChatMessage = {
@@ -799,9 +916,9 @@ export default function BeekeeperAIPage() {
             </div>
           )}
 
-          {/* ─── TIER 3: AI Agronomist Conversational Advisor & Voice ──────── */}
-          {(activeTab === "overview" || activeTab === "chat_voice") && (
-            <div className="bg-gradient-to-r from-amber-500/15 via-amber-100/60 to-orange-500/10 p-6 rounded-3xl border border-amber-300 shadow-sm space-y-5">
+          {/* ─── TIER 3: Overview Recommendation Banner ──────────────────── */}
+          {activeTab === "overview" && (
+            <div className="bg-gradient-to-r from-amber-500/15 via-amber-100/60 to-orange-500/10 p-6 rounded-3xl border border-amber-300 shadow-sm space-y-4">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
                   💡
@@ -818,187 +935,496 @@ export default function BeekeeperAIPage() {
                 </div>
               </div>
 
-              {/* Conversational AI Chat Window */}
-              <div className="pt-4 border-t border-amber-200/80 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-xs font-black text-amber-950 flex items-center gap-1.5">
-                      <span>🤖</span> Google Gemini & HoneyChain Voice Agronomist
-                    </p>
-                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
-                      Online • Hindi & English
-                    </span>
-                    <span className="text-[10px] font-bold bg-amber-100/90 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300/80 flex items-center gap-1 shadow-2xs">
-                      <span>🔒</span> AES-256-GCM Encrypted (Account Private)
-                    </span>
-                  </div>
-
-                  {messages.length > 1 && (
-                    <button
-                      onClick={handleClearHistory}
-                      disabled={clearingHistory}
-                      className="text-[10px] font-bold text-amber-800/70 hover:text-amber-950 transition-colors cursor-pointer flex items-center gap-1 bg-white/70 hover:bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs"
-                    >
-                      <span>🗑️</span> {clearingHistory ? "Clearing..." : "Clear History"}
-                    </button>
-                  )}
+              <div className="pt-3 border-t border-amber-200/80 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
+                  <span>💬 Have questions about this recommendation or colony health?</span>
                 </div>
 
-                {loadingHistory && (
-                  <div className="flex items-center gap-2 text-[10px] text-amber-800/70 font-mono py-1">
-                    <div className="animate-spin h-3 w-3 border-2 border-amber-500 border-t-transparent rounded-full" />
-                    <span>Decrypting private chat history for your account...</span>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("chat_voice")}
+                  className="btn-primary text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <span>Open Multi-Chat AI Workspace</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          )}
 
-                {/* Chat Messages Log */}
-                <div className="max-h-72 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                  {messages.map((m) => (
-                    <div
-                      key={m.id}
-                      className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
-                    >
-                      <div
-                        className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-2xs ${
-                          m.role === "user"
-                            ? "bg-amber-600 text-white rounded-br-xs font-medium"
-                            : "bg-white text-amber-950 border border-amber-200/90 rounded-bl-xs"
-                        }`}
-                      >
-                        {m.role === "assistant" ? (
-                          <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-amber-700/80 mb-1.5 pb-1 border-b border-amber-100">
-                            <span className="flex items-center gap-1">
-                              <span>✨</span> {m.provider || "HoneyChain Agronomist"}
-                              <span className="text-[9px] font-normal text-emerald-700 ml-1">🔒 Decrypted</span>
-                            </span>
-                            <button
-                              onClick={() => handleSpeak(m.text)}
-                              title="Listen to recommendation"
-                              className="text-amber-900/70 hover:text-amber-950 flex items-center gap-1 cursor-pointer font-bold"
-                            >
-                              <span>{isSpeaking ? "⏹️ Stop" : "🔊 Suniye (Listen)"}</span>
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-1 text-[9px] text-amber-100/90 font-medium mb-1">
-                            <span>🔒 Account Encrypted</span>
-                          </div>
-                        )}
-                        <div
-                          className="whitespace-pre-line"
-                          dangerouslySetInnerHTML={{
-                            __html: m.text
-                              .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-                              .replace(/\*(.*?)\*/g, "<i>$1</i>")
-                              .replace(/`([^`]+)`/g, "<code class='bg-amber-50 text-amber-900 px-1 rounded'>$1</code>"),
-                          }}
-                        />
-                      </div>
-                      <span className="text-[9px] text-amber-900/50 font-mono mt-1 px-1">
-                        {m.time}
+          {/* ─── TIER 3: Dedicated ChatGPT-Style Multi-Chat Workspace ──────── */}
+          {activeTab === "chat_voice" && (
+            <div className="bg-[#fcfbf7] border border-amber-300/80 rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row h-[760px] max-h-[85vh] relative">
+              {/* ── Left Sidebar (Collapsible on Mobile, ChatGPT style) ── */}
+              <div
+                className={`${
+                  chatSidebarOpen ? "w-full md:w-72 flex" : "hidden md:hidden"
+                } bg-amber-50/70 border-r border-amber-200/80 flex-col shrink-0 transition-all duration-300 z-20`}
+              >
+                {/* Sidebar Header */}
+                <div className="p-3.5 border-b border-amber-200/70 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                      🐝
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-amber-950 tracking-tight block">HoneyChain AI</span>
+                      <span className="text-[9px] font-semibold text-amber-800/60 block">Agronomist 4.0</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setChatSidebarOpen(false)}
+                    className="w-7 h-7 rounded-lg text-amber-900/60 hover:text-amber-950 hover:bg-amber-100 flex items-center justify-center text-xs cursor-pointer transition-colors"
+                    title="Collapse sidebar"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* + New Chat Button */}
+                <div className="p-3">
+                  <button
+                    type="button"
+                    onClick={handleStartNewChat}
+                    className="w-full bg-white hover:bg-amber-100/90 text-amber-950 border border-amber-300 hover:border-amber-400 font-extrabold text-xs py-2.5 px-3.5 rounded-2xl flex items-center justify-between shadow-2xs transition-all cursor-pointer group active:scale-98"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold group-hover:scale-105 transition-transform">
+                        +
                       </span>
+                      <span>New chat</span>
                     </div>
-                  ))}
-
-                  {askingAI && (
-                    <div className="flex items-start">
-                      <div className="p-3 bg-white border border-amber-200 rounded-2xl rounded-bl-xs text-xs text-amber-900 flex items-center gap-2 shadow-2xs">
-                        <div className="animate-spin h-3.5 w-3.5 border-2 border-amber-500 border-t-transparent rounded-full" />
-                        <span className="font-semibold text-[11px]">Gemini AI evaluating hive biosecurity & ICAR standards...</span>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={chatBottomRef} />
+                    <span className="text-[10px] text-amber-700/60 font-mono">⌘N</span>
+                  </button>
                 </div>
 
-                {/* Quick Prompt Suggestion Chips (Single-Line Sliding Carousel) */}
-                <div className="relative flex items-center gap-1.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => scrollChips("left")}
-                    className="shrink-0 w-6 h-6 rounded-lg bg-white/95 border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
-                    title="Slide suggestions left"
-                  >
-                    ◀
-                  </button>
-
-                  <div
-                    ref={chipsRef}
-                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1"
-                  >
-                    {[
-                      "🌾 Shahad kab nikalna chahiye?",
-                      "🛡️ Varroa mite aur rog check karein",
-                      "🐝 Is there any swarming danger?",
-                      "🌡️ Chhatte ka tapman aur nami theek hai?",
-                      "🍯 Sugar syrup feeding ratio kitna rakhein?",
-                      "📋 KVIC Honey Mission biosecurity guide",
-                    ].map((prompt, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => handleAskAI(prompt.replace(/^[^\w]+/, "").trim())}
-                        className="shrink-0 text-[11px] font-bold px-3 py-1.5 bg-white/95 hover:bg-amber-100 text-amber-900 border border-amber-200/90 hover:border-amber-300 rounded-xl transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 active:scale-95"
-                      >
-                        <span>💬</span>
-                        <span>{prompt}</span>
-                      </button>
-                    ))}
+                {/* Session History List */}
+                <div className="flex-1 overflow-y-auto px-2.5 py-1 space-y-1 scrollbar-thin">
+                  <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-amber-900/50 flex items-center justify-between">
+                    <span>Recent Conversations</span>
+                    {sessions.length > 0 && <span className="font-mono">{sessions.length}</span>}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => scrollChips("right")}
-                    className="shrink-0 w-6 h-6 rounded-lg bg-white/95 border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
-                    title="Slide suggestions right"
-                  >
-                    ▶
-                  </button>
+                  {loadingSessions && sessions.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-amber-800/60 flex items-center justify-center gap-2">
+                      <div className="animate-spin h-3.5 w-3.5 border-2 border-amber-500 border-t-transparent rounded-full" />
+                      <span>Loading chats...</span>
+                    </div>
+                  ) : sessions.length === 0 ? (
+                    <div className="p-4 text-center text-[11px] text-amber-800/60 font-medium">
+                      No saved chats yet. Start a new conversation!
+                    </div>
+                  ) : (
+                    sessions.map((s) => {
+                      const isActive = currentSessionId === s.id;
+                      const isEditing = editingSessionId === s.id;
+
+                      return (
+                        <div
+                          key={s.id}
+                          onClick={() => {
+                            if (!isEditing && currentSessionId !== s.id) {
+                              selectSession(s.id, s.title);
+                            }
+                          }}
+                          className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-amber-200/80 text-amber-950 font-bold border border-amber-300 shadow-2xs"
+                              : "text-amber-900/80 hover:bg-amber-100/60 hover:text-amber-950 border border-transparent"
+                          }`}
+                        >
+                          {isEditing ? (
+                            <form
+                              onSubmit={(e) => handleSaveRename(s.id, e)}
+                              className="flex items-center gap-1.5 w-full"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <input
+                                type="text"
+                                value={editingTitleText}
+                                onChange={(e) => setEditingTitleText(e.target.value)}
+                                autoFocus
+                                className="flex-1 px-2 py-0.5 text-xs bg-white border border-amber-400 rounded-lg focus:outline-none text-amber-950"
+                              />
+                              <button
+                                type="submit"
+                                className="text-emerald-700 hover:text-emerald-800 text-xs px-1 cursor-pointer"
+                                title="Save"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingSessionId(null)}
+                                className="text-amber-800 hover:text-amber-950 text-xs px-1 cursor-pointer"
+                                title="Cancel"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2 truncate flex-1 pr-1">
+                                <span className="text-xs shrink-0">{isActive ? "💬" : "🗨️"}</span>
+                                <span className="truncate text-xs">{s.title || "Untitled Chat"}</span>
+                              </div>
+
+                              {/* Hover Actions: Rename / Delete */}
+                              <div className="hidden group-hover:flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingSessionId(s.id);
+                                    setEditingTitleText(s.title);
+                                  }}
+                                  className="w-5 h-5 rounded hover:bg-white/80 text-amber-800 flex items-center justify-center text-[10px] cursor-pointer"
+                                  title="Rename chat"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleDeleteSession(s.id, e)}
+                                  className="w-5 h-5 rounded hover:bg-rose-100 text-rose-700 flex items-center justify-center text-[10px] cursor-pointer"
+                                  title="Delete chat"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
 
-                {/* Chat & Voice Input Bar */}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Ask in Hindi or English (e.g. 'shahad kab nikale', 'varroa mite ka ilaj', 'queen health')..."
-                    value={aiChatQuery}
-                    onChange={(e) => setAiChatQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAskAI()}
-                    className="flex-1 px-4 py-2.5 text-xs bg-white border border-amber-200 rounded-2xl focus:outline-none focus:border-amber-400 font-medium text-amber-950 placeholder-amber-800/40 shadow-xs"
-                  />
+                {/* Sidebar Footer: Security & Account Info */}
+                <div className="p-3 border-t border-amber-200/70 bg-amber-100/40 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-amber-900/80">
+                    <span className="flex items-center gap-1">
+                      <span>🔒</span> AES-256-GCM Encrypted
+                    </span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded">
+                      Private
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-amber-800/60 leading-tight">
+                    Sessions are encrypted with your account key in PostgreSQL.
+                  </p>
+                </div>
+              </div>
 
-                  {/* Hands-Free Voice Button */}
-                  <button
-                    type="button"
-                    onClick={handleStartVoice}
-                    title="Hands-Free Voice Recognition for Beekeepers in Bee Suits"
-                    className={`px-3 py-2.5 rounded-2xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                      isListening
-                        ? "bg-rose-600 text-white border-rose-700 animate-pulse"
-                        : "bg-white hover:bg-amber-100 text-amber-900 border-amber-200"
-                    }`}
-                  >
-                    <span>🎙️</span>
-                    <span>{isListening ? "Listening..." : "Voice"}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleAskAI()}
-                    disabled={askingAI || !aiChatQuery.trim()}
-                    className="btn-primary text-xs font-bold px-5 py-2.5 rounded-2xl shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    {askingAI ? (
-                      <>
-                        <span className="animate-spin">⏳</span>
-                        <span>Analyzing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Ask Assistant</span>
-                        <span>→</span>
-                      </>
+              {/* ── Main Chat Area (ChatGPT Style Canvas) ── */}
+              <div className="flex-1 flex flex-col h-full bg-[#fffefb] relative overflow-hidden">
+                {/* Top Navigation Bar */}
+                <div className="px-4 py-3 border-b border-amber-200/70 bg-white/80 backdrop-blur-sm flex items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {!chatSidebarOpen && (
+                      <button
+                        type="button"
+                        onClick={() => setChatSidebarOpen(true)}
+                        className="w-8 h-8 rounded-xl bg-amber-100/80 hover:bg-amber-200/80 text-amber-950 flex items-center justify-center text-xs font-bold border border-amber-300/80 cursor-pointer shadow-2xs transition-colors shrink-0"
+                        title="Open sidebar"
+                      >
+                        ☰
+                      </button>
                     )}
-                  </button>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xs font-black text-amber-950 truncate">
+                          {currentSessionTitle || "New chat"}
+                        </h2>
+                        <span className="hidden sm:inline-block text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
+                          Gemini AI + ICAR
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-amber-800/60 truncate font-mono">
+                        Hive Context: {selectedHive}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Active Hive Picker */}
+                    <select
+                      value={selectedHive}
+                      onChange={(e) => setSelectedHive(e.target.value)}
+                      className="text-[11px] font-bold text-amber-900 bg-amber-50/80 border border-amber-200 rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                    >
+                      {hives.length > 0 ? (
+                        hives.map((h) => (
+                          <option key={h.id || h.hiveCode} value={h.hiveCode}>
+                            {h.hiveCode}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="H001">H001</option>
+                      )}
+                    </select>
+
+                    {/* New Chat Icon Button */}
+                    <button
+                      type="button"
+                      onClick={handleStartNewChat}
+                      className="w-8 h-8 rounded-xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center text-sm font-bold shadow-2xs cursor-pointer transition-transform active:scale-95"
+                      title="Start new chat"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Messages Canvas */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin">
+                  {loadingSessionMessages ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
+                      <div className="animate-spin h-7 w-7 border-3 border-amber-500 border-t-transparent rounded-full" />
+                      <p className="text-xs font-bold text-amber-900">Decrypting conversation thread...</p>
+                      <p className="text-[10px] text-amber-700/60 font-mono">AES-256-GCM authenticated deciphering in progress</p>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    /* Empty State - Just like ChatGPT "What's on your mind today?" */
+                    <div className="h-full flex flex-col items-center justify-center max-w-xl mx-auto text-center px-4 py-8 space-y-6">
+                      <div className="w-14 h-14 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-3xl shadow-md ring-4 ring-amber-200/50">
+                        🐝
+                      </div>
+
+                      <div className="space-y-2">
+                        <h2 className="text-xl md:text-2xl font-black text-amber-950 tracking-tight">
+                          What's on your apiary mind today?
+                        </h2>
+                        <p className="text-xs text-amber-800/70 max-w-md mx-auto leading-relaxed">
+                          Ask in Hindi or English about your honey flow, varroa mite disease checks, temperature regulation, or ICAR/KVIC standards.
+                        </p>
+                      </div>
+
+                      {/* Quick Starter Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+                        {[
+                          {
+                            title: "Harvest Readiness",
+                            desc: "Shahad kab nikalna chahiye? Weight aur moisture check karein.",
+                            query: "Shahad kab nikalna chahiye? Weight aur moisture check karein",
+                            icon: "🌾",
+                          },
+                          {
+                            title: "Varroa Mite Biosecurity",
+                            desc: "Varroa mite aur rog ke lakshan aur approved treatment batayein.",
+                            query: "Varroa mite aur brood rog check karein aur ilaj batayein",
+                            icon: "🛡️",
+                          },
+                          {
+                            title: "Swarming Risk Check",
+                            desc: "Is there any swarming danger based on current colony activity?",
+                            query: "Is there any swarming danger based on current colony activity?",
+                            icon: "🐝",
+                          },
+                          {
+                            title: "Micro-climate Audit",
+                            desc: "Chhatte ka tapman aur nami theek hai ya cooling karni padegi?",
+                            query: "Chhatte ka tapman aur nami theek hai?",
+                            icon: "🌡️",
+                          },
+                        ].map((card, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => handleAskAI(card.query)}
+                            className="p-3.5 rounded-2xl bg-white hover:bg-amber-50/90 border border-amber-200 hover:border-amber-400 text-left transition-all shadow-2xs hover:shadow-xs cursor-pointer group active:scale-98"
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-base">{card.icon}</span>
+                              <span className="text-xs font-black text-amber-950 group-hover:text-amber-700 transition-colors">
+                                {card.title}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-amber-900/70 font-medium leading-normal line-clamp-2">
+                              {card.desc}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Active Thread Messages */
+                    <div className="max-w-3xl mx-auto space-y-4 w-full">
+                      {messages.map((m) => {
+                        const isUser = m.role === "user";
+
+                        return (
+                          <div
+                            key={m.id}
+                            className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+                          >
+                            <div
+                              className={`max-w-[88%] md:max-w-[80%] rounded-3xl text-xs leading-relaxed shadow-xs ${
+                                isUser
+                                  ? "bg-amber-600 text-white rounded-tr-xs p-4 font-medium"
+                                  : "bg-white text-amber-950 border border-amber-200/90 rounded-tl-xs p-5"
+                              }`}
+                            >
+                              {!isUser ? (
+                                <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-amber-800/80 mb-3 pb-2 border-b border-amber-100">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center text-[10px]">
+                                      ✨
+                                    </span>
+                                    <span>{m.provider || "HoneyChain Agronomist"}</span>
+                                    <span className="text-[9px] font-normal text-emerald-700 ml-1">🔒 Decrypted</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSpeak(m.text)}
+                                      title="Listen to recommendation"
+                                      className="text-amber-900/70 hover:text-amber-950 flex items-center gap-1 cursor-pointer font-bold bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-lg border border-amber-200 transition-colors"
+                                    >
+                                      <span>{isSpeaking ? "⏹️ Stop" : "🔊 Suniye"}</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopyMessage(m.id, m.text)}
+                                      title="Copy response"
+                                      className="text-amber-900/70 hover:text-amber-950 flex items-center gap-1 cursor-pointer font-bold bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-lg border border-amber-200 transition-colors"
+                                    >
+                                      <span>{copiedMessageId === m.id ? "✓ Copied" : "📋 Copy"}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1 text-[9px] text-amber-100/90 font-medium mb-1">
+                                  <span>🔒 Account Encrypted</span>
+                                </div>
+                              )}
+
+                              <div
+                                className="whitespace-pre-line text-xs font-normal leading-relaxed select-text"
+                                dangerouslySetInnerHTML={{
+                                  __html: m.text
+                                    .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+                                    .replace(/\*(.*?)\*/g, "<i>$1</i>")
+                                    .replace(/`([^`]+)`/g, "<code class='bg-amber-100 text-amber-950 px-1 py-0.5 rounded font-mono text-[11px]'>$1</code>"),
+                                }}
+                              />
+                            </div>
+
+                            <span className="text-[9px] text-amber-900/40 font-mono mt-1 px-2">
+                              {m.time}
+                            </span>
+                          </div>
+                        );
+                      })}
+
+                      {askingAI && (
+                        <div className="flex items-start">
+                          <div className="p-4 bg-white border border-amber-200 rounded-3xl rounded-tl-xs text-xs text-amber-900 flex items-center gap-3 shadow-xs">
+                            <div className="animate-spin h-4 w-4 border-2 border-amber-500 border-t-transparent rounded-full" />
+                            <span className="font-semibold text-xs">
+                              Gemini AI analyzing live hive biosecurity, weight surplus & ICAR standards...
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={chatBottomRef} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Floating Pill Input Area */}
+                <div className="p-3 md:p-4 bg-gradient-to-t from-white via-white/95 to-transparent shrink-0 space-y-2 max-w-3xl mx-auto w-full">
+                  {/* Quick Suggestion Chips Carousel */}
+                  <div className="relative flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => scrollChips("left")}
+                      className="shrink-0 w-6 h-6 rounded-lg bg-white border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
+                      title="Slide left"
+                    >
+                      ◀
+                    </button>
+
+                    <div
+                      ref={chipsRef}
+                      className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-0.5 flex-1"
+                    >
+                      {[
+                        "🌾 Shahad kab nikalna chahiye?",
+                        "🛡️ Varroa mite aur rog check karein",
+                        "🐝 Is there any swarming danger?",
+                        "🌡️ Chhatte ka tapman aur nami theek hai?",
+                        "🍯 Sugar syrup feeding ratio kitna rakhein?",
+                        "📋 KVIC Honey Mission biosecurity guide",
+                      ].map((prompt, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleAskAI(prompt.replace(/^[^\w]+/, "").trim())}
+                          className="shrink-0 text-[11px] font-bold px-3 py-1.5 bg-white/90 hover:bg-amber-100 text-amber-900 border border-amber-200 hover:border-amber-300 rounded-xl transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 active:scale-95"
+                        >
+                          <span>💬</span>
+                          <span>{prompt}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => scrollChips("right")}
+                      className="shrink-0 w-6 h-6 rounded-lg bg-white border border-amber-200 text-amber-900 flex items-center justify-center text-[10px] shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition-all cursor-pointer active:scale-90"
+                      title="Slide right"
+                    >
+                      ▶
+                    </button>
+                  </div>
+
+                  {/* Floating Rounded Input Pill */}
+                  <div className="relative flex items-center gap-2 bg-white rounded-2xl border border-amber-300/90 shadow-sm p-1.5 pl-4 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200/50 transition-all">
+                    <input
+                      type="text"
+                      placeholder="Ask anything in Hindi or English (e.g. 'shahad kab nikale', 'varroa ilaj')..."
+                      value={aiChatQuery}
+                      onChange={(e) => setAiChatQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAskAI()}
+                      className="flex-1 text-xs bg-transparent focus:outline-none font-medium text-amber-950 placeholder-amber-800/40"
+                    />
+
+                    {/* Voice Mic Button */}
+                    <button
+                      type="button"
+                      onClick={handleStartVoice}
+                      title="Hands-Free Voice Recognition for Beekeepers"
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all cursor-pointer ${
+                        isListening
+                          ? "bg-rose-600 text-white animate-pulse shadow-rose-500/30"
+                          : "text-amber-800 hover:bg-amber-100/80"
+                      }`}
+                    >
+                      🎙️
+                    </button>
+
+                    {/* Send Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleAskAI()}
+                      disabled={askingAI || !aiChatQuery.trim()}
+                      className="w-8 h-8 rounded-xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center text-xs font-bold transition-transform cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-xs"
+                      title="Send message"
+                    >
+                      {askingAI ? <span className="animate-spin text-[10px]">⏳</span> : "↑"}
+                    </button>
+                  </div>
+
+                  {/* Privacy Note */}
+                  <p className="text-[10px] text-center text-amber-800/50 font-medium">
+                    HoneyChain AI uses live sensor telemetry + ICAR standards. End-to-end encrypted with AES-256-GCM.
+                  </p>
                 </div>
               </div>
             </div>

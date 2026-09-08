@@ -30,11 +30,13 @@ export async function POST(req: Request) {
     const {
       query,
       hiveCode = "H001",
+      sessionId,
       telemetry = {},
       history = [],
     }: {
       query: string;
       hiveCode?: string;
+      sessionId?: string;
       telemetry?: ChatTelemetry;
       history?: ChatMessage[];
     } = body;
@@ -134,15 +136,52 @@ CRITICAL CONVERSATIONAL RULES:
       provider = "HoneyChain Agro-Inference Engine (KVIC & ICAR Standards)";
     }
 
-    // 3. Encrypted Chat Persistence Per User Account (AES-256-GCM)
+    // 3. Encrypted Chat Persistence Per User Account & Multi-Chat Session (AES-256-GCM)
+    let activeSessionId = sessionId;
+    let activeSessionTitle = "Apiculture Chat";
+
     try {
       if (user?.id) {
+        // Resolve or create chat session
+        if (activeSessionId) {
+          const existingSession = await prisma.aiChatSession.findFirst({
+            where: { id: activeSessionId, userId: user.id },
+          });
+          if (existingSession) {
+            activeSessionTitle = existingSession.title;
+            await prisma.aiChatSession.update({
+              where: { id: activeSessionId },
+              data: { updatedAt: new Date() },
+            });
+          } else {
+            activeSessionId = undefined;
+          }
+        }
+
+        if (!activeSessionId) {
+          // Generate a smart, readable title from the query
+          let cleanTitle = query.trim().replace(/^[^\w\u0900-\u097F]+/, "").slice(0, 36);
+          if (cleanTitle.length >= 36) cleanTitle += "...";
+          if (!cleanTitle || cleanTitle.length < 2) cleanTitle = "Apiculture Advisory";
+
+          const newSession = await prisma.aiChatSession.create({
+            data: {
+              userId: user.id,
+              title: cleanTitle,
+              hiveCode: hiveCode || "H001",
+            },
+          });
+          activeSessionId = newSession.id;
+          activeSessionTitle = newSession.title;
+        }
+
         const userEncrypted = encryptChatMessage(query, user.id);
         const aiEncrypted = encryptChatMessage(reply, user.id);
 
         await prisma.aiEncryptedChat.createMany({
           data: [
             {
+              sessionId: activeSessionId,
               userId: user.id,
               hiveCode: hiveCode || "H001",
               role: "user",
@@ -151,6 +190,7 @@ CRITICAL CONVERSATIONAL RULES:
               tag: userEncrypted.tag,
             },
             {
+              sessionId: activeSessionId,
               userId: user.id,
               hiveCode: hiveCode || "H001",
               role: "assistant",
@@ -170,6 +210,8 @@ CRITICAL CONVERSATIONAL RULES:
     return NextResponse.json({
       reply,
       provider,
+      sessionId: activeSessionId,
+      sessionTitle: activeSessionTitle,
       hiveCode,
       telemetry: {
         temperature: currentTemp,

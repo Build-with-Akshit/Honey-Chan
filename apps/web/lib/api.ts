@@ -58,8 +58,20 @@ export const honeyApi = {
     fetchApi<any>("/ai/analyze-image", { method: "POST", body: JSON.stringify(data) }),
   analyzeReport: (data: any) =>
     fetchApi<any>("/ai/analyze-report", { method: "POST", body: JSON.stringify(data) }),
-  chatAI: (data: { query: string; hiveCode?: string; telemetry?: any; history?: any[] }) =>
+  chatAI: (data: { query: string; hiveCode?: string; sessionId?: string; telemetry?: any; history?: any[] }) =>
     fetchApi<any>("/ai/chat", { method: "POST", body: JSON.stringify(data) }),
+  getChatSessions: () => fetchApi<{ sessions: any[] }>("/ai/chat/sessions"),
+  createChatSession: (data?: { title?: string; hiveCode?: string }) =>
+    fetchApi<{ session: any }>("/ai/chat/sessions", { method: "POST", body: JSON.stringify(data || {}) }),
+  getSessionMessages: (sessionId: string) =>
+    fetchApi<{ session: any; messages: any[] }>(`/ai/chat/sessions/${sessionId}`),
+  renameChatSession: (sessionId: string, title: string) =>
+    fetchApi<{ success: boolean; session: any }>(`/ai/chat/sessions/${sessionId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ title }),
+    }),
+  deleteChatSession: (sessionId: string) =>
+    fetchApi<{ success: boolean }>(`/ai/chat/sessions/${sessionId}`, { method: "DELETE" }),
   getChatHistory: () => fetchApi<{ messages: any[]; count: number; encrypted: boolean }>("/ai/chat/history"),
   clearChatHistory: () => fetchApi<any>("/ai/chat/history", { method: "DELETE" }),
   verifyBatch: (batchId: string) => fetchApi<any>(`/verify/${batchId}`),

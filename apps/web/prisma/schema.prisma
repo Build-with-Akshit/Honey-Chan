@@ -25,6 +25,7 @@ model User {
   qualityTests   QualityTest[]
   supplyEvents   SupplyChainEvent[]
   aiChats        AiEncryptedChat[]
+  aiSessions     AiChatSession[]
 
   @@map("users")
 }
@@ -178,20 +179,38 @@ model QRScan {
   @@map("qr_scans")
 }
 
-model AiEncryptedChat {
-  id             Int       @id @default(autoincrement())
-  userId         Int       @map("user_id")
-  hiveCode       String    @default("H001") @map("hive_code") @db.VarChar(50)
-  role           String    @db.VarChar(20) // "user" | "assistant"
-  encryptedText  String    @map("encrypted_text") // AES-256-GCM encrypted payload
-  iv             String    @db.VarChar(64) // 12-byte IV (Base64)
-  tag            String    @db.VarChar(64) // 16-byte Auth Tag (Base64)
-  provider       String?   @db.VarChar(100)
-  createdAt      DateTime? @default(now()) @map("created_at")
+model AiChatSession {
+  id          String             @id @default(uuid())
+  userId      Int                @map("user_id")
+  title       String             @default("New Agronomist Chat") @db.VarChar(255)
+  hiveCode    String             @default("H001") @map("hive_code") @db.VarChar(50)
+  createdAt   DateTime?          @default(now()) @map("created_at")
+  updatedAt   DateTime?          @default(now()) @updatedAt @map("updated_at")
 
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    AiEncryptedChat[]
+
+  @@index([userId, updatedAt(sort: Desc)], map: "idx_ai_chat_sessions_user")
+  @@map("ai_chat_sessions")
+}
+
+model AiEncryptedChat {
+  id             Int            @id @default(autoincrement())
+  sessionId      String?        @map("session_id")
+  userId         Int            @map("user_id")
+  hiveCode       String         @default("H001") @map("hive_code") @db.VarChar(50)
+  role           String         @db.VarChar(20) // "user" | "assistant"
+  encryptedText  String         @map("encrypted_text") // AES-256-GCM encrypted payload
+  iv             String         @db.VarChar(64) // 12-byte IV (Base64)
+  tag            String         @db.VarChar(64) // 16-byte Auth Tag (Base64)
+  provider       String?        @db.VarChar(100)
+  createdAt      DateTime?      @default(now()) @map("created_at")
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session        AiChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Asc)], map: "idx_ai_encrypted_chats_user")
+  @@index([sessionId, createdAt(sort: Asc)], map: "idx_ai_encrypted_chats_session")
   @@map("ai_encrypted_chats")
 }
 
