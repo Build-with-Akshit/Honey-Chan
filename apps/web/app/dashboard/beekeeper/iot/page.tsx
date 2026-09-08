@@ -114,13 +114,15 @@ export default function BeekeeperIoTPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Timer for "Synced X seconds ago" counter
+  // Timer for "Synced X seconds ago" counter (pauses when stream is paused, resets when packet arrives)
   useEffect(() => {
+    if (isPaused) return;
+
     const syncTimer = setInterval(() => {
-      setLastSyncSeconds((prev) => (prev >= 4 ? 0 : prev + 1));
+      setLastSyncSeconds((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(syncTimer);
-  }, []);
+  }, [isPaused]);
 
   // Live Hardware Telemetry Stream loop (4 seconds interval)
   useEffect(() => {
@@ -271,10 +273,17 @@ export default function BeekeeperIoTPage() {
               <h1 className="text-2xl lg:text-3xl font-black text-amber-950 tracking-tight">
                 IoT Hive Climate & Telemetry
               </h1>
-              <span className="flex items-center gap-2 bg-emerald-500/15 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
-                LIVE TELEMETRY STREAM
-              </span>
+              {isPaused ? (
+                <span className="flex items-center gap-2 bg-amber-500/15 text-amber-900 border border-amber-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  STREAM PAUSED
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 bg-emerald-500/15 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
+                  LIVE TELEMETRY STREAM
+                </span>
+              )}
             </div>
 
             <p className="text-xs text-amber-900/70 mt-2 flex flex-wrap items-center gap-2 font-medium">
@@ -488,9 +497,9 @@ export default function BeekeeperIoTPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/50 text-amber-950 p-4.5 rounded-2xl shadow-sm border border-amber-200 text-xs">
         <div className="border-r border-amber-200/80 pr-2">
           <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Hardware Status</span>
-          <div className="flex items-center gap-2 mt-1.5 font-bold text-emerald-700">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
-            <span>ONLINE (Ready)</span>
+          <div className={`flex items-center gap-2 mt-1.5 font-bold ${isPaused ? "text-amber-800" : "text-emerald-700"}`}>
+            <span className={`w-2 h-2 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 pulse-dot"}`} />
+            <span>{isPaused ? "PAUSED (Standby)" : "ONLINE (Streaming)"}</span>
           </div>
         </div>
 
@@ -518,14 +527,24 @@ export default function BeekeeperIoTPage() {
         <div className="border-r border-amber-200/80 pr-2">
           <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Packet Rate / Loss</span>
           <p className="font-mono font-bold text-amber-950 mt-1.5">
-            4.0s • <span className="text-emerald-700">0.0% loss</span>
+            {isPaused ? (
+              <span className="text-amber-800 font-bold bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded text-[11px]">
+                ⏸ Stream Paused
+              </span>
+            ) : (
+              <>4.0s • <span className="text-emerald-700">0.0% loss</span></>
+            )}
           </p>
         </div>
 
         <div>
           <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Last Packet Sync</span>
           <p className="font-mono font-bold text-amber-900 mt-1.5">
-            {lastSyncSeconds === 0 ? (
+            {isPaused ? (
+              <span className="text-amber-800 font-bold bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded text-[11px]">
+                ⏸ Stream Paused
+              </span>
+            ) : lastSyncSeconds === 0 ? (
               <span className="text-emerald-700 font-bold">Just now</span>
             ) : (
               `${lastSyncSeconds}s ago`
@@ -772,10 +791,15 @@ export default function BeekeeperIoTPage() {
       <div className="p-6 bg-gradient-to-br from-white via-[#fffef9] to-amber-50/40 text-amber-950 border border-amber-200/90 rounded-3xl shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-amber-200/80">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 pulse-dot" />
+            <div className={`w-3 h-3 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 pulse-dot"}`} />
             <div>
               <h3 className="text-sm font-extrabold text-amber-950 font-mono flex items-center gap-2">
                 <span>ESP32 Hardware Telemetry Ingestion Console</span>
+                {isPaused && (
+                  <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-sans font-bold border border-amber-300">
+                    PAUSED
+                  </span>
+                )}
                 <span className="text-[10px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/80 font-sans font-bold">
                   MQTT Broker: /apiary/{selectedHiveCode || "H001"}/telemetry
                 </span>
@@ -800,8 +824,22 @@ export default function BeekeeperIoTPage() {
         {/* Packet Stream Window (Warm Light Theme) */}
         <div
           ref={packetContainerRef}
-          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1.5 bg-[#fefaf0]/90 p-4 rounded-2xl border border-amber-200 shadow-inner scrollbar-thin scrollbar-thumb-amber-300"
+          className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1.5 bg-[#fefaf0]/90 p-4 rounded-2xl border border-amber-200 shadow-inner scrollbar-thin scrollbar-thumb-amber-300 relative"
         >
+          {isPaused && (
+            <div className="sticky top-0 z-10 mb-2 py-1.5 px-3 bg-amber-100/95 border border-amber-300 rounded-xl text-amber-900 text-[11px] font-bold flex items-center justify-between shadow-xs">
+              <span className="flex items-center gap-1.5">
+                <span>⏸</span> Telemetry stream is paused. No new packets are being synced.
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsPaused(false)}
+                className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded-lg cursor-pointer transition-colors font-sans"
+              >
+                Resume Stream
+              </button>
+            </div>
+          )}
           {packetLogs.map((pkt) => (
             <div key={pkt.id} className="flex items-start gap-2 hover:bg-amber-100/60 p-1.5 rounded-lg transition-colors">
               <span className="text-gray-500 shrink-0 font-medium">[{pkt.timestamp}]</span>
