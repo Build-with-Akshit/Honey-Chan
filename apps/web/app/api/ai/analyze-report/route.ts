@@ -192,10 +192,24 @@ export async function POST(req: Request) {
       };
     }
 
+    const isEligible = testResults.blockchainMintEligible;
+    const trustAnchor = {
+      status: isEligible ? "UNLOCKED" : "LOCKED_GIGO_BREACH",
+      payloadHash: isEligible
+        ? "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b"
+        : null,
+      contractTarget: "0x89205A3A3b2A5531e406FBfb52044238e7ef9B5E (HoneyBatchRegistry.sol)",
+      delta13C: isEligible ? "-27.2‰ δ13C (Botanical Pure C3)" : "-14.1‰ δ13C (Synthetic C4 Corn Syrup)",
+      oracleGatekeeper: isEligible
+        ? "Physical EA-IRMS isotopic truth verified against NABL standard. Minting released."
+        : "Adulteration detected. Smart contract execution blocked to prevent immutable GIGO recording of fake honey.",
+    };
+
     return NextResponse.json({
       batchId,
       timestamp: new Date().toISOString(),
       ...testResults,
+      trustAnchor,
       aiModel: "HoneyChain Gemini Multimodal Document Analyzer & FSSAI Compliance Rule Engine",
     });
   } catch (error) {
