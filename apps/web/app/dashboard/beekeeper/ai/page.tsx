@@ -640,28 +640,7 @@ export default function BeekeeperAIPage() {
           </div>
         </div>
 
-        {/* ─── AI Navigation Pills (4 Tiers) ─────────────────────────────── */}
-        <div className="mt-5 pt-4 border-t border-amber-200/70 flex flex-wrap gap-2">
-          {[
-            { id: "overview", label: "Tier 1: Telemetry ML (XGBoost)", icon: "📊" },
-            { id: "comb_vision", label: "Tier 2: Comb Vision (YOLO/ResNet)", icon: "📸" },
-            { id: "chat_voice", label: "Tier 3: Gemini Voice Agronomist", icon: "🗣️" },
-            { id: "lab_screener", label: "Tier 4: FSSAI C4 Sugar Screener", icon: "📑" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === tab.id
-                  ? "bg-amber-900 text-amber-50 shadow-sm"
-                  : "bg-white/80 hover:bg-white text-amber-900 border border-amber-200/80"
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
+        {/* ─── AI Navigation Sidebar has been moved below ─── */}
 
         {/* ─── Collapsible Interactive AI Stress Test Simulator ─────────── */}
         {simulatorOpen && (
@@ -877,7 +856,44 @@ export default function BeekeeperAIPage() {
         )}
       </div>
 
-      {loading && !aiData ? (
+      <div className="flex flex-col lg:flex-row gap-6 mt-6 pt-4 border-t border-amber-200/70">
+        {/* ─── Left Sidebar Workflow Navigation ─── */}
+        <div className="lg:w-[280px] shrink-0 flex flex-col gap-2 relative">
+          <div className="sticky top-6 flex flex-col gap-3">
+            <h3 className="text-[11px] font-black text-amber-950 uppercase tracking-widest px-2 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              AI Diagnostics Workflow
+            </h3>
+            {[
+              { id: "overview", label: "1. Telemetry ML", desc: "XGBoost Sensor Analytics", icon: "📊" },
+              { id: "comb_vision", label: "2. Comb Vision", desc: "YOLO/ResNet Detection", icon: "📸" },
+              { id: "chat_voice", label: "3. AI Agronomist", desc: "Gemini Multilingual Chat", icon: "🗣️" },
+              { id: "lab_screener", label: "4. Lab Screener", desc: "FSSAI EA-IRMS Standard", icon: "📑" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`text-left p-4 rounded-3xl transition-all cursor-pointer flex flex-col gap-1 border shadow-xs ${
+                  activeTab === tab.id
+                    ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white border-amber-600 shadow-md transform scale-[1.02]"
+                    : "bg-white hover:bg-amber-50 text-amber-950 border-amber-200/80 hover:border-amber-400"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{tab.icon}</span>
+                  <span className="font-extrabold text-[13px]">{tab.label}</span>
+                </div>
+                <span className={`text-[11px] font-bold ml-[44px] ${activeTab === tab.id ? 'text-amber-100' : 'text-amber-900/60'}`}>
+                  {tab.desc}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── Right Content Area ─── */}
+        <div className="flex-1 min-w-0 space-y-6">
+          {loading && !aiData ? (
         <div className="p-16 text-center text-amber-900/60 bg-white/60 rounded-3xl border border-amber-100">
           <div className="animate-spin h-8 w-8 border-3 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
           <p className="text-xs font-bold font-mono">Running Predictive AI Analysis...</p>
@@ -885,7 +901,8 @@ export default function BeekeeperAIPage() {
       ) : (
         <>
           {/* ─── Top 3 Metric Cards (Tier 1: XGBoost Telemetry) ───────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {activeTab === "overview" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Card 1: Colony Health Index */}
             <div className={`group relative overflow-hidden p-6 rounded-3xl border shadow-sm hover:shadow-lg transition-all ${
               riskLevel === "LOW"
@@ -1022,9 +1039,10 @@ export default function BeekeeperAIPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* ─── TAB 1 & DEFAULT: Diagnostic Environmental Telemetry Audit Matrix ── */}
-          {(activeTab === "overview" || activeTab === "chat_voice") && (
+          {activeTab === "overview" && (
             <div className="bg-gradient-to-br from-white via-[#fffef9] to-amber-50/30 p-6 rounded-3xl border border-amber-200/90 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-extrabold text-sm text-amber-950 flex items-center gap-2">
@@ -1494,7 +1512,7 @@ export default function BeekeeperAIPage() {
                     </div>
                   ) : (
                     /* Active Thread Messages */
-                    <div className="max-w-3xl mx-auto space-y-4 w-full">
+                    <div className="max-w-[90rem] mx-auto space-y-6 w-full">
                       {messages.map((m) => {
                         const isUser = m.role === "user";
 
@@ -1686,7 +1704,7 @@ export default function BeekeeperAIPage() {
           )}
 
           {/* ─── TIER 2: Computer Vision Honeycomb Disease Screening (ResNet-50) ─── */}
-          {(activeTab === "overview" || activeTab === "comb_vision") && (
+          {activeTab === "comb_vision" && (
             <div className="bg-gradient-to-br from-purple-500/10 via-white to-purple-500/5 p-6 rounded-3xl border border-purple-200/90 shadow-sm space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -1999,7 +2017,7 @@ export default function BeekeeperAIPage() {
           )}
 
           {/* ─── SPECIAL: FSSAI Lab Report Screener (C4 Sugar Adulteration Detection) ─ */}
-          {(activeTab === "overview" || activeTab === "lab_screener") && (
+          {activeTab === "lab_screener" && (
             <div className="bg-gradient-to-br from-emerald-500/10 via-white to-amber-500/5 p-6 rounded-3xl border border-emerald-200/90 shadow-sm space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -2142,6 +2160,8 @@ export default function BeekeeperAIPage() {
           )}
         </>
       )}
+        </div>
+      </div>
     </div>
   );
 }
