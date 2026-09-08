@@ -42,8 +42,10 @@ export const honeyApi = {
     fetchApi<any>("/batches", { method: "POST", body: JSON.stringify(data) }),
   transferBatch: (id: string, data: any) =>
     fetchApi<any>(`/batches/${id}/transfer`, { method: "POST", body: JSON.stringify(data) }),
-  tamperBatch: (id: string) =>
-    fetchApi<any>(`/batches/${id}/tamper`, { method: "POST" }),
+  tamperBatch: (id: string, action: "tamper" | "restore" = "tamper") =>
+    fetchApi<any>(`/batches/${id}/tamper`, { method: "POST", body: JSON.stringify({ action }) }),
+  recallBatch: (id: string, data: { action: "recall" | "restore"; reason?: string; authority?: string }) =>
+    fetchApi<any>(`/batches/${id}/recall`, { method: "POST", body: JSON.stringify(data) }),
   submitQualityTest: (data: any) =>
     fetchApi<any>("/quality/submit", { method: "POST", body: JSON.stringify(data) }),
   getHiveAI: (id: string) => fetchApi<any>(`/ai/hive/${id}`),

@@ -94,17 +94,39 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
     // ── Quality Test Data ─────────────────────────────────────────────
     const qualityTest = batch.qualityTests[0];
 
+    // ── Recall & Tamper Inspection ───────────────────────────────────
+    const notesStr = batch.notes || "";
+    const recallMatch = notesStr.match(/\[RECALL_NOTICE:(\{.*?\})\]/);
+    const isRecalled = batch.status === "RECALLED" || !!recallMatch;
+    let recallDetails: any = null;
+    if (recallMatch) {
+      try {
+        recallDetails = JSON.parse(recallMatch[1]);
+      } catch (e) {}
+    }
+
+    const tamperMatch = notesStr.match(/\[TAMPER_BACKUP:(\{.*?\})\]/);
+    let originalDataBeforeTamper: any = null;
+    if (tamperMatch) {
+      try {
+        originalDataBeforeTamper = JSON.parse(tamperMatch[1]);
+      } catch (e) {}
+    }
+
     // ── Trust Score Calculation ───────────────────────────────────────
+    const isTampered = !hashMatch || !!tamperMatch;
     const trustFactors = [
       { label: "Traceability Completeness", score: 20, max: 20, passed: true },
-      { label: "Lab FSSAI Certification", score: qualityTest ? 20 : 0, max: 20, passed: !!qualityTest },
-      { label: "Blockchain Hash Integrity", score: hashMatch ? 20 : 0, max: 20, passed: hashMatch },
+      { label: "Lab FSSAI Certification", score: qualityTest && qualityTest.result === "PASS" ? 20 : 0, max: 20, passed: !!(qualityTest && qualityTest.result === "PASS") },
+      { label: "Blockchain Hash Integrity", score: !isTampered ? 20 : 0, max: 20, passed: !isTampered },
       { label: "IoT Hive Climate Coverage", score: 14, max: 15, passed: true },
       { label: "Supply Chain Milestones", score: Math.min(15, batch.events.length * 3), max: 15, passed: batch.events.length >= 3 },
       { label: "KVIC Registered Beekeeper", score: 10, max: 10, passed: true },
     ];
 
-    const totalTrustScore = trustFactors.reduce((acc, f) => acc + f.score, 0);
+    let totalTrustScore = trustFactors.reduce((acc, f) => acc + f.score, 0);
+    if (isTampered) totalTrustScore = Math.min(32, totalTrustScore);
+    if (isRecalled) totalTrustScore = 0; // Immediate disqualification
 
     // ── Hive Health (fetch latest AI prediction if available) ─────────
     let hiveHealth = 92; // Default
@@ -124,18 +146,22 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       origin: batch.location,
       honeyType: batch.honeyType,
       quantity: `${batch.quantity} KG`,
+      rawQuantity: Number(batch.quantity || 0),
       harvestDate: batch.harvestDate?.toISOString().split('T')[0],
       hiveId: batch.hive?.hiveCode,
       hiveHealth,
-      trustScore: hashMatch ? totalTrustScore : 35,
+      trustScore: totalTrustScore,
       blockchainVerified: !!onChainBatch,
       blockchainReachable,
-      hashMatch,
+      hashMatch: !isTampered && hashMatch,
       onChainHash,
       currentDataHash,
       onChainStatus,
       dbStatus: batch.status,
-      isTampered: !hashMatch,
+      isTampered,
+      originalDataBeforeTamper,
+      isRecalled,
+      recallDetails,
       labVerified: !!qualityTest,
       labResult: qualityTest?.result || "PENDING",
       labMoisture: qualityTest?.moisture ? `${qualityTest.moisture}%` : "Pending",
@@ -148,12 +174,12 @@ export async function GET(req: Request, props: { params: Promise<{ batchId: stri
       contractAddress: CONTRACT_ADDRESS,
       journey: batch.events.map((e) => ({
         stage: e.stage,
-        icon: e.stage === "HARVEST" ? "🐝" : e.stage === "PROCESSING" ? "🏭" : e.stage === "LAB_TESTING" ? "🧪" : e.stage === "DISTRIBUTION" ? "🚚" : "🏪",
+        icon: e.stage === "HARVEST" ? "🐝" : e.stage === "PROCESSING" ? "🏭" : e.stage === "LAB_TESTING" ? "🧪" : e.stage === "DISTRIBUTION" ? "🚚" : e.stage === "RECALLED" ? "🚨" : "🏪",
         actor: e.actor?.name || "System",
         location: e.location,
         date: e.timestamp?.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
         txHash: e.txHash,
-        notes: e.notes,
+        notes: e.notes?.replace(/\[(TAMPER_BACKUP|RECALL_NOTICE):\{.*?\}\]/g, "").trim(),
         verified: true,
       })),
       trustFactors,

@@ -14,8 +14,6 @@ export default function VerifyPage() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
-  const [tampering, setTampering] = useState(false);
-  const [tamperSuccessMsg, setTamperSuccessMsg] = useState<string | null>(null);
 
   const loadVerification = async () => {
     try {
@@ -32,17 +30,41 @@ export default function VerifyPage() {
     loadVerification();
   }, [batchId]);
 
-  const handleTamperTest = async () => {
+  const [tampering, setTampering] = useState(false);
+  const [recalling, setRecalling] = useState(false);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  const handleTamperAction = async (action: "tamper" | "restore") => {
     setTampering(true);
-    setTamperSuccessMsg(null);
+    setActionNotice(null);
     try {
-      await honeyApi.tamperBatch(batchId);
-      setTamperSuccessMsg("Simulated unauthorized off-chain database modification!");
+      const res = await honeyApi.tamperBatch(batchId, action);
+      setActionNotice(res.message || (action === "tamper" ? "Database tampered! Hash mismatch triggered." : "Original authentic record restored."));
       await loadVerification();
     } catch (err: any) {
       console.error("Tamper error:", err);
+      setActionNotice("Failed to execute tamper action");
     } finally {
       setTampering(false);
+    }
+  };
+
+  const handleRecallAction = async (action: "recall" | "restore") => {
+    setRecalling(true);
+    setActionNotice(null);
+    try {
+      const res = await honeyApi.recallBatch(batchId, {
+        action,
+        reason: "Adulteration detected via post-market NMR / C4 testing.",
+        authority: "National Quality Control & Food Safety Directorate",
+      });
+      setActionNotice(res.message || (action === "recall" ? "Batch officially recalled across registry!" : "Batch recall revoked."));
+      await loadVerification();
+    } catch (err: any) {
+      console.error("Recall error:", err);
+      setActionNotice("Failed to execute recall action");
+    } finally {
+      setRecalling(false);
     }
   };
 
@@ -59,7 +81,7 @@ export default function VerifyPage() {
     );
   }
 
-  const isVerified = data?.hashMatch && !data?.isTampered;
+  const isVerified = data?.hashMatch && !data?.isTampered && !data?.isRecalled;
 
   const journey = data?.journey || [];
   const groupedJourney: any[] = [];
@@ -86,6 +108,7 @@ export default function VerifyPage() {
     if (stage === "QUALITY_TESTED" || stage === "TESTED") return "QUALITY TESTING";
     if (stage === "RETAIL") return "RETAIL";
     if (stage === "HARVEST") return "HARVEST";
+    if (stage === "RECALLED") return "OFFICIAL RECALL";
     return stage;
   };
 
@@ -121,6 +144,94 @@ export default function VerifyPage() {
           <span className="text-[11px] font-mono bg-amber-100/70 text-amber-900 px-2.5 py-1 rounded-full font-bold max-w-[120px] truncate" title={data?.batchId || decodeURIComponent(batchId as string)}>
             {data?.batchId || decodeURIComponent(batchId as string)}
           </span>
+        </div>
+
+        {/* EMERGENCY RECALL BANNER */}
+        {data?.isRecalled && (
+          <div className="card p-5 bg-red-600 text-white border-2 border-red-700 shadow-xl animate-pulse">
+            <div className="flex items-start gap-3">
+              <span className="text-3xl">🚨</span>
+              <div className="flex-1">
+                <h2 className="text-base font-black uppercase tracking-wide">
+                  OFFICIAL BATCH RECALL NOTICE — DO NOT CONSUME
+                </h2>
+                <p className="text-xs text-red-100 mt-1 font-medium">
+                  {data?.recallDetails?.reason || "This batch has been officially recalled by food safety authorities due to confirmed quality non-compliance."}
+                </p>
+                <div className="mt-3 pt-2 border-t border-red-500/60 flex flex-wrap items-center justify-between text-[11px] text-red-100">
+                  <span>Authority: <strong className="text-white">{data?.recallDetails?.authority || "Central Food Safety Authority / KVIC"}</strong></span>
+                  <span>Recalled: <strong className="text-white">{data?.recallDetails?.recalledAt ? new Date(data.recallDetails.recalledAt).toLocaleDateString() : "Immediate Enforcement"}</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SIH 2026 Judge Interactive Evaluation Panel */}
+        <div className="card p-4 bg-gradient-to-r from-gray-900 via-amber-950 to-gray-900 text-white border border-amber-500/40 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚡</span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                SIH 2026 Judge Interactive Evaluation Panel
+              </h3>
+            </div>
+            <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-semibold">
+              Live Attack Simulation
+            </span>
+          </div>
+
+          <p className="text-[11px] text-gray-300 mb-3">
+            Demonstrate how HoneyChain mathematically catches unauthorized off-chain database tampering and food safety recalls:
+          </p>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            {!data?.isTampered ? (
+              <button
+                onClick={() => handleTamperAction("tamper")}
+                disabled={tampering}
+                className="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <span>🚨</span>
+                <span>{tampering ? "Injecting..." : "Simulate DB Tampering"}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleTamperAction("restore")}
+                disabled={tampering}
+                className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <span>🔄</span>
+                <span>{tampering ? "Restoring..." : "Restore Authentic Record"}</span>
+              </button>
+            )}
+
+            {!data?.isRecalled ? (
+              <button
+                onClick={() => handleRecallAction("recall")}
+                disabled={recalling}
+                className="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <span>⚠️</span>
+                <span>{recalling ? "Flagging..." : "Trigger Batch Recall"}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleRecallAction("restore")}
+                disabled={recalling}
+                className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <span>✅</span>
+                <span>{recalling ? "Clearing..." : "Revoke Batch Recall"}</span>
+              </button>
+            )}
+          </div>
+
+          {actionNotice && (
+            <div className="mt-2.5 p-2 rounded bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 text-center font-medium">
+              {actionNotice}
+            </div>
+          )}
         </div>
 
         {/* QR Code & Print Section */}
@@ -169,10 +280,16 @@ export default function VerifyPage() {
               isVerified ? "text-green-800" : "text-red-700"
             }`}
           >
-            {isVerified ? "Authentic Honey Verified" : "Tamper Warning Detected"}
+            {data?.isRecalled
+              ? "🚨 Batch Officially Recalled"
+              : isVerified
+              ? "Authentic Honey Verified"
+              : "Tamper Warning Detected"}
           </h2>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
-            {isVerified
+            {data?.isRecalled
+              ? "This honey batch has been flagged and recalled by regulatory authorities. Do not purchase or consume."
+              : isVerified
               ? "Cryptographic hashes match on-chain immutable smart contract."
               : "Cryptographic hash mismatch! The physical quantity, origin, or botanical source does not match the blockchain record."}
           </p>
@@ -200,10 +317,14 @@ export default function VerifyPage() {
               className={`badge ${
                 data?.labResult === "PASS"
                   ? "badge-verified"
+                  : data?.isRecalled
+                  ? "bg-red-100 text-red-700 border-red-200"
                   : "bg-amber-100 text-amber-800 border-amber-200"
               }`}
             >
-              {data?.labResult === "PASS"
+              {data?.isRecalled
+                ? "🚨 RECALLED BATCH"
+                : data?.labResult === "PASS"
                 ? "✓ NABL / FSSAI Pass"
                 : "⏳ Lab Test Pending"}
             </span>
@@ -235,6 +356,34 @@ export default function VerifyPage() {
               <span>DB Status: <strong className="text-amber-300">{data?.dbStatus}</strong></span>
             </div>
           </div>
+
+          {/* Tamper Diff Callout */}
+          {data?.isTampered && data?.originalDataBeforeTamper && (
+            <div className="mt-3 p-3 rounded-lg bg-red-950/80 border border-red-700/60 text-[11px] text-red-200 text-left space-y-1.5">
+              <p className="font-bold text-red-400 uppercase tracking-wide text-[10px]">
+                ⚠️ Off-Chain Mutation Evidence Detected:
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="p-2 rounded bg-red-900/40 border border-red-800">
+                  <span className="text-gray-400 block">On-Chain Registered:</span>
+                  <span className="font-bold text-emerald-300">
+                    {data.originalDataBeforeTamper.quantity} KG
+                  </span>
+                  <span className="text-gray-400 block text-[9px] truncate">({data.originalDataBeforeTamper.honeyType})</span>
+                </div>
+                <div className="p-2 rounded bg-red-900/40 border border-red-800">
+                  <span className="text-gray-400 block">Modified Database Value:</span>
+                  <span className="font-bold text-red-400">
+                    {data.quantity}
+                  </span>
+                  <span className="text-red-300 block text-[9px] truncate">({data.honeyType})</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-red-300 italic pt-1">
+                Notice: The database row was altered without smart contract consensus, immediately breaking the cryptographic hash validation.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Honey Trust Score Card */}
