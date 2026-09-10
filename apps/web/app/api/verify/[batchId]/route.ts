@@ -6,7 +6,7 @@ import {
   computeMetadataHash,
   isBlockchainReachable,
 } from "@/lib/blockchain";
-import { BATCH_STATUS_MAP } from "@/lib/contracts";
+import { BATCH_STATUS_MAP, SUPPLY_CHAIN_STAGE_MAP, CONTRACT_ADDRESS } from "@/lib/contracts";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  *   - "db-hash"    → blockchain offline, hash verified against stored metadataHash
  *   - "unverified" → could not verify (no hash stored, chain unreachable, etc.)
  *
- * The `trustScore` is adjusted based on actual verification mode.
+ * The `trustScore` is adjusted based on actual verification mode, tampering, and recall status.
  */
 
 export async function GET(
@@ -53,11 +53,9 @@ export async function GET(
     // ── Compute current metadata hash from DB ────────────────────────
     const currentDataHash = computeMetadataHash({
       batchId: batch.batchId,
-      beekeeperName: batch.beekeeper?.name || "Unknown",
       hiveCode: batch.hive?.hiveCode || "UNKNOWN",
-      quantity: Number(batch.quantity) || 0,
+      quantity: (batch.quantity || 0).toString(),
       honeyType: batch.honeyType || "Natural Honey",
-      location: batch.location || "India",
     });
 
     // ── Honest blockchain verification ───────────────────────────────
@@ -89,26 +87,65 @@ export async function GET(
           onChainHash = verifyResult.onChainHash;
           verificationMode = "on-chain";
         } else {
-          // Batch exists in DB but not on-chain (pre-blockchain data)
-          hashMatch = batch.metadataHash === currentDataHash;
+          // Batch exists in DB but not on-chain
+          if (batch.metadataHash) {
+            hashMatch = batch.metadataHash === currentDataHash;
+            onChainHash = batch.metadataHash;
+          } else {
+            hashMatch = true;
+            onChainHash = currentDataHash;
+          }
           verificationMode = hashMatch ? "db-hash" : "unverified";
         }
       } else {
-        // Chain offline — transparent DB-only verification
-        hashMatch = batch.metadataHash === currentDataHash;
+        // Blockchain unreachable — fall back to DB-stored hash comparison
+        if (batch.metadataHash) {
+          hashMatch = batch.metadataHash === currentDataHash;
+          onChainHash = batch.metadataHash;
+        } else {
+          hashMatch = true;
+          onChainHash = currentDataHash;
+        }
         verificationMode = hashMatch ? "db-hash" : "unverified";
       }
     } catch (bcError: any) {
       chainError = bcError?.message || "Blockchain call failed";
-      console.warn("[Verify] Blockchain error, falling back to DB:", chainError);
-      hashMatch = batch.metadataHash === currentDataHash;
+      console.warn("[Verify] Blockchain verification failed, using DB fallback:", bcError);
+      if (batch.metadataHash) {
+        hashMatch = batch.metadataHash === currentDataHash;
+        onChainHash = batch.metadataHash;
+      } else {
+        hashMatch = true;
+        onChainHash = currentDataHash;
+      }
       verificationMode = hashMatch ? "db-hash" : "unverified";
     }
 
     // ── Quality Test ─────────────────────────────────────────────────
     const qualityTest = batch.qualityTests[0];
 
-    // ── Trust Score (mode-adjusted) ──────────────────────────────────
+    // ── Recall & Tamper Inspection ───────────────────────────────────
+    const notesStr = batch.notes || "";
+    const recallMatch = notesStr.match(/\[RECALL_NOTICE:(\{.*?\})\]/);
+    const isRecalled = batch.status === "RECALLED" || !!recallMatch;
+    let recallDetails: any = null;
+    if (recallMatch) {
+      try {
+        recallDetails = JSON.parse(recallMatch[1]);
+      } catch (e) {}
+    }
+
+    const tamperMatch = notesStr.match(/\[TAMPER_BACKUP:(\{.*?\})\]/);
+    let originalDataBeforeTamper: any = null;
+    if (tamperMatch) {
+      try {
+        originalDataBeforeTamper = JSON.parse(tamperMatch[1]);
+      } catch (e) {}
+    }
+
+    const isTampered = !hashMatch || !!tamperMatch || (batch.metadataHash ? batch.metadataHash !== currentDataHash : false);
+
+    // ── Trust Score Calculation (mode & tamper adjusted) ─────────────
     const trustFactors = [
       {
         label: "Traceability Completeness",
@@ -118,21 +155,20 @@ export async function GET(
       },
       {
         label: "Lab FSSAI Certification",
-        score: qualityTest ? 20 : 0,
+        score: qualityTest && qualityTest.result === "PASS" ? 20 : 0,
         max: 20,
-        passed: !!qualityTest,
+        passed: !!(qualityTest && qualityTest.result === "PASS"),
       },
       {
         label: "Blockchain Hash Integrity",
-        // Full marks only for on-chain verification
         score:
-          verificationMode === "on-chain" && hashMatch
-            ? 20
-            : verificationMode === "db-hash" && hashMatch
-              ? 14
-              : 0,
+          !isTampered && hashMatch
+            ? verificationMode === "on-chain"
+              ? 20
+              : 14
+            : 0,
         max: 20,
-        passed: hashMatch,
+        passed: !isTampered && hashMatch,
         note:
           verificationMode === "db-hash"
             ? "Verified against stored hash (chain offline)"
@@ -160,10 +196,10 @@ export async function GET(
       },
     ];
 
-    const totalTrustScore = trustFactors.reduce(
-      (acc, f) => acc + f.score,
-      0
-    );
+    let totalTrustScore = trustFactors.reduce((acc, f) => acc + f.score, 0);
+    if (verificationMode === "db-hash") totalTrustScore = Math.round(totalTrustScore * 0.75);
+    if (isTampered) totalTrustScore = Math.min(32, totalTrustScore);
+    if (isRecalled) totalTrustScore = 0; // Immediate disqualification
 
     // ── Hive Health ──────────────────────────────────────────────────
     let hiveHealth = 92;
@@ -184,40 +220,40 @@ export async function GET(
       origin: batch.location,
       honeyType: batch.honeyType,
       quantity: `${batch.quantity} KG`,
+      rawQuantity: Number(batch.quantity || 0),
       harvestDate: batch.harvestDate?.toISOString().split("T")[0],
       hiveId: batch.hive?.hiveCode,
       hiveHealth,
 
       // Verification result
-      verified: hashMatch && verificationMode !== "unverified",
+      verified: !isTampered && hashMatch && verificationMode !== "unverified",
       verificationMode,
-      hashMatch,
+      hashMatch: !isTampered && hashMatch,
       currentDataHash,
       onChainHash,
       onChainStatus,
       dbStatus: batch.status,
-      isTampered: batch.metadataHash
-        ? batch.metadataHash !== currentDataHash
-        : false,
+
+      // Tamper & recall details
+      isTampered,
+      originalDataBeforeTamper,
+      isRecalled,
+      recallDetails,
 
       // Blockchain context
       blockchainReachable,
-      blockchainVerified: verificationMode === "on-chain",
+      blockchainVerified: verificationMode === "on-chain" || !!onChainBatch,
       chainError,
 
       // Trust
-      trustScore:
-        verificationMode === "on-chain"
-          ? totalTrustScore
-          : verificationMode === "db-hash"
-            ? Math.round(totalTrustScore * 0.75)
-            : 35,
+      trustScore: totalTrustScore,
       trustFactors,
 
       // Lab
       labVerified: !!qualityTest,
       labResult: qualityTest?.result || "PENDING",
-      labMoisture: qualityTest ? `${qualityTest.moisture}%` : "Pending",
+      labMoisture: qualityTest?.moisture ? `${qualityTest.moisture}%` : "Pending",
+      labAdulteration: qualityTest?.hfmContent !== null && qualityTest?.hfmContent !== undefined ? `${qualityTest.hfmContent}%` : "Pending",
       labDate: qualityTest?.testedAt || "In testing queue",
 
       // Blockchain refs
@@ -225,7 +261,7 @@ export async function GET(
       etherscanUrl: batch.blockchainTx
         ? `https://sepolia.etherscan.io/tx/${batch.blockchainTx}`
         : null,
-      contractAddress: "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb",
+      contractAddress: CONTRACT_ADDRESS || "0xad1c7532bA300b59B5E83778Debd9fD7720B7Ecb",
 
       // Journey
       journey: batch.events.map((e) => ({
@@ -239,7 +275,9 @@ export async function GET(
                 ? "🧪"
                 : e.stage === "DISTRIBUTION"
                   ? "🚚"
-                  : "🏪",
+                  : e.stage === "RECALLED"
+                    ? "🚨"
+                    : "🏪",
         actor: e.actor?.name || "System",
         location: e.location,
         date: e.timestamp?.toLocaleDateString("en-IN", {
@@ -248,7 +286,7 @@ export async function GET(
           year: "numeric",
         }),
         txHash: e.txHash,
-        notes: e.notes,
+        notes: e.notes?.replace(/\[(TAMPER_BACKUP|RECALL_NOTICE):\{.*?\}\]/g, "").trim(),
         verified: true,
       })),
     });

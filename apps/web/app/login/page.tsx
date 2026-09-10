@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ethers } from "ethers";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Hexagon, Sparkles } from "lucide-react";
 
 export default function Login() {
@@ -15,6 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [web3Loading, setWeb3Loading] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -23,6 +25,46 @@ export default function Login() {
       else router.push("/dashboard/supply-chain");
     }
   }, [user, isLoading, router]);
+
+  const handleWeb3Login = async () => {
+    setError("");
+    setWeb3Loading(true);
+
+    if (typeof window === "undefined" || !window.ethereum) {
+      setError("MetaMask is not installed. Please install it to use Web3 login.");
+      setWeb3Loading(false);
+      return;
+    }
+
+    try {
+      // 1. Connect to MetaMask
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const walletAddress = await signer.getAddress();
+
+      // 2. Sign a message
+      const message = `Please sign this message to authenticate with HoneyChain.\n\nTimestamp: ${Date.now()}`;
+      const signature = await signer.signMessage(message);
+
+      // 3. Send to backend
+      await login({ walletAddress, signature, message });
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === "ACTION_REJECTED" || (err.message && err.message.includes("rejected"))) {
+        setError("Login cancelled. You rejected the signature request in MetaMask.");
+      } else if (err.message && err.message.includes("Wallet not registered")) {
+        setError("Wallet not registered. Redirecting to signup...");
+        setTimeout(() => {
+          router.push("/register");
+        }, 2000);
+      } else {
+        setError(err.message || "Web3 Login failed");
+      }
+    } finally {
+      setWeb3Loading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +140,7 @@ export default function Login() {
               Sign In
             </h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1.5">
-              Enter your credentials to access your portal
+              Enter your credentials or authenticate via MetaMask
             </p>
           </div>
 
@@ -107,6 +149,24 @@ export default function Login() {
               {error}
             </div>
           )}
+
+          {/* Web3 1-Click Login */}
+          <button
+            type="button"
+            onClick={handleWeb3Login}
+            disabled={web3Loading || loading}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-[var(--radius-md)] flex justify-center items-center gap-2 transition-all mb-4 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50"
+          >
+            {web3Loading ? "Connecting to MetaMask..." : "🦊 Login with MetaMask"}
+          </button>
+
+          <div className="relative flex py-2 items-center mb-5">
+            <div className="flex-grow border-t border-[var(--border-default)]"></div>
+            <span className="flex-shrink-0 mx-4 text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">
+              Or continue with Email
+            </span>
+            <div className="flex-grow border-t border-[var(--border-default)]"></div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -159,7 +219,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3 mt-2 text-sm"
+              className="btn-primary w-full py-3 mt-2 text-sm cursor-pointer"
             >
               {loading ? (
                 <span className="flex items-center gap-2 justify-center">

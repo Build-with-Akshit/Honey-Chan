@@ -7,8 +7,24 @@ export async function GET() {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Role-based filtering: beekeepers see only their own batches
-    const whereClause = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    // Role-based filtering:
+    // 1. BEEKEEPER: Sees only batches they harvested
+    // 2. ADMIN: Sees all batches
+    // 3. SUPPLY CHAIN (Processor, Lab, Distributor, Retailer, Wholesaler): Sees batches where they are the current custodian or involved in the events
+    let whereClause = {};
+    if (user!.role === "BEEKEEPER") {
+      whereClause = { beekeeperId: user!.id };
+    } else if (user!.role === "ADMIN") {
+      whereClause = {};
+    } else {
+      // Supply chain roles: batches they own or interacted with
+      whereClause = {
+        OR: [
+          { events: { some: { actorId: user!.id } } },
+          { beekeeperId: user!.id }
+        ]
+      };
+    }
 
     const batches = await prisma.honeyBatch.findMany({
       where: whereClause,
@@ -16,7 +32,8 @@ export async function GET() {
         hive: true,
         beekeeper: true,
         events: {
-          orderBy: { timestamp: "asc" }
+          orderBy: { timestamp: "asc" },
+          include: { actor: { select: { id: true, name: true, role: true } } }
         },
         qualityTests: true,
       },
@@ -43,28 +60,41 @@ export async function POST(req: Request) {
       originLocation,
       notes,
       blockchainTx,
+      txHash,
+      metadataHash,
     } = data;
 
     if (!batchId || !quantityKg) {
       return NextResponse.json({ error: "batchId and quantityKg are required" }, { status: 400 });
     }
 
-    const hive = await prisma.hive.findFirst({
+    const targetCode = data.hiveCode || (typeof hiveId === "string" ? hiveId : "HIVE-007");
+    let hive = await prisma.hive.findFirst({
       where: {
         OR: [
           { id: typeof hiveId === 'number' ? hiveId : undefined },
-          { hiveCode: typeof hiveId === 'string' ? hiveId : undefined }
+          { hiveCode: targetCode }
         ]
       },
       include: { beekeeper: true }
     });
 
     if (!hive) {
-      return NextResponse.json({ error: "Hive not found" }, { status: 404 });
+      // Auto-create hive if not found in database to prevent blocking batch creation
+      hive = await prisma.hive.create({
+        data: {
+          hiveCode: targetCode,
+          location: originLocation || "Ganaur Apiary, Sonipat, Haryana",
+          flowerSource: honeyType || "Mustard Flower",
+          beekeeperId: user?.id,
+          status: "ACTIVE"
+        },
+        include: { beekeeper: true }
+      });
     }
 
     // Use the authenticated user's ID as the beekeeper
-    const beekeeperId = user!.role === "ADMIN" ? hive.beekeeperId : user!.id;
+    const beekeeperId = user!.role === "ADMIN" ? (hive.beekeeperId || user!.id) : user!.id;
 
     const newBatch = await prisma.honeyBatch.create({
       data: {
@@ -76,7 +106,8 @@ export async function POST(req: Request) {
         harvestDate: harvestDate ? new Date(harvestDate) : new Date(),
         location: originLocation || hive.location,
         notes,
-        blockchainTx: blockchainTx || "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+        metadataHash: metadataHash || null,
+        blockchainTx: txHash || blockchainTx || null,
         status: "HARVESTED",
         events: {
           create: {
@@ -84,7 +115,7 @@ export async function POST(req: Request) {
             actorId: beekeeperId,
             location: originLocation || hive.location,
             notes: notes || "Batch created via Honey Chain Web3 Portal",
-            txHash: blockchainTx || "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+            txHash: txHash || blockchainTx || null,
           }
         }
       },

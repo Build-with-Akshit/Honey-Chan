@@ -163,22 +163,58 @@ export default function ProfilePage() {
                   High-Trust Actions Locked
                 </h4>
                 <p className="text-xs text-[var(--text-secondary)] mb-3">
-                  Bind a MetaMask wallet to sign off on shipments or verify quality results.
+                  You must bind a MetaMask wallet to your account to sign off on shipments or verify quality results.
                 </p>
                 <Button
                   variant="primary"
                   size="sm"
                   leftIcon={Link2}
-                  onClick={wallet.connect}
+                  onClick={async () => {
+                    await wallet.connect();
+                    if (wallet.address) {
+                      const res = await fetch("/api/auth/link-wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ walletAddress: wallet.address }),
+                      });
+                      if (res.ok) window.location.reload();
+                      else alert("Failed to link wallet: " + (await res.json()).error);
+                    }
+                  }}
                   className="w-full"
                 >
                   Bind MetaMask Wallet
                 </Button>
               </div>
             ) : (
-              <p className="text-xs text-[var(--text-muted)]">
-                Wallet permanently bound for signing supply chain events on the HoneyChain smart contract.
-              </p>
+              <div className="mt-4 space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    await wallet.connect();
+                    if (wallet.address) {
+                      const res = await fetch("/api/auth/link-wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ walletAddress: wallet.address }),
+                      });
+                      if (res.ok) {
+                        alert("Wallet synced successfully!");
+                        window.location.reload();
+                      } else {
+                        alert("Failed to sync wallet: " + (await res.json()).error);
+                      }
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Sync Active MetaMask Wallet
+                </Button>
+                <p className="text-xs text-[var(--text-muted)] text-center">
+                  Wallet bound for signing supply chain events on the HoneyChain smart contract.
+                </p>
+              </div>
             )}
           </Card>
         </div>

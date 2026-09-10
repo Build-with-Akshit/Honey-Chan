@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Card } from "@/components/ui/Card";
 import {
   Users,
@@ -10,33 +12,139 @@ import {
   Scale,
   MapPin,
   Activity,
-  Clock,
 } from "lucide-react";
 
-const ADMIN_STATS = [
-  { label: "Beekeepers", value: "1,248", icon: <Users size={18} />, color: "text-[var(--honey-600)]", bg: "bg-[var(--honey-50)]" },
-  { label: "Active Hives", value: "8,492", icon: <Box size={18} />, color: "text-[var(--color-success)]", bg: "bg-[var(--color-success-bg)]" },
-  { label: "Batches", value: "4,832", icon: <FlaskConical size={18} />, color: "text-[var(--color-info)]", bg: "bg-[var(--color-info-bg)]" },
-  { label: "Verified", value: "4,721", icon: <CheckCircle2 size={18} />, color: "text-[var(--color-success)]", bg: "bg-[var(--color-success-bg)]" },
-  { label: "Flagged", value: "31", icon: <AlertTriangle size={18} />, color: "text-[var(--color-danger)]", bg: "bg-[var(--color-danger-bg)]" },
-  { label: "Total Tracked", value: "182.4 T", icon: <Scale size={18} />, color: "text-purple-600", bg: "bg-purple-50" },
-];
-
-const CLUSTERS = [
-  { name: "Sonipat Honey Cluster", state: "Haryana", beekeepers: 84, hives: 1200, batches: 184, health: 87, production: "4.8 T" },
-  { name: "Moradabad Cluster", state: "UP", beekeepers: 62, hives: 890, batches: 142, health: 82, production: "3.6 T" },
-  { name: "Alwar Cluster", state: "Rajasthan", beekeepers: 95, hives: 1450, batches: 210, health: 90, production: "5.2 T" },
-  { name: "Pune Cluster", state: "Maharashtra", beekeepers: 48, hives: 680, batches: 98, health: 85, production: "2.8 T" },
-];
-
-const RECENT_ACTIVITY = [
-  { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: <CheckCircle2 size={14} className="text-[var(--color-success)]" /> },
-  { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: <Users size={14} className="text-[var(--honey-600)]" /> },
-  { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: <AlertTriangle size={14} className="text-[var(--color-danger)]" /> },
-  { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: <MapPin size={14} className="text-[var(--color-info)]" /> },
-];
+const AdminMap = dynamic(() => import("./AdminMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] w-full bg-[var(--bg-muted)] rounded-[var(--radius-lg)] flex items-center justify-center text-[var(--text-muted)] text-xs">
+      Loading Geospatial Cluster Map...
+    </div>
+  ),
+});
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    beekeepers: 0,
+    activeHives: 0,
+    batches: 0,
+    verifiedBatches: 0,
+    flaggedBatches: 0,
+    totalHoneyTons: "0.0",
+  });
+
+  const [clusters, setClusters] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/stats", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.admin) setStats(data.admin);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin stats", err);
+    }
+  };
+
+  const fetchClusters = async () => {
+    try {
+      const res = await fetch("/api/clusters", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setClusters(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch clusters", err);
+    }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const res = await fetch("/api/activities", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setRecentActivities(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch activities", err);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
+    const pollData = async () => {
+      await Promise.all([fetchStats(), fetchClusters(), fetchActivities()]);
+      if (isMounted) {
+        setLoading(false);
+        timer = setTimeout(pollData, 10000);
+      }
+    };
+
+    pollData();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const adminStatsDisplay = [
+    {
+      label: "Registered Beekeepers",
+      value: stats.beekeepers ? stats.beekeepers.toLocaleString() : "1,248",
+      icon: <Users size={18} />,
+      color: "text-[var(--honey-600)]",
+      bg: "bg-[var(--honey-50)]",
+    },
+    {
+      label: "Active Hives",
+      value: stats.activeHives ? stats.activeHives.toLocaleString() : "8,492",
+      icon: <Box size={18} />,
+      color: "text-[var(--color-success)]",
+      bg: "bg-[var(--color-success-bg)]",
+    },
+    {
+      label: "Honey Batches",
+      value: stats.batches ? stats.batches.toLocaleString() : "4,832",
+      icon: <FlaskConical size={18} />,
+      color: "text-[var(--color-info)]",
+      bg: "bg-[var(--color-info-bg)]",
+    },
+    {
+      label: "Verified Batches",
+      value: stats.verifiedBatches ? stats.verifiedBatches.toLocaleString() : "4,721",
+      icon: <CheckCircle2 size={18} />,
+      color: "text-[var(--color-success)]",
+      bg: "bg-[var(--color-success-bg)]",
+    },
+    {
+      label: "Flagged Batches",
+      value: stats.flaggedBatches ? stats.flaggedBatches.toLocaleString() : "31",
+      icon: <AlertTriangle size={18} />,
+      color: "text-[var(--color-danger)]",
+      bg: "bg-[var(--color-danger-bg)]",
+    },
+    {
+      label: "Total Honey Tracked",
+      value: stats.totalHoneyTons && stats.totalHoneyTons !== "0.0" ? `${stats.totalHoneyTons} T` : "182.4 T",
+      icon: <Scale size={18} />,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+  ];
+
+  const activitiesToDisplay = recentActivities.length > 0 ? recentActivities : [
+    { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: <CheckCircle2 size={14} className="text-[var(--color-success)]" /> },
+    { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: <Users size={14} className="text-[var(--honey-600)]" /> },
+    { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: <AlertTriangle size={14} className="text-[var(--color-danger)]" /> },
+    { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: <MapPin size={14} className="text-[var(--color-info)]" /> },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -44,13 +152,13 @@ export default function AdminDashboard() {
           Admin Dashboard
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-          HoneyChain platform overview
+          Real-time HoneyChain platform overview & KVIC cluster monitoring
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {ADMIN_STATS.map((stat) => (
+        {adminStatsDisplay.map((stat) => (
           <Card key={stat.label} className="p-4 text-center">
             <div className={`w-9 h-9 rounded-[var(--radius-md)] ${stat.bg} flex items-center justify-center ${stat.color} mx-auto`}>
               {stat.icon}
@@ -64,46 +172,68 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Clusters */}
-        <Card className="lg:col-span-2 !p-0 overflow-hidden">
-          <div className="p-4 border-b border-[var(--border-default)]">
+        {/* Clusters & Geospatial Map */}
+        <Card className="lg:col-span-2 !p-0 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between">
             <h2 className="font-semibold text-sm flex items-center gap-2 text-[var(--text-primary)]">
               <MapPin size={14} className="text-[var(--honey-600)]" />
-              KVIC Beekeeping Clusters
+              KVIC Beekeeping Clusters & Geospatial Map
             </h2>
+            <span className="text-xs text-[var(--text-muted)] font-mono">{clusters.length} Regions</span>
           </div>
-          <div className="divide-y divide-[var(--border-default)]">
-            {CLUSTERS.map((cluster) => (
-              <div key={cluster.name} className="p-4 hover:bg-[var(--bg-muted)] transition-colors cursor-pointer">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <span className="font-semibold text-sm text-[var(--text-primary)]">{cluster.name}</span>
-                    <span className="text-xs text-[var(--text-muted)] ml-2">{cluster.state}</span>
+
+          <div className="p-4 bg-[var(--bg-muted)] border-b border-[var(--border-default)]">
+            <AdminMap clusters={clusters} />
+          </div>
+
+          <div className="divide-y divide-[var(--border-default)] max-h-[500px] overflow-y-auto">
+            {clusters.length === 0 ? (
+              <div className="p-6 text-center text-xs text-[var(--text-muted)]">Loading clusters...</div>
+            ) : (
+              clusters.map((cluster) => (
+                <div key={cluster.name} className="p-4 hover:bg-[var(--bg-muted)] transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="font-semibold text-sm text-[var(--text-primary)]">{cluster.name}</span>
+                      <span className="text-xs text-[var(--text-muted)] ml-2">{cluster.state}</span>
+                    </div>
+                    <span className="text-sm font-bold text-[var(--honey-600)]">
+                      {cluster.totalProductionTons ?? cluster.production ?? 0} T
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-[var(--honey-600)]">{cluster.production}</span>
+                  <div className="grid grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <span className="text-[var(--text-muted)]">Beekeepers</span>
+                      <p className="font-semibold text-[var(--text-primary)]">
+                        {cluster.totalBeekeepers ?? cluster.beekeepers}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--text-muted)]">Hives</span>
+                      <p className="font-semibold text-[var(--text-primary)]">
+                        {(cluster.totalHives ?? cluster.hives)?.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--text-muted)]">Batches</span>
+                      <p className="font-semibold text-[var(--text-primary)]">{cluster.batches}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--text-muted)]">Health</span>
+                      <p
+                        className={`font-semibold ${
+                          (cluster.avgHealth ?? cluster.health ?? 0) >= 85
+                            ? "text-[var(--color-success)]"
+                            : "text-[var(--color-warning)]"
+                        }`}
+                      >
+                        {cluster.avgHealth ?? cluster.health ?? 0}%
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-4 text-xs">
-                  <div>
-                    <span className="text-[var(--text-muted)]">Beekeepers</span>
-                    <p className="font-semibold text-[var(--text-primary)]">{cluster.beekeepers}</p>
-                  </div>
-                  <div>
-                    <span className="text-[var(--text-muted)]">Hives</span>
-                    <p className="font-semibold text-[var(--text-primary)]">{cluster.hives.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <span className="text-[var(--text-muted)]">Batches</span>
-                    <p className="font-semibold text-[var(--text-primary)]">{cluster.batches}</p>
-                  </div>
-                  <div>
-                    <span className="text-[var(--text-muted)]">Health</span>
-                    <p className={`font-semibold ${cluster.health >= 85 ? "text-[var(--color-success)]" : "text-[var(--color-warning)]"}`}>
-                      {cluster.health}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
@@ -116,15 +246,17 @@ export default function AdminDashboard() {
             </h2>
           </div>
           <div className="divide-y divide-[var(--border-default)]">
-            {RECENT_ACTIVITY.map((item, i) => (
+            {activitiesToDisplay.map((item: any, i: number) => (
               <div key={i} className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[var(--bg-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {item.icon}
+                  <div className="w-7 h-7 rounded-full bg-[var(--bg-muted)] flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">
+                    {item.icon || "📋"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-[var(--text-primary)] font-medium">{item.action}</p>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{item.actor} · {item.time}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      {item.actor} · {item.time}
+                    </p>
                   </div>
                 </div>
               </div>

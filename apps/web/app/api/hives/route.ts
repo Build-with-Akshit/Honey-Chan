@@ -2,13 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Beekeepers see only their own hives
-    const whereClause = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    // Beekeepers see only their own active hives
+    const whereClause: any = user!.role === "BEEKEEPER" ? { beekeeperId: user!.id } : {};
+    
+    // Always hide soft-deleted hives
+    whereClause.status = { not: "DELETED" };
 
     const hives = await prisma.hive.findMany({
       where: whereClause,
@@ -16,13 +21,33 @@ export async function GET() {
         cluster: true,
         beekeeper: true,
         sensorReadings: {
-          take: 1,
           orderBy: { timestamp: "desc" },
+          take: 100
         },
+        aiPredictions: {
+          orderBy: { createdAt: "desc" },
+          take: 1
+        }
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(hives);
+
+    const mappedHives = hives.map((hive) => {
+      const readingsHistory = hive.sensorReadings || [];
+      const latestReading = readingsHistory.length > 0 ? readingsHistory[0] : null;
+      const latestPrediction = hive.aiPredictions && hive.aiPredictions.length > 0 ? hive.aiPredictions[0] : null;
+      
+      return {
+        ...hive,
+        latestReading,
+        readingsHistory,
+        healthScore: latestPrediction?.healthScore || 85,
+        sensorReadings: undefined, // remove from response to keep payload small
+        aiPredictions: undefined,
+      };
+    });
+
+    return NextResponse.json(mappedHives);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch hives" }, { status: 500 });
   }

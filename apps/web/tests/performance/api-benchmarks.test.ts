@@ -97,7 +97,7 @@ describe("API Client Performance", () => {
       vi.clearAllMocks();
       await fn();
       expect(global.fetch).toHaveBeenCalledWith(
-        expectedUrl,
+        expect.stringMatching(new RegExp(`^${expectedUrl}`)),
         expect.any(Object)
       );
     }

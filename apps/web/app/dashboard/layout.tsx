@@ -91,7 +91,7 @@ const NAV_ITEMS_BY_ROLE: Record<UserRole, { labelEn: string; labelHi: string; ic
     { labelEn: "Beekeepers", labelHi: "पालक सूची", iconKey: "Beekeepers", path: "/dashboard/admin/beekeepers" },
     { labelEn: "Clusters", labelHi: "क्लस्टर प्रबंधन", iconKey: "Clusters", path: "/dashboard/admin/clusters" },
     { labelEn: "All Batches", labelHi: "सभी शहद बैच", iconKey: "All Batches", path: "/dashboard/admin/batches" },
-    { labelEn: "Analytics", labelHi: "आंकड़े एवं रिपोर्ट", iconKey: "Analytics", path: "/analytics" },
+    { labelEn: "Analytics", labelHi: "आंकड़े एवं रिपोर्ट", iconKey: "Analytics", path: "/dashboard/admin/analytics" },
   ],
   BEEKEEPER: [
     { labelEn: "Overview", labelHi: "डैशबोर्ड अवलोकन", iconKey: "Overview", path: "/dashboard/beekeeper" },
@@ -173,11 +173,89 @@ export default function DashboardLayout({
     }
   }, [user, isLoading, router]);
 
+  // Auto-link wallet and guarantee on-chain smart contract role authorization whenever a wallet is connected
   useEffect(() => {
-    if (wallet.isConnected && wallet.address && user && !user.walletAddress) {
-      linkWallet(wallet.address).catch(console.error);
+    if (wallet.isConnected && wallet.address && user) {
+      if (!user.walletAddress || user.walletAddress.toLowerCase() !== wallet.address.toLowerCase()) {
+        linkWallet(wallet.address).catch(console.error);
+      }
     }
-  }, [wallet.isConnected, wallet.address, user, linkWallet]);
+  }, [wallet.isConnected, wallet.address, user?.walletAddress, linkWallet]);
+
+  // Keyboard shortcuts for sidebar navigation (Alt + 1, 2, 3... and Alt + Up/Down Arrows)
+  useEffect(() => {
+    if (!user) return;
+    const items = NAV_ITEMS_BY_ROLE[user.role as UserRole] || [];
+    if (items.length === 0) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl + \ to toggle sidebar (ignoring AltGr which also sends ctrlKey)
+      if (e.ctrlKey && !e.altKey && !e.getModifierState?.("AltGraph") && e.key === '\\') {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+        return;
+      }
+
+      // Check for Left Alt OR Right Alt (AltGraph / AltRight)
+      const isAltPressed = 
+        e.altKey || 
+        (e.getModifierState && e.getModifierState("AltGraph")) || 
+        (e.getModifierState && e.getModifierState("Alt"));
+
+      if (isAltPressed) {
+        // Alt + ` : Home
+        if (e.key === '`' || e.code === 'Backquote') {
+          e.preventDefault();
+          router.push("/");
+          return;
+        }
+
+        // Alt + 0 : Profile
+        if (e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
+          e.preventDefault();
+          router.push("/dashboard/profile");
+          return;
+        }
+
+        // Alt + ArrowDown: Navigate to Next Section
+        if (e.key === 'ArrowDown' || e.code === 'ArrowDown') {
+          e.preventDefault();
+          const currentIndex = items.findIndex(item => item.path === pathname);
+          const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+          router.push(items[nextIndex].path);
+          return;
+        }
+
+        // Alt + ArrowUp: Navigate to Previous Section
+        if (e.key === 'ArrowUp' || e.code === 'ArrowUp') {
+          e.preventDefault();
+          const currentIndex = items.findIndex(item => item.path === pathname);
+          const prevIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + items.length) % items.length;
+          router.push(items[prevIndex].path);
+          return;
+        }
+        
+        // Alt + Number Keys (1, 2, 3...)
+        let digit = -1;
+        if (!isNaN(Number(e.key)) && e.key.trim() !== "") {
+          digit = parseInt(e.key);
+        } else if (e.code && e.code.startsWith("Digit")) {
+          digit = parseInt(e.code.replace("Digit", ""));
+        } else if (e.code && e.code.startsWith("Numpad")) {
+          digit = parseInt(e.code.replace("Numpad", ""));
+        }
+
+        if (digit > 0 && digit <= items.length) {
+          e.preventDefault();
+          router.push(items[digit - 1].path);
+          return;
+        }
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [user, router, pathname]);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -418,14 +496,28 @@ export default function DashboardLayout({
                 </div>
               </div>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={Wallet}
-                onClick={wallet.connect}
-              >
-                {isHindi ? "वॉलेट जोड़ें" : "Connect"}
-              </Button>
+              <div className="flex items-center gap-2">
+                {wallet.error && (
+                  <span className="text-[10px] text-[var(--color-danger)] font-semibold bg-[var(--color-danger-bg)] px-2 py-1 rounded border border-[var(--color-danger-border)] max-w-[150px] truncate" title={wallet.error}>
+                    {wallet.error}
+                  </span>
+                )}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={Wallet}
+                  onClick={() => {
+                    if (!wallet.hasMetaMask) {
+                      window.open("https://metamask.io/download/", "_blank");
+                    } else {
+                      wallet.connect();
+                    }
+                  }}
+                  disabled={wallet.isConnecting}
+                >
+                  {wallet.isConnecting ? "Connecting..." : isHindi ? "वॉलेट जोड़ें" : "Connect"}
+                </Button>
+              </div>
             )}
           </div>
         </header>

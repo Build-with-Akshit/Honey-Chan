@@ -618,3 +618,144 @@ body {
   border-top-color: var(--border-default) !important;
 }
 
+/* Warm shadow */
+.warm-shadow {
+  box-shadow: 0 4px 20px rgba(180, 83, 9, 0.08);
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.3);
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: fadeInUp 0.35s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar — light */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fef9ee;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5d5b0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4c090;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-created { color: #2563eb; background: #dbeafe; }
+.badge-processing { color: #b45309; background: #fef3c7; }
+.badge-tested { color: #7c3aed; background: #ede9fe; }
+.badge-distributed { color: #059669; background: #d1fae5; }
+.badge-retail { color: #db2777; background: #fce7f3; }
+.badge-verified { color: #16a34a; background: #dcfce7; }
+.badge-warning { color: #c2410c; background: #ffedd5; }
+.badge-danger { color: #dc2626; background: #fee2e2; }
+.badge-info { color: #0284c7; background: #e0f2fe; }
+
+/* Button styles */
+.btn-primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-weight: 600;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: white;
+  color: #92400e;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid #fde68a;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: #fffbeb;
+  border-color: #fbbf24;
+}
+
+/* Health bar */
+.health-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #f3e8d0;
+  overflow: hidden;
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}

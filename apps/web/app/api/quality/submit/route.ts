@@ -40,8 +40,8 @@ export async function POST(req: Request) {
         batchId: batch.id,
         stage: "LAB_TESTING",
         actorId: user!.id, // Use authenticated lab user
-        location: "FSSAI Accredited Center, New Delhi",
-        notes: `Lab test ${result || "PASS"} by ${user!.name}`,
+        location: "CBRTI Central Honey Laboratory, Pune (KVIC Honey Mission)",
+        notes: `Lab test ${result || "PASS"} - Tested at CBRTI Pune under KVIC Honey Mission to FSSAI standards by ${user!.name}`,
         txHash: "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
       }
     });

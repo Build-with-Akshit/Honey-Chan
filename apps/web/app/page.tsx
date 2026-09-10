@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { gsap, useGSAP } from "@/lib/gsap";
+import QRScannerWidget from "@/components/QRScannerWidget";
 import {
   Shield,
   Radio,
@@ -18,6 +19,7 @@ import {
   CheckCircle2,
   ArrowUpRight,
   Sparkles,
+  LayoutDashboard,
 } from "lucide-react";
 
 /* ─── Animated Counter Hook ─── */
@@ -254,6 +256,12 @@ export default function Home() {
             </div>
           ) : !isLoading ? (
             <div className="flex gap-3">
+              <Link
+                href="/marketplace"
+                className="btn-ghost text-sm text-[var(--text-secondary)] hover:text-[var(--honey-700)] transition-colors"
+              >
+                Marketplace
+              </Link>
               <Link href="/login" className="btn-outline text-sm">
                 Log In
               </Link>
@@ -377,47 +385,95 @@ export default function Home() {
 
         {/* Portal Cards (if not logged in) */}
         {!isLoading && !user && (
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <Link
-              href="/login"
-              className="group p-7 bg-white border border-[var(--border-default)] rounded-[var(--radius-xl)] hover:border-[var(--honey-300)] hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--honey-50)] flex items-center justify-center text-[var(--honey-600)] mb-4 group-hover:scale-110 transition-transform">
-                <Leaf size={24} />
-              </div>
-              <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
-                Beekeeper Portal
-              </h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
-                IoT monitoring, AI health insights, harvest management, and
-                blockchain batch creation.
-              </p>
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-[var(--honey-600)] mt-4 group-hover:gap-2.5 transition-all">
-                Enter Portal
-                <ChevronRight size={16} />
-              </div>
-            </Link>
+          <>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
+              {/* Beekeeper Portal */}
+              <Link
+                href="/login"
+                className="group p-7 bg-white border border-[var(--border-default)] rounded-[var(--radius-xl)] hover:border-[var(--honey-300)] hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--honey-50)] flex items-center justify-center text-[var(--honey-600)] mb-4 group-hover:scale-110 transition-transform">
+                    <Leaf size={24} />
+                  </div>
+                  <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
+                    Beekeeper Portal
+                  </h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
+                    IoT Sensor Nodes • Hive Setup • Digital Harvest Logging & Smart Contracts.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-[var(--honey-600)] mt-6 group-hover:gap-2.5 transition-all pt-4 border-t border-[var(--border-subtle)]">
+                  Enter Portal
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
 
-            <Link
-              href="/login"
-              className="group p-7 bg-white border border-[var(--border-default)] rounded-[var(--radius-xl)] hover:border-[var(--orange-300)] hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--orange-50)] flex items-center justify-center text-[var(--orange-600)] mb-4 group-hover:scale-110 transition-transform">
-                <Zap size={24} />
+              {/* 4-Tier AI Suite */}
+              <Link
+                href="/dashboard/beekeeper/ai"
+                className="group p-7 bg-gradient-to-br from-amber-500/10 via-white to-orange-500/10 border border-[var(--honey-300)] rounded-[var(--radius-xl)] hover:border-[var(--honey-500)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--honey-100)] flex items-center justify-center text-[var(--honey-700)] group-hover:scale-110 transition-transform">
+                      <Brain size={24} />
+                    </div>
+                    <span className="px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider rounded-full bg-[var(--honey-200)] text-[var(--honey-900)] border border-[var(--honey-300)]">
+                      4-TIER AI
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
+                    AI Agronomist Suite
+                  </h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
+                    XGBoost Health • Edge Comb Vision • Acoustic FFT • FSSAI C4 Screener.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-[var(--honey-700)] mt-6 group-hover:gap-2.5 transition-all pt-4 border-t border-amber-200/80">
+                  Launch AI Suite
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
+
+              {/* Supply Chain Portal */}
+              <Link
+                href="/login"
+                className="group p-7 bg-white border border-[var(--border-default)] rounded-[var(--radius-xl)] hover:border-[var(--orange-300)] hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--orange-50)] flex items-center justify-center text-[var(--orange-600)] mb-4 group-hover:scale-110 transition-transform">
+                    <Zap size={24} />
+                  </div>
+                  <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
+                    Supply Chain Portal
+                  </h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
+                    Factory Processing • Lab Testing • Custody Transfers • Retail.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-[var(--orange-600)] mt-6 group-hover:gap-2.5 transition-all pt-4 border-t border-[var(--border-subtle)]">
+                  Enter Portal
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
+            </div>
+
+            {/* Verify a Honey Product */}
+            <div className="text-center mb-16">
+              <div className="inline-block p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-[var(--border-default)] shadow-sm">
+                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3 flex items-center justify-center gap-2">
+                  <QrCode className="text-[var(--honey-600)]" size={20} /> Verify a Honey Product
+                </h3>
+                <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm">
+                  Consumers can instantly verify the authenticity and entire supply chain journey of their honey. No account needed.
+                </p>
+                <div className="max-w-xs mx-auto">
+                  <QRScannerWidget />
+                </div>
               </div>
-              <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
-                Supply Chain Portal
-              </h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
-                Factory processing, lab testing, distribution tracking, and
-                retail verification.
-              </p>
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-[var(--orange-600)] mt-4 group-hover:gap-2.5 transition-all">
-                Enter Portal
-                <ChevronRight size={16} />
-              </div>
-            </Link>
-          </div>
+            </div>
+          </>
         )}
 
         {/* Loading state */}
@@ -687,25 +743,5 @@ export default function Home() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function LayoutDashboard({ size = 24 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="7" height="9" x="3" y="3" rx="1" />
-      <rect width="7" height="5" x="14" y="3" rx="1" />
-      <rect width="7" height="9" x="14" y="12" rx="1" />
-      <rect width="7" height="5" x="3" y="16" rx="1" />
-    </svg>
   );
 }

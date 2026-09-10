@@ -6,7 +6,7 @@
  * (Architecture note: Real ESP32 / Arduino hardware POSTs to the EXACT same endpoint!)
  */
 
-const API_ENDPOINT = process.env.API_ENDPOINT || "http://localhost:5000/api/iot/readings";
+const API_ENDPOINT = process.env.API_ENDPOINT || "https://honey-chan.vercel.app/api/iot/readings";
 
 const HIVES = [
   { hiveCode: "HIVE-007", baseTemp: 34.2, baseHum: 65.0, baseWeight: 38.4, battery: 94 },

@@ -85,7 +85,7 @@ describe("honeyApi", () => {
 
     await honeyApi.getBatches();
     expect(global.fetch).toHaveBeenCalledWith(
-      "/api/batches",
+      expect.stringMatching(/^\/api\/batches/),
       expect.any(Object)
     );
   });

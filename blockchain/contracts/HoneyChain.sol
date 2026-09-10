@@ -49,6 +49,11 @@ contract HoneyChain is AccessControl {
         bool qualityPassed;
         uint256 createdAt;
         uint256 lastUpdated;
+        
+        // Two-Step Transfer Fields
+        address pendingOwner;
+        SupplyChainStage pendingStage;
+        bool isTransferPending;
     }
 
     struct SupplyChainEvent {
@@ -66,10 +71,17 @@ contract HoneyChain is AccessControl {
         bytes32 dataHash;         // Hash of full IoT payload
     }
 
+    struct ConsumerSale {
+        bytes32 billHash;
+        uint256 saleTimestamp;
+        bool isSold;
+    }
+
     // ─── State ───────────────────────────────────────────────────────────
     mapping(string => HoneyBatch) private batches;
     mapping(string => SupplyChainEvent[]) private supplyChainHistory;
     mapping(string => HiveDataRecord[]) private hiveDataHistory;
+    mapping(string => ConsumerSale) public consumerSales;
     mapping(string => bool) private batchExists;
     mapping(address => string) public participantNames;
 
@@ -121,6 +133,21 @@ contract HoneyChain is AccessControl {
         uint256 timestamp
     );
 
+    event TransferInitiated(
+        string indexed batchId,
+        address indexed from,
+        address indexed pendingTo,
+        SupplyChainStage pendingStage,
+        uint256 timestamp
+    );
+
+    event TransferRejected(
+        string indexed batchId,
+        address indexed from,
+        address indexed pendingTo,
+        uint256 timestamp
+    );
+
     event ProcessingCompleted(
         string indexed batchId,
         address indexed processor,
@@ -134,6 +161,12 @@ contract HoneyChain is AccessControl {
         uint256 timestamp
     );
 
+    event ConsumerSaleCompleted(
+        string indexed batchId,
+        bytes32 billHash,
+        uint256 timestamp
+    );
+
     // ─── Custom Errors ───────────────────────────────────────────────────
     error BatchAlreadyExists(string batchId);
     error BatchNotFound(string batchId);
@@ -142,6 +175,16 @@ contract HoneyChain is AccessControl {
     error InvalidBatchId();
     error InvalidTransition(BatchStatus current, BatchStatus target);
     error QualityNotVerified(string batchId);
+    error BatchClosed(string batchId);
+    error TransferAlreadyPending(string batchId);
+    error NoTransferPending(string batchId);
+    error NotPendingOwner(string batchId, address caller);
+
+    // ─── Modifiers ───────────────────────────────────────────────────────
+    modifier notCompleted(string calldata batchId) {
+        if (batches[batchId].status == BatchStatus.Completed) revert BatchClosed(batchId);
+        _;
+    }
 
     // ─── Constructor ─────────────────────────────────────────────────────
     constructor() {
@@ -258,7 +301,7 @@ contract HoneyChain is AccessControl {
         string calldata batchId,
         bytes32 reportHash,
         bool passed
-    ) external onlyRole(LAB_ROLE) {
+    ) external onlyRole(LAB_ROLE) notCompleted(batchId) {
         if (!batchExists[batchId]) revert BatchNotFound(batchId);
 
         HoneyBatch storage batch = batches[batchId];
@@ -280,23 +323,45 @@ contract HoneyChain is AccessControl {
     // ─── Transfer Functions ──────────────────────────────────────────────
 
     /**
-     * @dev Transfer batch to next actor in supply chain
-     * @param batchId Batch to transfer
-     * @param newOwner Address of the new owner
-     * @param stage Supply chain stage this transfer represents
+     * @dev Step 1: Initiate a transfer to next actor in supply chain
      */
-    function transferBatch(
+    function initiateTransfer(
         string calldata batchId,
         address newOwner,
         SupplyChainStage stage
-    ) external {
+    ) external notCompleted(batchId) {
         if (!batchExists[batchId]) revert BatchNotFound(batchId);
 
         HoneyBatch storage batch = batches[batchId];
         if (batch.currentOwner != msg.sender) revert NotBatchOwner(batchId, msg.sender);
+        if (batch.isTransferPending) revert TransferAlreadyPending(batchId);
+
+        batch.pendingOwner = newOwner;
+        batch.pendingStage = stage;
+        batch.isTransferPending = true;
+        batch.lastUpdated = block.timestamp;
+
+        emit TransferInitiated(batchId, msg.sender, newOwner, stage, block.timestamp);
+    }
+
+    /**
+     * @dev Step 2: Accept a pending transfer
+     */
+    function acceptTransfer(string calldata batchId) external notCompleted(batchId) {
+        if (!batchExists[batchId]) revert BatchNotFound(batchId);
+
+        HoneyBatch storage batch = batches[batchId];
+        if (!batch.isTransferPending) revert NoTransferPending(batchId);
+        if (batch.pendingOwner != msg.sender) revert NotPendingOwner(batchId, msg.sender);
 
         address previousOwner = batch.currentOwner;
+        address newOwner = batch.pendingOwner;
+        SupplyChainStage stage = batch.pendingStage;
+
+        // Clear pending state
         batch.currentOwner = newOwner;
+        batch.pendingOwner = address(0);
+        batch.isTransferPending = false;
         batch.lastUpdated = block.timestamp;
 
         // Update status based on stage
@@ -313,11 +378,70 @@ contract HoneyChain is AccessControl {
             stage: stage,
             actor: newOwner,
             timestamp: block.timestamp,
-            dataHash: bytes32(0)
+            dataHash: bytes32(0) // Hash will be captured off-chain if needed
         }));
 
         emit BatchTransferred(batchId, previousOwner, newOwner, stage, block.timestamp);
         emit BatchReceived(batchId, newOwner, stage, block.timestamp);
+    }
+
+    /**
+     * @dev Reject/Cancel a pending transfer
+     */
+    function rejectTransfer(string calldata batchId) external notCompleted(batchId) {
+        if (!batchExists[batchId]) revert BatchNotFound(batchId);
+
+        HoneyBatch storage batch = batches[batchId];
+        if (!batch.isTransferPending) revert NoTransferPending(batchId);
+        
+        // Either current owner (cancel) or pending owner (reject) can call this
+        if (msg.sender != batch.currentOwner && msg.sender != batch.pendingOwner) {
+            revert NotPendingOwner(batchId, msg.sender);
+        }
+
+        address pendingTo = batch.pendingOwner;
+        batch.pendingOwner = address(0);
+        batch.isTransferPending = false;
+        batch.lastUpdated = block.timestamp;
+
+        emit TransferRejected(batchId, batch.currentOwner, pendingTo, block.timestamp);
+    }
+
+    /**
+     * @dev Retailer records the final consumer sale, locking the batch permanently
+     * @param batchId Batch that was sold
+     * @param billHash SHA-256 hash of the consumer bill / receipt details
+     */
+    function completeRetailSale(
+        string calldata batchId,
+        bytes32 billHash
+    ) external onlyRole(RETAILER_ROLE) notCompleted(batchId) {
+        if (!batchExists[batchId]) revert BatchNotFound(batchId);
+
+        HoneyBatch storage batch = batches[batchId];
+        if (batch.currentOwner != msg.sender) revert NotBatchOwner(batchId, msg.sender);
+        if (batch.status != BatchStatus.Retail) revert InvalidTransition(batch.status, BatchStatus.Completed);
+
+        // Lock the batch
+        batch.status = BatchStatus.Completed;
+        batch.lastUpdated = block.timestamp;
+
+        // Record the sale
+        consumerSales[batchId] = ConsumerSale({
+            billHash: billHash,
+            saleTimestamp: block.timestamp,
+            isSold: true
+        });
+
+        // Add final supply chain event
+        supplyChainHistory[batchId].push(SupplyChainEvent({
+            stage: SupplyChainStage.Retail, // Final stage
+            actor: msg.sender,
+            timestamp: block.timestamp,
+            dataHash: billHash
+        }));
+
+        emit ConsumerSaleCompleted(batchId, billHash, block.timestamp);
     }
 
     // ─── View Functions ──────────────────────────────────────────────────
@@ -335,7 +459,9 @@ contract HoneyChain is AccessControl {
         BatchStatus status,
         bytes32 qualityReportHash,
         bool qualityPassed,
-        uint256 createdAt
+        uint256 createdAt,
+        address pendingOwner,
+        bool isTransferPending
     ) {
         if (!batchExists[batchId]) revert BatchNotFound(batchId);
         HoneyBatch storage batch = batches[batchId];
@@ -350,7 +476,9 @@ contract HoneyChain is AccessControl {
             batch.status,
             batch.qualityReportHash,
             batch.qualityPassed,
-            batch.createdAt
+            batch.createdAt,
+            batch.pendingOwner,
+            batch.isTransferPending
         );
     }
 
