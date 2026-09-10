@@ -43,4 +43,5 @@ export const honeyApi = {
   analyzeImage: (data: any) =>
     fetchApi<any>("/ai/analyze-image", { method: "POST", body: JSON.stringify(data) }),
   verifyBatch: (batchId: string) => fetchApi<any>(`/verify/${batchId}`),
+  getBlockchainStatus: () => fetchApi<any>("/blockchain/status"),
 };

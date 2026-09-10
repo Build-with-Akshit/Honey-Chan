@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
+import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { MapPin, Users, Box, Heart, Scale } from "lucide-react";
 
 export default function AdminClustersPage() {
   const [clusters, setClusters] = useState<any[]>([]);
@@ -13,43 +16,60 @@ export default function AdminClustersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">KVIC Beekeeping Clusters</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
+          KVIC Beekeeping Clusters
+        </h1>
+        <p className="text-xs text-[var(--text-secondary)] mt-0.5">
           Ministry of MSME rural cluster management & regional yield oversight
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {clusters.map((cluster) => (
-          <div key={cluster.id} className="card p-5 bg-white space-y-3">
+          <Card key={cluster.id} className="p-5 space-y-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-2xl">📍</span>
-              <span className="badge badge-verified">ACTIVE CLUSTER</span>
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--honey-50)] flex items-center justify-center text-[var(--honey-600)]">
+                <MapPin size={18} />
+              </div>
+              <StatusBadge state="pass" label="ACTIVE" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-gray-900">{cluster.name}</h3>
-              <p className="text-xs text-gray-400">{cluster.district}, {cluster.state}</p>
+              <h3 className="font-bold text-base text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
+                {cluster.name}
+              </h3>
+              <p className="text-xs text-[var(--text-muted)]">{cluster.district}, {cluster.state}</p>
             </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs pt-3 border-t border-gray-100">
-              <div className="p-2 rounded-lg bg-gray-50">
-                <span className="text-gray-400 block text-[10px]">Beekeepers</span>
-                <span className="font-bold text-gray-800">{cluster.totalBeekeepers}</span>
+            <div className="grid grid-cols-2 gap-2 text-xs pt-3 border-t border-[var(--border-default)]">
+              <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)]">
+                <span className="text-[var(--text-muted)] flex items-center gap-1 text-[10px]">
+                  <Users size={10} />
+                  Beekeepers
+                </span>
+                <span className="font-bold text-[var(--text-primary)]">{cluster.totalBeekeepers}</span>
               </div>
-              <div className="p-2 rounded-lg bg-gray-50">
-                <span className="text-gray-400 block text-[10px]">Smart Hives</span>
-                <span className="font-bold text-gray-800">{cluster.totalHives}</span>
+              <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)]">
+                <span className="text-[var(--text-muted)] flex items-center gap-1 text-[10px]">
+                  <Box size={10} />
+                  Smart Hives
+                </span>
+                <span className="font-bold text-[var(--text-primary)]">{cluster.totalHives}</span>
               </div>
-              <div className="p-2 rounded-lg bg-gray-50">
-                <span className="text-gray-400 block text-[10px]">Avg Health</span>
-                <span className="font-bold text-emerald-700">{cluster.avgHealth}%</span>
+              <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)]">
+                <span className="text-[var(--text-muted)] flex items-center gap-1 text-[10px]">
+                  <Heart size={10} />
+                  Avg Health
+                </span>
+                <span className="font-bold text-[var(--color-success)]">{cluster.avgHealth}%</span>
               </div>
-              <div className="p-2 rounded-lg bg-gray-50">
-                <span className="text-gray-400 block text-[10px]">Total Production</span>
-                <span className="font-bold text-amber-700">{cluster.totalProductionTons} Tons</span>
+              <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)]">
+                <span className="text-[var(--text-muted)] flex items-center gap-1 text-[10px]">
+                  <Scale size={10} />
+                  Production
+                </span>
+                <span className="font-bold text-[var(--honey-600)]">{cluster.totalProductionTons} T</span>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

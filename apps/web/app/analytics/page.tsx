@@ -1,100 +1,110 @@
 "use client";
 
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  ArrowLeft,
+  Scale,
+  Shield,
+  Heart,
+  TrendingUp,
+  MapPin,
+  Users,
+  CheckCircle2,
+} from "lucide-react";
+
+const KPI_CARDS = [
+  { label: "Total Traceable Honey", val: "182.4 Tons", icon: <Scale size={20} />, sub: "+18.2% vs last quarter", color: "text-[var(--honey-600)]", bg: "bg-[var(--honey-50)]" },
+  { label: "Counterfeit Preventions", val: "31 Flagged", icon: <Shield size={20} />, sub: "Tamper detection active", color: "text-[var(--color-danger)]", bg: "bg-[var(--color-danger-bg)]" },
+  { label: "Avg Hive Health Index", val: "88.6%", icon: <Heart size={20} />, sub: "Based on 8,492 hives", color: "text-[var(--color-success)]", bg: "bg-[var(--color-success-bg)]" },
+  { label: "Verified Producer Premium", val: "+24.5%", icon: <TrendingUp size={20} />, sub: "Direct rural farmer margin", color: "text-[var(--color-info)]", bg: "bg-[var(--color-info-bg)]" },
+];
+
+const REGIONAL_DATA = [
+  { state: "Haryana", cluster: "Sonipat Honey Cluster", beekeepers: 84, yield: "4.8 T", compliance: "100% PASS", score: "96.4/100" },
+  { state: "Uttar Pradesh", cluster: "Moradabad Cluster", beekeepers: 62, yield: "3.6 T", compliance: "98.2% PASS", score: "92.1/100" },
+  { state: "Rajasthan", cluster: "Alwar Mustard Cluster", beekeepers: 95, yield: "5.2 T", compliance: "100% PASS", score: "98.0/100" },
+  { state: "Maharashtra", cluster: "Pune Rural Cluster", beekeepers: 48, yield: "2.8 T", compliance: "99.1% PASS", score: "94.5/100" },
+];
 
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4">
+    <div className="min-h-screen bg-[var(--bg-base)] py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center text-amber-800 hover:bg-amber-50 font-bold transition-colors"
+              className="w-9 h-9 rounded-[var(--radius-md)] bg-white border border-[var(--border-default)] flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--bg-muted)] transition-colors cursor-pointer"
             >
-              ←
+              <ArrowLeft size={16} />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">National Honey Analytics</h1>
-              <p className="text-xs text-gray-500">Smart Automation & Authenticity Metrics</p>
+              <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
+                National Honey Analytics
+              </h1>
+              <p className="text-xs text-[var(--text-secondary)]">Executive Dashboard</p>
             </div>
           </div>
-          <span className="badge badge-info">EXECUTIVE DASHBOARD</span>
+          <StatusBadge state="info" label="EXECUTIVE" showDot={false} />
         </div>
 
-        {/* 4 Big KPI Cards */}
+        {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Total Traceable Honey", val: "182.4 Tons", icon: "🍯", sub: "+18.2% vs last quarter", color: "text-amber-800" },
-            { label: "Counterfeit Attempt Preventions", val: "31 Flagged", icon: "🛡️", sub: "Tamper detection active", color: "text-red-700" },
-            { label: "Average Hive Health Index", val: "88.6%", icon: "❤️", sub: "Based on 8,492 smart hives", color: "text-emerald-700" },
-            { label: "Verified Producer Premium", val: "+24.5%", icon: "📈", sub: "Direct rural farmer margin", color: "text-blue-800" },
-          ].map((c) => (
-            <div key={c.label} className="card p-5 bg-white">
+          {KPI_CARDS.map((c) => (
+            <Card key={c.label} className="p-5">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs text-gray-500">{c.label}</p>
-                  <p className={`text-2xl font-black mt-1 ${c.color}`}>{c.val}</p>
-                  <p className="text-[10px] text-gray-400 mt-2">{c.sub}</p>
+                  <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">{c.label}</p>
+                  <p className={`text-xl font-bold mt-1.5 ${c.color} font-[family-name:var(--font-outfit)] tabular-data`}>{c.val}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1.5">{c.sub}</p>
                 </div>
-                <span className="text-2xl">{c.icon}</span>
+                <div className={`w-10 h-10 rounded-[var(--radius-md)] ${c.bg} flex items-center justify-center ${c.color}`}>
+                  {c.icon}
+                </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
-        {/* Regional Breakdown Table */}
-        <div className="card p-6 bg-white space-y-4">
-          <h2 className="font-bold text-sm text-gray-800">📍 Regional Production & Quality Compliance</h2>
+        {/* Regional Table */}
+        <Card className="!p-0 overflow-hidden">
+          <div className="p-4 border-b border-[var(--border-default)]">
+            <h2 className="font-semibold text-sm flex items-center gap-2 text-[var(--text-primary)]">
+              <MapPin size={14} className="text-[var(--honey-600)]" />
+              Regional Production & Quality Compliance
+            </h2>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-gray-200 text-gray-400">
-                  <th className="pb-3 font-semibold">State / Region</th>
-                  <th className="pb-3 font-semibold">KVIC Cluster</th>
-                  <th className="pb-3 font-semibold">Beekeepers</th>
-                  <th className="pb-3 font-semibold">Yield (Tons)</th>
-                  <th className="pb-3 font-semibold">FSSAI Compliance</th>
-                  <th className="pb-3 font-semibold">Authenticity Score</th>
+              <thead className="bg-[var(--bg-muted)]">
+                <tr className="text-[var(--text-muted)] font-semibold">
+                  <th className="px-5 py-3">State</th>
+                  <th className="px-5 py-3">Cluster</th>
+                  <th className="px-5 py-3">Beekeepers</th>
+                  <th className="px-5 py-3">Yield</th>
+                  <th className="px-5 py-3">FSSAI Compliance</th>
+                  <th className="px-5 py-3">Authenticity</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-gray-700">
-                <tr>
-                  <td className="py-3 font-medium">Haryana</td>
-                  <td>Sonipat Honey Cluster</td>
-                  <td>84</td>
-                  <td className="font-bold text-amber-700">4.8 T</td>
-                  <td><span className="badge badge-verified">100% PASS</span></td>
-                  <td className="font-bold text-emerald-700">96.4/100</td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Uttar Pradesh</td>
-                  <td>Moradabad Honey Cluster</td>
-                  <td>62</td>
-                  <td className="font-bold text-amber-700">3.6 T</td>
-                  <td><span className="badge badge-verified">98.2% PASS</span></td>
-                  <td className="font-bold text-emerald-700">92.1/100</td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Rajasthan</td>
-                  <td>Alwar Mustard Cluster</td>
-                  <td>95</td>
-                  <td className="font-bold text-amber-700">5.2 T</td>
-                  <td><span className="badge badge-verified">100% PASS</span></td>
-                  <td className="font-bold text-emerald-700">98.0/100</td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Maharashtra</td>
-                  <td>Pune Rural Cluster</td>
-                  <td>48</td>
-                  <td className="font-bold text-amber-700">2.8 T</td>
-                  <td><span className="badge badge-verified">99.1% PASS</span></td>
-                  <td className="font-bold text-emerald-700">94.5/100</td>
-                </tr>
+              <tbody className="divide-y divide-[var(--border-default)] text-[var(--text-secondary)]">
+                {REGIONAL_DATA.map((row) => (
+                  <tr key={row.state} className="hover:bg-[var(--bg-muted)] transition-colors">
+                    <td className="px-5 py-3 font-medium text-[var(--text-primary)]">{row.state}</td>
+                    <td className="px-5 py-3">{row.cluster}</td>
+                    <td className="px-5 py-3 tabular-data">{row.beekeepers}</td>
+                    <td className="px-5 py-3 font-bold text-[var(--honey-600)] tabular-data">{row.yield}</td>
+                    <td className="px-5 py-3">
+                      <StatusBadge state="pass" label={row.compliance} />
+                    </td>
+                    <td className="px-5 py-3 font-bold text-[var(--color-success)] tabular-data">{row.score}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

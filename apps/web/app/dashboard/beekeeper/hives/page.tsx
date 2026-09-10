@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Box, Radio, Plus, Thermometer, Droplets, Scale, Flower2, X } from "lucide-react";
 
 export default function BeekeeperHivesPage() {
   const [hives, setHives] = useState<any[]>([]);
@@ -44,122 +49,132 @@ export default function BeekeeperHivesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Apiary Hives</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            KVIC registered smart bee boxes equipped with IoT micro-climate sensors
+          <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
+            My Apiary Hives
+          </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            KVIC registered smart bee boxes equipped with IoT sensors
           </p>
         </div>
-
         <div className="flex gap-2">
           <Link href="/dashboard/beekeeper/iot" className="btn-outline text-xs py-2 px-3">
-            📡 Live IoT Stream
+            <Radio size={14} />
+            Live IoT Stream
           </Link>
-          <button
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={Plus}
             onClick={() => setShowAddModal(true)}
-            className="btn-primary text-xs py-2 px-4 shadow-sm"
           >
-            + Register New Hive
-          </button>
+            Register New Hive
+          </Button>
         </div>
       </div>
 
       {showAddModal && (
-        <div className="card p-6 bg-white border-amber-300 page-enter">
-          <h2 className="font-bold text-gray-800 text-sm mb-4">Register Smart Bee Box (KVIC Honey Mission)</h2>
+        <Card className="p-6 animate-slide-up">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm text-[var(--text-primary)]">
+              Register Smart Bee Box
+            </h2>
+            <button onClick={() => setShowAddModal(false)} className="p-1 rounded hover:bg-[var(--bg-muted)] text-[var(--text-muted)] cursor-pointer">
+              <X size={16} />
+            </button>
+          </div>
           <form onSubmit={handleAddHive} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Hive Code</label>
-              <input
-                type="text"
-                placeholder="e.g. HIVE-024"
-                value={newHiveCode}
-                onChange={(e) => setNewHiveCode(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Apiary Location</label>
-              <input
-                type="text"
-                placeholder="e.g. Sonipat Field 2"
-                value={newLocation}
-                onChange={(e) => setNewLocation(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Flower Source</label>
-              <input
-                type="text"
-                placeholder="e.g. Mustard Flower"
-                value={newFlower}
-                onChange={(e) => setNewFlower(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
-              />
-            </div>
-            <div className="md:col-span-3 flex justify-end gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="btn-outline text-xs py-1.5 px-4"
-              >
+            <Input
+              label="Hive Code"
+              type="text"
+              placeholder="e.g. HIVE-024"
+              value={newHiveCode}
+              onChange={(e) => setNewHiveCode(e.target.value)}
+              required
+            />
+            <Input
+              label="Apiary Location"
+              type="text"
+              placeholder="e.g. Sonipat Field 2"
+              value={newLocation}
+              onChange={(e) => setNewLocation(e.target.value)}
+              required
+            />
+            <Input
+              label="Flower Source"
+              type="text"
+              placeholder="e.g. Mustard Flower"
+              value={newFlower}
+              onChange={(e) => setNewFlower(e.target.value)}
+              required
+            />
+            <div className="md:col-span-3 flex justify-end gap-3 mt-2">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>
                 Cancel
-              </button>
-              <button type="submit" className="btn-primary text-xs py-1.5 px-4">
+              </Button>
+              <Button type="submit" variant="primary" size="sm">
                 Register on System
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
       {loading ? (
-        <div className="p-12 text-center text-gray-500">
-          <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-xs">Loading Registered Hives...</p>
+        <div className="p-12 text-center">
+          <div className="w-8 h-8 rounded-full border-[3px] border-[var(--honey-500)] border-t-transparent animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[var(--text-secondary)]">Loading hives...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {hives.map((hive) => (
-            <div key={hive.id} className="card p-5 bg-white space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🏠</span>
+            <Card key={hive.id} className="p-5 space-y-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-[var(--radius-md)] bg-gradient-to-br from-[var(--honey-50)] to-[var(--honey-100)] flex items-center justify-center text-[var(--honey-600)]">
+                    <Box size={18} />
+                  </div>
                   <div>
-                    <h3 className="font-bold text-sm text-gray-900 font-mono">{hive.hiveCode}</h3>
-                    <p className="text-[11px] text-gray-400">{hive.location}</p>
+                    <h3 className="font-bold text-sm font-mono text-[var(--honey-600)]">{hive.hiveCode}</h3>
+                    <p className="text-[11px] text-[var(--text-muted)]">{hive.location}</p>
                   </div>
                 </div>
-                <span className={`badge ${hive.status === "ACTIVE" ? "badge-verified" : "badge-warning"}`}>
-                  {hive.status}
-                </span>
+                <StatusBadge
+                  state={hive.status === "ACTIVE" ? "pass" : "fail"}
+                  label={hive.status}
+                />
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-gray-100">
-                <div className="p-2 rounded-lg bg-amber-50/60">
-                  <span className="text-gray-400 block text-[10px]">Temperature</span>
-                  <span className="font-bold text-amber-800">{hive.latestReading?.temperature}°C</span>
+              <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)] border border-[var(--border-default)]">
+                  <Thermometer size={14} className="mx-auto text-[var(--text-muted)] mb-1" />
+                  <span className="text-[var(--text-muted)] block text-[10px]">Temp</span>
+                  <span className="font-bold text-[var(--text-primary)] tabular-data">{hive.latestReading?.temperature}°C</span>
                 </div>
-                <div className="p-2 rounded-lg bg-blue-50/60">
-                  <span className="text-gray-400 block text-[10px]">Humidity</span>
-                  <span className="font-bold text-blue-800">{hive.latestReading?.humidity}%</span>
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)] border border-[var(--border-default)]">
+                  <Droplets size={14} className="mx-auto text-[var(--text-muted)] mb-1" />
+                  <span className="text-[var(--text-muted)] block text-[10px]">Humidity</span>
+                  <span className="font-bold text-[var(--text-primary)] tabular-data">{hive.latestReading?.humidity}%</span>
                 </div>
-                <div className="p-2 rounded-lg bg-emerald-50/60">
-                  <span className="text-gray-400 block text-[10px]">Weight</span>
-                  <span className="font-bold text-emerald-800">{hive.latestReading?.weight} KG</span>
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-[var(--bg-muted)] border border-[var(--border-default)]">
+                  <Scale size={14} className="mx-auto text-[var(--text-muted)] mb-1" />
+                  <span className="text-[var(--text-muted)] block text-[10px]">Weight</span>
+                  <span className="font-bold text-[var(--text-primary)] tabular-data">{hive.latestReading?.weight} KG</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-2 text-xs">
-                <span className="text-gray-500">🌸 {hive.flowerSource}</span>
-                <span className="font-bold text-emerald-700">Health: {hive.healthScore}%</span>
+                <span className="text-[var(--text-secondary)] flex items-center gap-1">
+                  <Flower2 size={12} className="text-[var(--honey-500)]" />
+                  {hive.flowerSource}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[var(--text-muted)]">Health:</span>
+                  <span className="font-bold text-[var(--color-success)] tabular-data">{hive.healthScore}%</span>
+                </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { runPipeline } from "@/lib/pipeline";
 
 export async function POST(req: Request) {
   try {
@@ -29,14 +30,16 @@ export async function POST(req: Request) {
       }
     });
 
-    // Mock AI Analysis update for the hive
-    const status = (reading.temperature?.toNumber() || 0) > 37 ? "WARNING" : "ACTIVE";
-    await prisma.hive.update({
-      where: { id: targetHive.id },
-      data: { status }
+        // Run IoT -> AI -> Alert pipeline
+    const pipelineResult = await runPipeline(targetHive.id, {
+      temperature: reading.temperature?.toNumber() || 0,
+      humidity: reading.humidity?.toNumber() || 0,
+      weight: reading.weight?.toNumber() || 0,
+      beeActivity: reading.beeActivity?.toNumber() || 0,
+      battery: reading.battery?.toNumber() || 0,
     });
 
-    return NextResponse.json({ success: true, reading });
+    return NextResponse.json({ success: true, reading, pipeline: { alerts: pipelineResult.alerts.length, prediction: pipelineResult.prediction ? { score: pipelineResult.prediction.healthScore, risk: pipelineResult.prediction.riskLevel } : null } });
   } catch (error) {
     return NextResponse.json({ error: "Failed to process IoT reading" }, { status: 500 });
   }

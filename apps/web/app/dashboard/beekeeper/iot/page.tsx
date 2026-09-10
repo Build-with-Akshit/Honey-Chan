@@ -2,6 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  Radio,
+  Thermometer,
+  Droplets,
+  Scale,
+  Bug,
+  Battery,
+  Zap,
+  AlertTriangle,
+  TrendingUp,
+} from "lucide-react";
 
 export default function BeekeeperIoTPage() {
   const [hives, setHives] = useState<any[]>([]);
@@ -42,7 +56,7 @@ export default function BeekeeperIoTPage() {
         beeActivity: Number(Math.min(0.98, Math.max(0.5, base.beeActivity + (Math.random() * 0.1 - 0.05))).toFixed(2)),
         battery: base.battery,
       });
-      setLastAction(`Updated ${currentHive.hiveCode} telemetry reading`);
+      setLastAction(`Updated ${currentHive.hiveCode} telemetry`);
       await loadHives();
     } catch (err: any) {
       setLastAction(`Error: ${err.message}`);
@@ -53,9 +67,9 @@ export default function BeekeeperIoTPage() {
 
   if (loading && !currentHive) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-xs">Connecting to IoT Telemetry Gateway...</p>
+      <div className="p-12 text-center">
+        <div className="w-8 h-8 rounded-full border-[3px] border-[var(--honey-500)] border-t-transparent animate-spin mx-auto mb-3" />
+        <p className="text-sm text-[var(--text-secondary)]">Connecting to IoT Gateway...</p>
       </div>
     );
   }
@@ -69,24 +83,58 @@ export default function BeekeeperIoTPage() {
     battery: 92,
   };
 
+  const sensorCards = [
+    {
+      label: "Brood Temperature",
+      value: `${latest.temperature}°C`,
+      icon: <Thermometer size={18} />,
+      color: "text-[var(--honey-600)]",
+      status: latest.temperature >= 33.5 && latest.temperature <= 35.5 ? "pass" : "pending",
+      statusLabel: latest.temperature >= 33.5 && latest.temperature <= 35.5 ? "Optimal (34°C)" : "Deviation",
+    },
+    {
+      label: "Internal Humidity",
+      value: `${latest.humidity}%`,
+      icon: <Droplets size={18} />,
+      color: "text-[var(--color-info)]",
+      status: latest.humidity >= 55 && latest.humidity <= 70 ? "pass" : "info",
+      statusLabel: latest.humidity >= 55 && latest.humidity <= 70 ? "Curing Range" : "Ventilation Active",
+    },
+    {
+      label: "Net Hive Weight",
+      value: `${latest.weight} KG`,
+      icon: <Scale size={18} />,
+      color: "text-[var(--color-success)]",
+      status: "pass",
+      statusLabel: `+${(latest.weight - 22).toFixed(1)} kg accumulation`,
+    },
+    {
+      label: "Foraging Traffic",
+      value: `${Math.round(latest.beeActivity * 100)}%`,
+      icon: <Bug size={18} />,
+      color: "text-purple-600",
+      status: "info",
+      statusLabel: `Battery: ${latest.battery}%`,
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">IoT Hive Climate & Telemetry</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Real-time environmental sensor stream • Hardware Agnostic (ESP32 & Simulator)
+          <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
+            IoT Hive Climate & Telemetry
+          </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Real-time sensor stream · ESP32 & Simulator
           </p>
         </div>
-
-        {/* Hive Selector */}
-        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-amber-200 shadow-sm">
-          <span className="text-xs font-semibold text-gray-600">Active Hive:</span>
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-[var(--radius-lg)] border border-[var(--border-default)] shadow-xs">
+          <Radio size={14} className="text-[var(--honey-600)]" />
           <select
             value={selectedHiveCode}
             onChange={(e) => setSelectedHiveCode(e.target.value)}
-            className="text-xs font-bold text-amber-800 bg-transparent focus:outline-none cursor-pointer"
+            className="text-xs font-semibold text-[var(--text-primary)] bg-transparent focus:outline-none cursor-pointer"
           >
             {hives.map((h) => (
               <option key={h.id} value={h.hiveCode}>
@@ -97,172 +145,125 @@ export default function BeekeeperIoTPage() {
         </div>
       </div>
 
-      {/* Demo Sensor Controls Panel */}
-      <div className="card p-4 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-200">
+      {/* Demo Controls */}
+      <Card className="p-4 bg-gradient-to-r from-[var(--honey-50)] via-white to-[var(--honey-50)] border-[var(--honey-200)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="badge badge-info text-[10px] mb-1">INTERACTIVE JUDGE DEMO CONTROLS</span>
-            <p className="text-xs font-bold text-gray-800">Simulate Real-Time Telemetry & Environmental Events</p>
+            <StatusBadge state="info" label="DEMO CONTROLS" showDot={false} />
+            <p className="text-xs font-semibold text-[var(--text-primary)] mt-1">Simulate Telemetry Events</p>
           </div>
-
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={Radio}
               onClick={() => triggerReading(0, 0, 0)}
               disabled={streaming}
-              className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm"
             >
-              <span>📡</span>
-              <span>{streaming ? "Streaming..." : "Send Normal Tick"}</span>
-            </button>
-
+              {streaming ? "Streaming..." : "Send Normal Tick"}
+            </Button>
             <button
               onClick={() => triggerReading(2.8, 8.0, 0)}
               disabled={streaming}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 border border-orange-300 transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-md)] bg-[var(--color-warning-bg)] hover:bg-orange-100 text-[var(--color-warning)] border border-[var(--color-warning-border)] transition-colors cursor-pointer"
             >
-              ⚠️ Heat Anomaly (+2.8°C)
+              <AlertTriangle size={12} className="inline mr-1" />
+              Heat Anomaly
             </button>
-
             <button
               onClick={() => triggerReading(0, 0, 1.2)}
               disabled={streaming}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-md)] bg-[var(--color-success-bg)] hover:bg-green-100 text-[var(--color-success)] border border-[var(--color-success-border)] transition-colors cursor-pointer"
             >
-              ⚖️ Honey Flow Gain (+1.2kg)
+              <TrendingUp size={12} className="inline mr-1" />
+              Honey Flow
             </button>
           </div>
         </div>
-
         {lastAction && (
-          <p className="text-[11px] text-amber-700 mt-2 font-medium">✓ {lastAction}</p>
+          <p className="text-[11px] text-[var(--honey-600)] mt-2 font-medium">{lastAction}</p>
         )}
-      </div>
+      </Card>
 
-      {/* 4 Sensor Telemetry Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Temperature */}
-        <div className="card p-5 bg-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500">Brood Temperature</p>
-              <p className="text-3xl font-extrabold text-amber-700 mt-1">
-                {latest.temperature}°C
-              </p>
-              <span className={`badge mt-2 ${latest.temperature >= 33.5 && latest.temperature <= 35.5 ? "badge-verified" : "badge-warning"}`}>
-                {latest.temperature >= 33.5 && latest.temperature <= 35.5 ? "✓ Optimal Brood (34°C)" : "Deviation Flagged"}
-              </span>
-            </div>
-            <span className="text-3xl">🌡️</span>
-          </div>
-        </div>
-
-        {/* Humidity */}
-        <div className="card p-5 bg-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500">Internal Humidity</p>
-              <p className="text-3xl font-extrabold text-blue-700 mt-1">
-                {latest.humidity}%
-              </p>
-              <span className={`badge mt-2 ${latest.humidity >= 55 && latest.humidity <= 70 ? "badge-verified" : "badge-info"}`}>
-                {latest.humidity >= 55 && latest.humidity <= 70 ? "✓ Curing Range (55-70%)" : "Ventilation Active"}
-              </span>
-            </div>
-            <span className="text-3xl">💧</span>
-          </div>
-        </div>
-
-        {/* Weight */}
-        <div className="card p-5 bg-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500">Net Hive Weight</p>
-              <p className="text-3xl font-extrabold text-emerald-700 mt-1">
-                {latest.weight} <span className="text-sm font-normal text-gray-500">KG</span>
-              </p>
-              <span className="badge badge-verified mt-2">
-                +{(latest.weight - 22).toFixed(1)} kg Honey Accumulation
-              </span>
-            </div>
-            <span className="text-3xl">⚖️</span>
-          </div>
-        </div>
-
-        {/* Bee Activity / Battery */}
-        <div className="card p-5 bg-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500">Foraging Traffic Index</p>
-              <p className="text-3xl font-extrabold text-purple-700 mt-1">
-                {Math.round(latest.beeActivity * 100)}%
-              </p>
-              <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500">
-                <span>🔋 Battery: {latest.battery}%</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot" />
+      {/* Sensor Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {sensorCards.map((card) => (
+          <Card key={card.label} className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className={`w-9 h-9 rounded-[var(--radius-md)] bg-[var(--bg-muted)] flex items-center justify-center ${card.color}`}>
+                {card.icon}
               </div>
             </div>
-            <span className="text-3xl">🐝</span>
-          </div>
-        </div>
+            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">{card.label}</p>
+            <p className={`text-2xl font-bold mt-1 font-[family-name:var(--font-outfit)] tabular-data ${card.color}`}>
+              {card.value}
+            </p>
+            <StatusBadge state={card.status as any} label={card.statusLabel} className="mt-2" />
+          </Card>
+        ))}
       </div>
 
-      {/* SVG Micro-Chart for Temperature & Weight Trends */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Temperature Trend */}
-        <div className="card p-5 bg-white">
+        <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-800">🌡️ Temperature Trend (Last 12 Hours)</h3>
-            <span className="text-xs text-gray-400">Target: 34.0°C</span>
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--text-primary)]">
+              <Thermometer size={14} className="text-[var(--honey-600)]" />
+              Temperature Trend
+            </h3>
+            <span className="text-xs text-[var(--text-muted)]">Target: 34.0°C</span>
           </div>
-
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-amber-50/40 rounded-xl border border-amber-100">
+          <div className="h-40 flex items-end gap-1.5 pt-4 pb-1 px-1 bg-[var(--honey-50)] rounded-[var(--radius-md)] border border-[var(--honey-100)]">
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
-              const heightPercent = Math.max(20, Math.min(95, (r.temperature - 30) * 12));
+              const h = Math.max(15, Math.min(95, (r.temperature - 30) * 12));
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div className="text-[9px] font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-[8px] font-semibold text-[var(--honey-700)] opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5">
                     {r.temperature}°
                   </div>
                   <div
-                    className="w-full bg-amber-400 hover:bg-amber-500 rounded-t-md transition-all duration-300"
-                    style={{ height: `${heightPercent}%` }}
+                    className="w-full bg-gradient-to-t from-[var(--honey-500)] to-[var(--honey-400)] rounded-t-sm transition-all duration-300 hover:opacity-80"
+                    style={{ height: `${h}%` }}
                   />
-                  <span className="text-[9px] text-gray-400 truncate max-w-[24px]">
-                    {idx === 11 ? "Now" : `-${12 - idx}h`}
+                  <span className="text-[8px] text-[var(--text-muted)]">
+                    {idx === 0 ? "Now" : `-${idx}h`}
                   </span>
                 </div>
               );
             })}
           </div>
-        </div>
+        </Card>
 
         {/* Weight Trend */}
-        <div className="card p-5 bg-white">
+        <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-800">⚖️ Weight Accumulation (Honey Storage Flow)</h3>
-            <span className="text-xs text-emerald-700 font-semibold">+0.6 kg today</span>
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--text-primary)]">
+              <Scale size={14} className="text-[var(--color-success)]" />
+              Weight Accumulation
+            </h3>
+            <span className="text-xs text-[var(--color-success)] font-semibold">+0.6 kg today</span>
           </div>
-
-          <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-2 bg-emerald-50/40 rounded-xl border border-emerald-100">
+          <div className="h-40 flex items-end gap-1.5 pt-4 pb-1 px-1 bg-[var(--color-success-bg)] rounded-[var(--radius-md)] border border-[var(--color-success-border)]">
             {history.slice(0, 12).reverse().map((r: any, idx: number) => {
-              const heightPercent = Math.max(20, Math.min(95, (r.weight - 25) * 4.5));
+              const h = Math.max(15, Math.min(95, (r.weight - 25) * 4.5));
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div className="text-[9px] font-semibold text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-[8px] font-semibold text-[var(--color-success)] opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5">
                     {r.weight}k
                   </div>
                   <div
-                    className="w-full bg-emerald-400 hover:bg-emerald-500 rounded-t-md transition-all duration-300"
-                    style={{ height: `${heightPercent}%` }}
+                    className="w-full bg-gradient-to-t from-[var(--color-success)] to-emerald-400 rounded-t-sm transition-all duration-300 hover:opacity-80"
+                    style={{ height: `${h}%` }}
                   />
-                  <span className="text-[9px] text-gray-400 truncate max-w-[24px]">
-                    {idx === 11 ? "Now" : `-${12 - idx}h`}
+                  <span className="text-[8px] text-[var(--text-muted)]">
+                    {idx === 0 ? "Now" : `-${idx}h`}
                   </span>
                 </div>
               );
             })}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
