@@ -55,7 +55,7 @@ export default function VerifyPage() {
     try {
       const res = await honeyApi.recallBatch(batchId, {
         action,
-        reason: "Adulteration detected via post-market NMR / C4 testing.",
+        reason: "Product anomaly detected via post-market NMR / C4 testing.",
         authority: "National Quality Control & Food Safety Directorate",
       });
       setActionNotice(res.message || (action === "recall" ? "Batch officially recalled across registry!" : "Batch recall revoked."));
@@ -325,7 +325,7 @@ export default function VerifyPage() {
               {data?.isRecalled
                 ? "🚨 RECALLED BATCH"
                 : data?.labResult === "PASS"
-                ? "✓ NABL / FSSAI Pass"
+                ? "✓ CBRTI Lab • FSSAI Pass"
                 : "⏳ Lab Test Pending"}
             </span>
           </div>
@@ -344,11 +344,11 @@ export default function VerifyPage() {
               <span
                 className={
                   data?.hashMatch
-                    ? "text-emerald-700 truncate"
-                    : "text-red-700 truncate font-bold"
+                    ? "text-emerald-700 font-bold truncate"
+                    : "text-red-600 font-black truncate animate-pulse"
                 }
               >
-                {data?.currentDataHash}
+                {data?.currentComputedHash || data?.onChainHash}
               </span>
             </div>
             <div className="pt-1 mt-1 border-t border-amber-200 flex items-center justify-between text-[9px] text-amber-600">
@@ -486,12 +486,15 @@ export default function VerifyPage() {
           </div>
         </div>
 
-        {/* FSSAI Lab Quality Certification */}
+        {/* CBRTI Lab Quality Certification */}
         <div className="card p-5 bg-white shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg">🧪</span>
-              <h3 className="font-bold text-xs text-gray-800">FSSAI / NABL Quality Certification</h3>
+              <div>
+                <h3 className="font-bold text-xs text-gray-800">CBRTI Pune Central Lab (FSSAI Standards)</h3>
+                <span className="text-[10px] text-gray-400 block font-mono">Tested at CBRTI Laboratory (KVIC Honey Mission Guideline #7)</span>
+              </div>
             </div>
             {data?.labResult === "PENDING" ? (
               <span className="badge bg-gray-100 text-gray-500 border-gray-200">PENDING</span>

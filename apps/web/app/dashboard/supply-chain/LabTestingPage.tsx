@@ -145,7 +145,8 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
       {testModal.open && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">Submit Lab Test for {testModal.batch?.batchId}</h2>
+            <h2 className="text-lg font-bold mb-1">Submit CBRTI Lab Test for {testModal.batch?.batchId}</h2>
+            <p className="text-xs text-gray-500 mb-4">Central Bee Research & Training Institute (CBRTI Pune) • Evaluated to FSSAI Limits</p>
             
             <div className="space-y-4">
               <div>
@@ -155,8 +156,8 @@ export function LabTestingPage({ batches, user, onRefresh }: { batches: any[]; u
                   value={passed ? "PASS" : "FAIL"}
                   onChange={e => setPassed(e.target.value === "PASS")}
                 >
-                  <option value="PASS">✅ PASSED (Meets FSSAI Standards)</option>
-                  <option value="FAIL">❌ FAILED (Adulteration Detected)</option>
+                  <option value="PASS">✅ PASSED (CBRTI Tested • FSSAI Compliant)</option>
+                  <option value="FAIL">❌ FAILED (CBRTI Flagged: Adulterated / High Moisture)</option>
                 </select>
               </div>
 

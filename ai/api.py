@@ -510,18 +510,20 @@ def analyze_image(req: ImageAnalysisRequest):
 def analyze_report(req: ReportAnalysisRequest):
     if req.report_type == "adulterated_c4_syrup":
         return {
-            "labCertificateNo": "NABL/KVIC/2026/AD-9014",
+            "labCertificateNo": "CBRTI/KVIC/2026/PUNE-AD-9014",
+            "accreditedLab": "Central Bee Research & Training Institute (CBRTI), Pune (KVIC Honey Mission)",
             "fssaiCompliance": "ADULTERATED_FAIL",
             "purityScore": 34,
             "blockchainMintEligible": False,
-            "summary": "CRITICAL: 34.8% synthetic C4 corn sugar detected via EA-IRMS. Batch rejected.",
+            "summary": "CRITICAL: 34.8% synthetic C4 corn sugar detected via EA-IRMS at CBRTI Pune laboratory. Batch rejected under FSSAI limits.",
         }
     return {
-        "labCertificateNo": "NABL/DEL/2026/HN-7721",
+        "labCertificateNo": "CBRTI/KVIC/2026/PUNE-HN-7721",
+        "accreditedLab": "Central Bee Research & Training Institute (CBRTI), Pune (KVIC Honey Mission)",
         "fssaiCompliance": "COMPLIANT_PASS",
         "purityScore": 98,
         "blockchainMintEligible": True,
-        "summary": "CERTIFIED 100% PURE: Natural isotopic delta 13C within FSSAI bounds.",
+        "summary": "CERTIFIED 100% PURE: Tested at CBRTI Central Laboratory Pune. Natural isotopic delta 13C conforms with FSSAI bounds.",
     }
 
 

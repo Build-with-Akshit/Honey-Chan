@@ -1061,10 +1061,10 @@ export default function BeekeeperAIPage() {
               AI Diagnostics Workflow
             </h3>
             {[
-              { id: "overview", label: "1. Telemetry ML", desc: "XGBoost & Sentinel Hub", icon: "📊" },
-              { id: "comb_vision", label: "2. Comb Vision", desc: "Offline Edge CV (TFLite)", icon: "📸" },
+              { id: "overview", label: "1. Telemetry ML", desc: "XGBoost (CBRTI Guideline #4)", icon: "📊" },
+              { id: "comb_vision", label: "2. Comb Vision", desc: "Inspection Reports (Point 4)", icon: "📸" },
               { id: "chat_voice", label: "3. Voice Agronomist", desc: "KVIC Hands-Free Voice", icon: "🗣️" },
-              { id: "lab_screener", label: "4. Trust Anchor", desc: "FSSAI EA-IRMS Mint Gate", icon: "🛡️" },
+              { id: "lab_screener", label: "4. Trust Anchor", desc: "CBRTI Pune Lab (Point 7)", icon: "🛡️" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -2347,20 +2347,20 @@ export default function BeekeeperAIPage() {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-sm text-emerald-950">
-                        Physical-to-Digital Trust Anchor & FSSAI Lab Gatekeeper
+                        CBRTI Pune Central Lab & Physical-to-Digital Trust Anchor
                       </h3>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="badge bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">
-                          EA-IRMS ISOTOPIC C4 SCREENER (TIER 4)
+                          CBRTI PUNE LAB TESTING (KVIC POINT 7)
                         </span>
                         <span className="badge bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold">
-                          ANTI-GIGO ORACLE LOCK
+                          FSSAI BENCHMARK & ANTI-GIGO
                         </span>
                       </div>
                     </div>
                   </div>
                   <p className="text-xs text-emerald-900/70 mt-1.5 font-medium">
-                    Physical honey truth verified via Carbon-13 EA-IRMS before Smart Contract blockchain minting is permitted
+                    State honey samples tested in CBRTI Central Laboratory (Pune) under KVIC Honey Mission to ensure FSSAI compliance before blockchain minting
                   </p>
                 </div>
 

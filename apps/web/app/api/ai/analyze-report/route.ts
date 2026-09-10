@@ -33,8 +33,8 @@ export async function POST(req: Request) {
 
     if (reportType === "adulterated_c4_syrup") {
       testResults = {
-        labCertificateNo: "NABL/KVIC/2026/AD-9014",
-        accreditedLab: "National Honey Quality & Residue Testing Laboratory (ICAR-NABL)",
+        labCertificateNo: "CBRTI/KVIC/2026/PUNE-AD-9014",
+        accreditedLab: "Central Bee Research & Training Institute (CBRTI), Pune (KVIC Honey Mission Central Lab)",
         fssaiCompliance: "ADULTERATED_FAIL",
         purityScore: 34,
         blockchainMintEligible: false,
@@ -81,9 +81,9 @@ export async function POST(req: Request) {
           "Artificially heated / degraded sugar signature (Elevated HMF)",
         ],
         summary:
-          "CRITICAL QUALITY ALERT: EA-IRMS carbon isotopic analysis confirms 34.8% synthetic C4 sugar adulteration. Moisture exceeds safety bounds. Sample fails FSSAI Food Safety and Standards (Food Product Standards and Food Additives) Regulations.",
+          "CRITICAL QUALITY ALERT: CBRTI Pune Central Laboratory EA-IRMS carbon isotopic analysis confirms 34.8% synthetic C4 sugar adulteration. Moisture exceeds safety bounds. Sample fails FSSAI Food Safety Standards Regulations.",
         recommendation:
-          "REJECT BATCH: Block from blockchain QR minting. Issue official regulatory recall notice and quarantine source harvest.",
+          "REJECT BATCH: Block from blockchain QR minting. Report to KVIC Nodal Officer & quarantine source harvest.",
       };
     } else if (reportBase64) {
       // User uploaded custom lab report analysis
@@ -91,8 +91,8 @@ export async function POST(req: Request) {
       const passPurity = 96 + (hash % 4);
 
       testResults = {
-        labCertificateNo: `NABL/DOC/${2026}/${(hash % 9000) + 1000}`,
-        accreditedLab: "Export Inspection Council (EIC) Accredited Honey Testing Facility",
+        labCertificateNo: `CBRTI/DOC/${2026}/${(hash % 9000) + 1000}`,
+        accreditedLab: "Central Bee Research & Training Institute (CBRTI), Pune (NABL / KVIC Recognized)",
         fssaiCompliance: "COMPLIANT_PASS",
         purityScore: passPurity,
         blockchainMintEligible: true,
@@ -135,15 +135,15 @@ export async function POST(req: Request) {
         ],
         adulterantsDetected: [],
         summary:
-          "User document verified: Complete absence of synthetic C3/C4 sugar syrups. Isotopic delta 13C deviation within natural botanical limits. Fully compliant with FSSAI export standards.",
+          "CBRTI validated document: Complete absence of synthetic C3/C4 sugar syrups. Isotopic delta 13C deviation within natural botanical limits. Fully compliant with FSSAI export standards.",
         recommendation:
-          "APPROVED FOR ON-CHAIN MINTING: Cryptographic proof hash can be signed to Sepolia testnet.",
+          "APPROVED FOR ON-CHAIN MINTING: Cryptographic proof hash can be signed to Sepolia testnet under KVIC Honey Mission.",
       };
     } else {
       // Default: Pure Raw Honey Certificate
       testResults = {
-        labCertificateNo: "NABL/DEL/2026/HN-7721",
-        accreditedLab: "Punjab Biotechnology Incubator (NABL / APEDA Recognized)",
+        labCertificateNo: "CBRTI/KVIC/2026/PUNE-HN-7721",
+        accreditedLab: "Central Bee Research & Training Institute (CBRTI), Pune — KVIC Central Honey Testing Laboratory",
         fssaiCompliance: "COMPLIANT_PASS",
         purityScore: 98,
         blockchainMintEligible: true,
@@ -152,21 +152,21 @@ export async function POST(req: Request) {
             name: "C4 Sugars (Corn/Cane Syrup)",
             measuredValue: "1.8%",
             fssaiStandard: "Max 7.0%",
-            method: "EA-IRMS",
+            method: "EA-IRMS (Stable Carbon Isotope Ratio)",
             status: "PASS",
           },
           {
             name: "Moisture Content",
             measuredValue: "17.4%",
             fssaiStandard: "Max 20.0%",
-            method: "Refractometry",
+            method: "Refractometry (AOAC 969.38)",
             status: "PASS",
           },
           {
             name: "HMF (Hydroxymethylfurfural)",
             measuredValue: "11.2 mg/kg",
             fssaiStandard: "Max 80.0 mg/kg",
-            method: "HPLC-UV",
+            method: "HPLC-UV (ISO 10202)",
             status: "PASS",
           },
           {
@@ -180,15 +180,15 @@ export async function POST(req: Request) {
             name: "Pollen Grain Density",
             measuredValue: "38,500 / 10g",
             fssaiStandard: "Min 25,000 / 10g",
-            method: "Microscopy",
+            method: "Melissopalynology (Microscopy)",
             status: "PASS",
           },
         ],
         adulterantsDetected: [],
         summary:
-          "CERTIFIED 100% PURE: Zero rice syrup, high-fructose corn syrup, or cane sugar detected. Natural raw honey enzymes (diastase & invertase) fully active.",
+          "CBRTI PUNE CERTIFIED 100% PURE: Tested in accordance with FSSAI & KVIC Honey Mission standards. Zero rice syrup, high-fructose corn syrup, or cane sugar detected. Natural enzymes active.",
         recommendation:
-          "BATCH CLEARED: Ready for packaging and cryptographic consumer QR generation.",
+          "BATCH CLEARED BY CBRTI: Ready for packaging and cryptographic consumer QR generation.",
       };
     }
 
@@ -201,8 +201,8 @@ export async function POST(req: Request) {
       contractTarget: "0x89205A3A3b2A5531e406FBfb52044238e7ef9B5E (HoneyBatchRegistry.sol)",
       delta13C: isEligible ? "-27.2‰ δ13C (Botanical Pure C3)" : "-14.1‰ δ13C (Synthetic C4 Corn Syrup)",
       oracleGatekeeper: isEligible
-        ? "Physical EA-IRMS isotopic truth verified against NABL standard. Minting released."
-        : "Adulteration detected. Smart contract execution blocked to prevent immutable GIGO recording of fake honey.",
+        ? "CBRTI Pune Laboratory verified EA-IRMS isotopic truth against FSSAI standard. Blockchain minting released."
+        : "CBRTI Pune detected adulteration. Smart contract execution blocked to prevent immutable GIGO recording of fake honey.",
     };
 
     return NextResponse.json({
@@ -210,7 +210,7 @@ export async function POST(req: Request) {
       timestamp: new Date().toISOString(),
       ...testResults,
       trustAnchor,
-      aiModel: "HoneyChain Gemini Multimodal Document Analyzer & FSSAI Compliance Rule Engine",
+      aiModel: "HoneyChain Gemini Multimodal Document Analyzer & CBRTI Pune Quality Validation Engine (FSSAI Benchmark)",
     });
   } catch (error) {
     console.error("[AI Analyze Report] Error:", error);
