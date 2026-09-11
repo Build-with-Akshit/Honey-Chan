@@ -1,0 +1,562 @@
+[
+  {
+    "id": "alert-1789102137549-q2716z",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 60°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-xu6bsn",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 90°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-efrs79",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_LOW",
+    "severity": "WARNING",
+    "title": "Warning: Low Temperature",
+    "message": "Temperature dropped to 0.85°C (threshold: 30°C). Brood development may be affected.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-jgf4g2",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_HIGH",
+    "severity": "WARNING",
+    "title": "Warning: High Humidity",
+    "message": "Humidity at 90%. Risk of moisture damage and mold growth.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-xpbwrg",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 35%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-c6ly62",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 0.85%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102137550-iriu2t",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "BATTERY_LOW",
+    "severity": "WARNING",
+    "title": "Warning: IoT Sensor Battery Low",
+    "message": "Sensor battery at 0.85%. Replace soon to avoid data gaps.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:48:57.550Z"
+  },
+  {
+    "id": "alert-1789102172835-ve1rxm",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 60°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.835Z"
+  },
+  {
+    "id": "alert-1789102172838-rr4bi9",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 90°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.838Z"
+  },
+  {
+    "id": "alert-1789102172838-poeer9",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_LOW",
+    "severity": "WARNING",
+    "title": "Warning: Low Temperature",
+    "message": "Temperature dropped to 0.85°C (threshold: 30°C). Brood development may be affected.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.838Z"
+  },
+  {
+    "id": "alert-1789102172840-9t5rnz",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_HIGH",
+    "severity": "WARNING",
+    "title": "Warning: High Humidity",
+    "message": "Humidity at 90%. Risk of moisture damage and mold growth.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.841Z"
+  },
+  {
+    "id": "alert-1789102172841-hb35w3",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 35%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.841Z"
+  },
+  {
+    "id": "alert-1789102172841-25pru6",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 0.85%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.841Z"
+  },
+  {
+    "id": "alert-1789102172841-2w1c5d",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "BATTERY_LOW",
+    "severity": "WARNING",
+    "title": "Warning: IoT Sensor Battery Low",
+    "message": "Sensor battery at 0.85%. Replace soon to avoid data gaps.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:49:32.841Z"
+  },
+  {
+    "id": "alert-1789102235002-wrsbx1",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 60°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-miyf9r",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 90°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-llpo62",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_LOW",
+    "severity": "WARNING",
+    "title": "Warning: Low Temperature",
+    "message": "Temperature dropped to 0.85°C (threshold: 30°C). Brood development may be affected.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-82cuf8",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_HIGH",
+    "severity": "WARNING",
+    "title": "Warning: High Humidity",
+    "message": "Humidity at 90%. Risk of moisture damage and mold growth.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-treg6r",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 35%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-xiyvv4",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 0.85%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102235003-3quzcz",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "BATTERY_LOW",
+    "severity": "WARNING",
+    "title": "Warning: IoT Sensor Battery Low",
+    "message": "Sensor battery at 0.85%. Replace soon to avoid data gaps.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:35.003Z"
+  },
+  {
+    "id": "alert-1789102259217-vpvep3",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 60°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-i6255i",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_HIGH",
+    "severity": "CRITICAL",
+    "title": "Critical: Hive Overheating",
+    "message": "Temperature reached 90°C (threshold: 38°C). Risk of colony absconding or wax melt.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-0ffemn",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "TEMPERATURE_LOW",
+    "severity": "WARNING",
+    "title": "Warning: Low Temperature",
+    "message": "Temperature dropped to 0.85°C (threshold: 30°C). Brood development may be affected.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-zpgman",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_HIGH",
+    "severity": "WARNING",
+    "title": "Warning: High Humidity",
+    "message": "Humidity at 90%. Risk of moisture damage and mold growth.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-gkralu",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 35%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-hb9iu0",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "HUMIDITY_LOW",
+    "severity": "INFO",
+    "title": "Info: Low Humidity",
+    "message": "Humidity at 0.85%. Nectar may dehydrate too quickly.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  },
+  {
+    "id": "alert-1789102259217-4mz4b4",
+    "hiveId": 1,
+    "hiveCode": "HIVE-007",
+    "type": "BATTERY_LOW",
+    "severity": "WARNING",
+    "title": "Warning: IoT Sensor Battery Low",
+    "message": "Sensor battery at 0.85%. Replace soon to avoid data gaps.",
+    "sensorData": {
+      "temperature": 35,
+      "humidity": 60,
+      "weight": 38.4,
+      "beeActivity": 0.85,
+      "battery": 90
+    },
+    "healthScore": 99,
+    "riskLevel": "LOW",
+    "acknowledged": false,
+    "createdAt": "2026-09-11T04:50:59.217Z"
+  }
+]
