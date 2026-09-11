@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { honeyApi } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ChatMessage {
   id: string;
@@ -23,6 +24,8 @@ interface DetectionBox {
 }
 
 export default function BeekeeperAIPage() {
+  const { language } = useLanguage();
+  const isHindi = language === "hi";
   const [selectedHive, setSelectedHive] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("honeychain_active_hive") || "H001";
@@ -717,19 +720,19 @@ export default function BeekeeperAIPage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl lg:text-3xl font-black text-amber-950 tracking-tight">
-                HoneyChain AI Intelligence Suite
+                {isHindi ? "हनी-चेन एआई बुद्धिमत्ता सूट" : "HoneyChain AI Intelligence Suite"}
               </h1>
 
               {isSimulating && (
                 <span className="flex items-center gap-1.5 bg-amber-500/20 text-amber-900 border border-amber-400 text-xs font-black px-3 py-1 rounded-full animate-pulse">
-                  <span>🧪</span> SIMULATION ACTIVE
+                  <span>🧪</span> {isHindi ? "सिम्युलेशन सक्रिय" : "SIMULATION ACTIVE"}
                 </span>
               )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mt-1">
               <span className="text-xs font-bold text-amber-900/70">
-                KVIC Honey Mission &amp; MSME Rural Agronomy Framework
+                {isHindi ? "केवीआईसी हनी मिशन एवं एमएसएमई ग्रामीण कृषि ढांचा" : "KVIC Honey Mission & MSME Rural Agronomy Framework"}
               </span>
               <span className="badge bg-amber-100/90 text-amber-900 border border-amber-300 text-[10px] font-black">
                 SIH 2026 GROUNDED ARCHITECTURE
@@ -740,7 +743,7 @@ export default function BeekeeperAIPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Hive Switcher with Sentinel 1:50 Indicator */}
             <div className="flex items-center gap-2.5 bg-white/95 px-4 py-2.5 rounded-2xl border border-amber-200 shadow-xs hover:border-amber-400 transition-colors">
-              <span className="text-xs font-bold text-amber-900/60">Selected Hive:</span>
+              <span className="text-xs font-bold text-amber-900/60">{isHindi ? "चयनित छत्ता:" : "Selected Hive:"}</span>
               <select
                 value={selectedHive}
                 onChange={(e) => handleHiveChange(e.target.value)}
@@ -772,7 +775,11 @@ export default function BeekeeperAIPage() {
               }`}
             >
               <span>🧪</span>
-              <span>{simulatorOpen ? "Hide Simulator" : "AI Stress Test Simulator"}</span>
+              <span>
+                {simulatorOpen
+                  ? (isHindi ? "सिम्युलेटर छिपाएं" : "Hide Simulator")
+                  : (isHindi ? "एआई स्ट्रेस टेस्ट सिम्युलेटर" : "AI Stress Test Simulator")}
+              </span>
             </button>
           </div>
         </div>
@@ -783,10 +790,10 @@ export default function BeekeeperAIPage() {
             <span className="text-xl">📡</span>
             <div className="min-w-0">
               <span className="font-extrabold text-amber-950 text-xs block">
-                Sentinel Hive Scaling (1:50)
+                {isHindi ? "सेंटिनल हाइव स्केलिंग (1:50)" : "Sentinel Hive Scaling (1:50)"}
               </span>
               <span className="text-[11px] text-amber-900/70 font-medium line-clamp-1">
-                1 IoT Node instruments 50 boxes • ₹3,600 vs ₹2L legacy CAPEX
+                {isHindi ? "1 आईओटी नोड 50 बक्सों की निगरानी • केवल ₹3,600 लागत" : "1 IoT Node instruments 50 boxes • ₹3,600 vs ₹2L legacy CAPEX"}
               </span>
             </div>
           </div>
@@ -795,10 +802,10 @@ export default function BeekeeperAIPage() {
             <span className="text-xl">📈</span>
             <div className="min-w-0">
               <span className="font-extrabold text-amber-950 text-xs block">
-                Farmer Income Boost (+26.4%)
+                {isHindi ? "पालक आय में वृद्धि (+26.4%)" : "Farmer Income Boost (+26.4%)"}
               </span>
               <span className="text-[11px] text-amber-900/70 font-medium line-clamp-1">
-                Moisture-predicted harvest stops 30% fermentation price cuts
+                {isHindi ? "नमी पूर्वानुमान से किण्वन रोककर 30% मूल्य कटौती से बचाव" : "Moisture-predicted harvest stops 30% fermentation price cuts"}
               </span>
             </div>
           </div>
@@ -807,10 +814,10 @@ export default function BeekeeperAIPage() {
             <span className="text-xl">🛡️</span>
             <div className="min-w-0">
               <span className="font-extrabold text-amber-950 text-xs block">
-                Physical-Digital Trust Anchor
+                {isHindi ? "भौतिक-डिजिटल विश्वास एंकर" : "Physical-Digital Trust Anchor"}
               </span>
               <span className="text-[11px] text-amber-900/70 font-medium line-clamp-1">
-                Solves GIGO: Smart contract mints ONLY after NABL C4 pass
+                {isHindi ? "स्मार्ट अनुबंध केवल एनएबीएल C4 लैब पास के बाद ही मिंट करता है" : "Solves GIGO: Smart contract mints ONLY after NABL C4 pass"}
               </span>
             </div>
           </div>
@@ -1058,13 +1065,33 @@ export default function BeekeeperAIPage() {
           <div className="sticky top-6 flex flex-col gap-3">
             <h3 className="text-[11px] font-black text-amber-950 uppercase tracking-widest px-2 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              AI Diagnostics Workflow
+              {isHindi ? "एआई निदान कार्यप्रवाह" : "AI Diagnostics Workflow"}
             </h3>
             {[
-              { id: "overview", label: "1. Telemetry ML", desc: "XGBoost (CBRTI Guideline #4)", icon: "📊" },
-              { id: "comb_vision", label: "2. Comb Vision", desc: "Inspection Reports (Point 4)", icon: "📸" },
-              { id: "chat_voice", label: "3. Voice Agronomist", desc: "KVIC Hands-Free Voice", icon: "🗣️" },
-              { id: "lab_screener", label: "4. Trust Anchor", desc: "CBRTI Pune Lab (Point 7)", icon: "🛡️" },
+              {
+                id: "overview",
+                label: isHindi ? "1. टेलीमेट्री एमएल" : "1. Telemetry ML",
+                desc: isHindi ? "XGBoost भविष्यवाणी (CBRTI #4)" : "XGBoost (CBRTI Guideline #4)",
+                icon: "📊"
+              },
+              {
+                id: "comb_vision",
+                label: isHindi ? "2. छत्ता विजन (कैमरा)" : "2. Comb Vision",
+                desc: isHindi ? "फ्रेम निरीक्षण रिपोर्ट (बिंदु 4)" : "Inspection Reports (Point 4)",
+                icon: "📸"
+              },
+              {
+                id: "chat_voice",
+                label: isHindi ? "3. आवाज एग्रोनोमिस्ट" : "3. Voice Agronomist",
+                desc: isHindi ? "केवीआईसी हैंड्स-फ्री आवाज" : "KVIC Hands-Free Voice",
+                icon: "🗣️"
+              },
+              {
+                id: "lab_screener",
+                label: isHindi ? "4. ट्रस्ट एंकर (लैब)" : "4. Trust Anchor",
+                desc: isHindi ? "सीबीआरटीआई पुणे लैब (बिंदु 7)" : "CBRTI Pune Lab (Point 7)",
+                icon: "🛡️"
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1103,7 +1130,7 @@ export default function BeekeeperAIPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-bold text-emerald-900/70 uppercase tracking-wider">
-                    Colony Health Index (XGBoost)
+                    {isHindi ? "कॉलोनी स्वास्थ्य सूचकांक (XGBoost)" : "Colony Health Index (XGBoost)"}
                   </span>
                   <div className="flex items-baseline gap-2 mt-2">
                     <span className={`text-4xl font-black tracking-tight font-mono ${
@@ -1140,7 +1167,7 @@ export default function BeekeeperAIPage() {
               </div>
 
               <div className="mt-4 flex items-center justify-between text-xs border-t border-emerald-100 pt-3">
-                <span className="text-emerald-900/70 font-medium">Risk Assessment:</span>
+                <span className="text-emerald-900/70 font-medium">{isHindi ? "जोखिम मूल्यांकन:" : "Risk Assessment:"}</span>
                 <span className={`badge font-extrabold text-[11px] ${
                   riskLevel === "LOW"
                     ? "bg-emerald-100 text-emerald-900 border-emerald-300"
@@ -1148,7 +1175,14 @@ export default function BeekeeperAIPage() {
                     ? "bg-amber-100 text-amber-900 border-amber-300"
                     : "bg-rose-100 text-rose-900 border-rose-300"
                 }`}>
-                  {riskLevel === "LOW" ? "🟢" : riskLevel === "MEDIUM" ? "🟡" : "🔴"} {riskLevel} RISK
+                  {riskLevel === "LOW" ? "🟢" : riskLevel === "MEDIUM" ? "🟡" : "🔴"}{" "}
+                  {isHindi
+                    ? riskLevel === "LOW"
+                      ? "कम जोखिम"
+                      : riskLevel === "MEDIUM"
+                      ? "मध्यम जोखिम"
+                      : "उच्च जोखिम"
+                    : `${riskLevel} RISK`}
                 </span>
               </div>
             </div>
@@ -1158,13 +1192,13 @@ export default function BeekeeperAIPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-bold text-blue-900/70 uppercase tracking-wider">
-                    Honey Yield Forecast
+                    {isHindi ? "शहद उत्पादन अनुमान" : "Honey Yield Forecast"}
                   </span>
                   <div className="flex items-baseline gap-2 mt-2">
                     <span className="text-4xl font-black text-blue-900 tracking-tight font-mono">
                       {productivityKg.toFixed(1)}
                     </span>
-                    <span className="text-sm font-bold text-blue-600">KG Surplus</span>
+                    <span className="text-sm font-bold text-blue-600">{isHindi ? "किग्रा अधिशेष" : "KG Surplus"}</span>
                   </div>
                 </div>
 
@@ -1175,14 +1209,16 @@ export default function BeekeeperAIPage() {
 
               <div className="mt-4 space-y-2 text-xs text-blue-950/80 border-t border-blue-100 pt-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-blue-900/70">Model Confidence:</span>
+                  <span className="text-blue-900/70">{isHindi ? "मॉडल सटीकता:" : "Model Confidence:"}</span>
                   <span className="font-mono font-bold text-blue-900 bg-blue-100/70 px-2 py-0.5 rounded border border-blue-200 text-[11px]">
                     {confidencePercent}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-blue-900/70">Expected Harvest Window:</span>
-                  <span className="font-bold text-blue-900">In {windowDays} Days</span>
+                  <span className="text-blue-900/70">{isHindi ? "अनुमानित कटाई अवधि:" : "Expected Harvest Window:"}</span>
+                  <span className="font-bold text-blue-900">
+                    {isHindi ? `${windowDays} दिनों में` : `In ${windowDays} Days`}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1192,11 +1228,17 @@ export default function BeekeeperAIPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider">
-                    Colony Behavior & Queen
+                    {isHindi ? "कॉलोनी व्यवहार एवं रानी" : "Colony Behavior & Queen"}
                   </span>
                   <div className="flex items-baseline gap-2 mt-2">
                     <span className="text-2xl font-black text-amber-900 tracking-tight">
-                      {healthScore >= 75 ? "Active Colony" : "Stressed Colony"}
+                      {isHindi
+                        ? healthScore >= 75
+                          ? "सक्रिय कॉलोनी"
+                          : "तनावग्रस्त कॉलोनी"
+                        : healthScore >= 75
+                        ? "Active Colony"
+                        : "Stressed Colony"}
                     </span>
                   </div>
                 </div>
@@ -1208,19 +1250,19 @@ export default function BeekeeperAIPage() {
 
               <div className="mt-4 space-y-2 text-xs border-t border-amber-100 pt-3">
                 <div className="flex justify-between items-center py-0.5">
-                  <span className="text-amber-900/70">Brood Chilling Hazard:</span>
+                  <span className="text-amber-900/70">{isHindi ? "शिशु शीतलन जोखिम:" : "Brood Chilling Hazard:"}</span>
                   <span className={`font-bold ${anomalyDetection.broodCoolingRisk.includes("Hazard") ? "text-rose-700" : "text-emerald-700"}`}>
                     {anomalyDetection.broodCoolingRisk}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-0.5">
-                  <span className="text-amber-900/70">Varroa Mite Vulnerability:</span>
+                  <span className="text-amber-900/70">{isHindi ? "वारोआ माइट जोखिम:" : "Varroa Mite Vulnerability:"}</span>
                   <span className={`font-bold ${anomalyDetection.varroaMiteRisk.includes("Elevated") ? "text-amber-700" : "text-emerald-700"}`}>
                     {anomalyDetection.varroaMiteRisk}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-0.5">
-                  <span className="text-amber-900/70">Swarming Probability:</span>
+                  <span className="text-amber-900/70">{isHindi ? "झुंड भागने की संभावना:" : "Swarming Probability:"}</span>
                   <span className="font-bold text-amber-800">
                     {Math.round((anomalyDetection.swarmingProbability || 0.08) * 100)}%
                   </span>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useLanguage } from "@/context/LanguageContext";
 import { Card } from "@/components/ui/Card";
 import {
   Users,
@@ -24,6 +25,8 @@ const AdminMap = dynamic(() => import("./AdminMap"), {
 });
 
 export default function AdminDashboard() {
+  const { language } = useLanguage();
+  const isHindi = language === "hi";
   const [stats, setStats] = useState({
     beekeepers: 0,
     activeHives: 0,
@@ -95,42 +98,42 @@ export default function AdminDashboard() {
 
   const adminStatsDisplay = [
     {
-      label: "Registered Beekeepers",
+      label: isHindi ? "पंजीकृत मधुमक्खी पालक" : "Registered Beekeepers",
       value: stats.beekeepers ? stats.beekeepers.toLocaleString() : "1,248",
       icon: <Users size={18} />,
       color: "text-[var(--honey-600)]",
       bg: "bg-[var(--honey-50)]",
     },
     {
-      label: "Active Hives",
+      label: isHindi ? "सक्रिय छत्ते" : "Active Hives",
       value: stats.activeHives ? stats.activeHives.toLocaleString() : "8,492",
       icon: <Box size={18} />,
       color: "text-[var(--color-success)]",
       bg: "bg-[var(--color-success-bg)]",
     },
     {
-      label: "Honey Batches",
+      label: isHindi ? "शहद के बैच" : "Honey Batches",
       value: stats.batches ? stats.batches.toLocaleString() : "4,832",
       icon: <FlaskConical size={18} />,
       color: "text-[var(--color-info)]",
       bg: "bg-[var(--color-info-bg)]",
     },
     {
-      label: "Verified Batches",
+      label: isHindi ? "सत्यापित बैच" : "Verified Batches",
       value: stats.verifiedBatches ? stats.verifiedBatches.toLocaleString() : "4,721",
       icon: <CheckCircle2 size={18} />,
       color: "text-[var(--color-success)]",
       bg: "bg-[var(--color-success-bg)]",
     },
     {
-      label: "Flagged Batches",
+      label: isHindi ? "संदिग्ध/फ़्लैग बैच" : "Flagged Batches",
       value: stats.flaggedBatches ? stats.flaggedBatches.toLocaleString() : "31",
       icon: <AlertTriangle size={18} />,
       color: "text-[var(--color-danger)]",
       bg: "bg-[var(--color-danger-bg)]",
     },
     {
-      label: "Total Honey Tracked",
+      label: isHindi ? "कुल ट्रैक किया शहद" : "Total Honey Tracked",
       value: stats.totalHoneyTons && stats.totalHoneyTons !== "0.0" ? `${stats.totalHoneyTons} T` : "182.4 T",
       icon: <Scale size={18} />,
       color: "text-purple-600",
@@ -139,20 +142,42 @@ export default function AdminDashboard() {
   ];
 
   const activitiesToDisplay = recentActivities.length > 0 ? recentActivities : [
-    { action: "Batch HC-2026-000127 verified", actor: "Quality Lab", time: "5 min ago", icon: <CheckCircle2 size={14} className="text-[var(--color-success)]" /> },
-    { action: "New beekeeper registered", actor: "Ramesh Kumar", time: "1 hour ago", icon: <Users size={14} className="text-[var(--honey-600)]" /> },
-    { action: "Flagged: Batch HC-2026-000089", actor: "System", time: "2 hours ago", icon: <AlertTriangle size={14} className="text-[var(--color-danger)]" /> },
-    { action: "Cluster report generated", actor: "Sonipat", time: "4 hours ago", icon: <MapPin size={14} className="text-[var(--color-info)]" /> },
+    {
+      action: isHindi ? "बैच HC-2026-000127 सत्यापित हुआ" : "Batch HC-2026-000127 verified",
+      actor: isHindi ? "गुणवत्ता लैब" : "Quality Lab",
+      time: isHindi ? "5 मिनट पहले" : "5 min ago",
+      icon: <CheckCircle2 size={14} className="text-[var(--color-success)]" />
+    },
+    {
+      action: isHindi ? "नया मधुमक्खी पालक पंजीकृत" : "New beekeeper registered",
+      actor: "Ramesh Kumar",
+      time: isHindi ? "1 घंटा पहले" : "1 hour ago",
+      icon: <Users size={14} className="text-[var(--honey-600)]" />
+    },
+    {
+      action: isHindi ? "फ़्लैग किया गया: बैच HC-2026-000089" : "Flagged: Batch HC-2026-000089",
+      actor: isHindi ? "सिस्टम" : "System",
+      time: isHindi ? "2 घंटे पहले" : "2 hours ago",
+      icon: <AlertTriangle size={14} className="text-[var(--color-danger)]" />
+    },
+    {
+      action: isHindi ? "क्लस्टर रिपोर्ट तैयार की गई" : "Cluster report generated",
+      actor: "Sonipat",
+      time: isHindi ? "4 घंटे पहले" : "4 hours ago",
+      icon: <MapPin size={14} className="text-[var(--color-info)]" />
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
-          Admin Dashboard
+          {isHindi ? "केवीआईसी व्यवस्थापक डैशबोर्ड" : "Admin Dashboard"}
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-          Real-time HoneyChain platform overview & KVIC cluster monitoring
+          {isHindi
+            ? "रीयल-टाइम हनी-चेन प्लेटफॉर्म अवलोकन एवं केवीआईसी क्लस्टर निगरानी"
+            : "Real-time HoneyChain platform overview & KVIC cluster monitoring"}
         </p>
       </div>
 
@@ -177,9 +202,11 @@ export default function AdminDashboard() {
           <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between">
             <h2 className="font-semibold text-sm flex items-center gap-2 text-[var(--text-primary)]">
               <MapPin size={14} className="text-[var(--honey-600)]" />
-              KVIC Beekeeping Clusters & Geospatial Map
+              {isHindi ? "केवीआईसी क्लस्टर एवं भू-स्थानिक मानचित्र" : "KVIC Beekeeping Clusters & Geospatial Map"}
             </h2>
-            <span className="text-xs text-[var(--text-muted)] font-mono">{clusters.length} Regions</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">
+              {clusters.length} {isHindi ? "क्षेत्र" : "Regions"}
+            </span>
           </div>
 
           <div className="p-4 bg-[var(--bg-muted)] border-b border-[var(--border-default)]">
@@ -188,7 +215,9 @@ export default function AdminDashboard() {
 
           <div className="divide-y divide-[var(--border-default)] max-h-[500px] overflow-y-auto">
             {clusters.length === 0 ? (
-              <div className="p-6 text-center text-xs text-[var(--text-muted)]">Loading clusters...</div>
+              <div className="p-6 text-center text-xs text-[var(--text-muted)]">
+                {isHindi ? "क्लस्टर लोड हो रहे हैं..." : "Loading clusters..."}
+              </div>
             ) : (
               clusters.map((cluster) => (
                 <div key={cluster.name} className="p-4 hover:bg-[var(--bg-muted)] transition-colors cursor-pointer">
@@ -203,23 +232,23 @@ export default function AdminDashboard() {
                   </div>
                   <div className="grid grid-cols-4 gap-4 text-xs">
                     <div>
-                      <span className="text-[var(--text-muted)]">Beekeepers</span>
+                      <span className="text-[var(--text-muted)]">{isHindi ? "पालक" : "Beekeepers"}</span>
                       <p className="font-semibold text-[var(--text-primary)]">
                         {cluster.totalBeekeepers ?? cluster.beekeepers}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-muted)]">Hives</span>
+                      <span className="text-[var(--text-muted)]">{isHindi ? "छत्ते" : "Hives"}</span>
                       <p className="font-semibold text-[var(--text-primary)]">
                         {(cluster.totalHives ?? cluster.hives)?.toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-muted)]">Batches</span>
+                      <span className="text-[var(--text-muted)]">{isHindi ? "बैच" : "Batches"}</span>
                       <p className="font-semibold text-[var(--text-primary)]">{cluster.batches}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-muted)]">Health</span>
+                      <span className="text-[var(--text-muted)]">{isHindi ? "स्वास्थ्य" : "Health"}</span>
                       <p
                         className={`font-semibold ${
                           (cluster.avgHealth ?? cluster.health ?? 0) >= 85
@@ -242,7 +271,7 @@ export default function AdminDashboard() {
           <div className="p-4 border-b border-[var(--border-default)]">
             <h2 className="font-semibold text-sm flex items-center gap-2 text-[var(--text-primary)]">
               <Activity size={14} className="text-[var(--honey-600)]" />
-              Recent Activity
+              {isHindi ? "हालिया गतिविधियां" : "Recent Activity"}
             </h2>
           </div>
           <div className="divide-y divide-[var(--border-default)]">

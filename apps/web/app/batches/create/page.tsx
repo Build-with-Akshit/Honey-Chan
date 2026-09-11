@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { honeyApi } from "@/lib/api";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function CreateBatchPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const isHindi = language === "hi";
   const [formData, setFormData] = useState({
     batchId: `HC-2026-${Math.floor(100000 + Math.random() * 900000)}`,
     hiveCode: "HIVE-007",
@@ -142,17 +145,21 @@ export default function CreateBatchPage() {
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-amber-50"
             >
               <span>←</span>
-              <span>Back</span>
+              <span>{isHindi ? "वापस जाएं" : "Back"}</span>
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Create Honey Batch</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {isHindi ? "शहद का नया बैच बनाएं" : "Create Honey Batch"}
+              </h1>
               <p className="text-xs text-gray-500">
-                Register harvest on blockchain with cryptographic SHA-256 metadata hash
+                {isHindi
+                  ? "क्रिप्टोग्राफिक SHA-256 मेटाडेटा हैश के साथ ब्लॉकचेन पर कटाई दर्ज करें"
+                  : "Register harvest on blockchain with cryptographic SHA-256 metadata hash"}
               </p>
             </div>
           </div>
           <span className="text-xs bg-amber-100 text-amber-800 font-semibold px-3 py-1 rounded-full">
-            Beekeeper Portal
+            {isHindi ? "मधुमक्खी पालक सेवा केंद्र" : "Beekeeper Portal"}
           </span>
         </div>
 
@@ -160,13 +167,13 @@ export default function CreateBatchPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="card p-6 bg-white space-y-4">
               <h2 className="font-semibold text-gray-800 text-sm border-b border-gray-100 pb-2">
-                1. Batch & Apiary Details
+                {isHindi ? "1. बैच एवं छत्ते का विवरण" : "1. Batch & Apiary Details"}
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Unique Batch ID
+                    {isHindi ? "विशिष्ट बैच आईडी (Unique Batch ID)" : "Unique Batch ID"}
                   </label>
                   <input
                     type="text"
@@ -179,7 +186,7 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Source Hive Code
+                    {isHindi ? "स्रोत छत्ता कोड (Source Hive Code)" : "Source Hive Code"}
                   </label>
                   <select
                     value={formData.hiveCode}
@@ -189,13 +196,13 @@ export default function CreateBatchPage() {
                     className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400 disabled:opacity-60"
                   >
                     {hivesLoading ? (
-                      <option value="">Loading your hives...</option>
+                      <option value="">{isHindi ? "छत्तों की जानकारी लोड हो रही है..." : "Loading your hives..."}</option>
                     ) : hives.length === 0 ? (
-                      <option value="">No hives found - Register a hive first</option>
+                      <option value="">{isHindi ? "कोई छत्ता नहीं मिला - पहले छत्ता पंजीकृत करें" : "No hives found - Register a hive first"}</option>
                     ) : (
                       hives.map(hive => (
                         <option key={hive.id} value={hive.hiveCode}>
-                          {hive.hiveCode} ({hive.location} • {hive.flowerSource} • Health {hive.healthScore || 85}%)
+                          {hive.hiveCode} ({hive.location} • {hive.flowerSource} • {isHindi ? "स्वास्थ्य" : "Health"} {hive.healthScore || 85}%)
                         </option>
                       ))
                     )}
@@ -204,7 +211,7 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Honey Flora / Botanical Origin
+                    {isHindi ? "शहद का वानस्पतिक स्रोत (Honey Flora)" : "Honey Flora / Botanical Origin"}
                   </label>
                   <input
                     type="text"
@@ -217,7 +224,7 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Harvested Quantity (KG)
+                    {isHindi ? "निकाला गया शहद (KG)" : "Harvested Quantity (KG)"}
                   </label>
                   <input
                     type="number"
@@ -232,7 +239,7 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Harvest Date
+                    {isHindi ? "कटाई की तिथि (Harvest Date)" : "Harvest Date"}
                   </label>
                   <input
                     type="date"
@@ -245,7 +252,7 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Harvest Location (Apiary Cluster)
+                    {isHindi ? "कटाई का स्थान (Apiary Cluster)" : "Harvest Location (Apiary Cluster)"}
                   </label>
                   <input
                     type="text"
@@ -259,7 +266,7 @@ export default function CreateBatchPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  Extraction Notes & Method
+                  {isHindi ? "निष्कर्षण विधि व टिप्पणी (Extraction Notes)" : "Extraction Notes & Method"}
                 </label>
                 <textarea
                   rows={2}
@@ -274,12 +281,22 @@ export default function CreateBatchPage() {
             <div className="card p-5 bg-amber-50/50 border-amber-200">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">🔒</span>
-                <h3 className="font-semibold text-sm text-amber-900">Cryptographic Integrity Mechanism</h3>
+                <h3 className="font-semibold text-sm text-amber-900">
+                  {isHindi ? "क्रिप्टोग्राफिक अखंडता व सुरक्षा तंत्र" : "Cryptographic Integrity Mechanism"}
+                </h3>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed">
-                When you submit, Honey-Chan will generate a deterministic <strong>SHA-256 hash</strong> of this exact
-                metadata. This hash is anchored on the blockchain. Any subsequent alteration of the quantity or location
-                will immediately cause a hash mismatch and trigger a <strong>TAMPER WARNING</strong> for consumers.
+                {isHindi ? (
+                  <>
+                    जब आप सबमिट करते हैं, तो हनी-चेन इस सटीक मेटाडेटा का सुरक्षित <strong>SHA-256 हैश</strong> तैयार करता है। यह हैश ब्लॉकचेन पर दर्ज होता है। मात्रा या स्थान में किसी भी बाद के बदलाव से तुरंत हैश बेमेल हो जाएगा और उपभोक्ताओं के लिए <strong>चेतावनी (TAMPER WARNING)</strong> प्रदर्शित होगी।
+                  </>
+                ) : (
+                  <>
+                    When you submit, Honey-Chan will generate a deterministic <strong>SHA-256 hash</strong> of this exact
+                    metadata. This hash is anchored on the blockchain. Any subsequent alteration of the quantity or location
+                    will immediately cause a hash mismatch and trigger a <strong>TAMPER WARNING</strong> for consumers.
+                  </>
+                )}
               </p>
             </div>
 
@@ -298,12 +315,12 @@ export default function CreateBatchPage() {
                 {loading ? (
                   <>
                     <span className="animate-spin">⏳</span>
-                    Generating Hash & Signing Blockchain Tx...
+                    {isHindi ? "हैश जनरेट कर ब्लॉकचेन पर दर्ज किया जा रहा है..." : "Generating Hash & Signing Blockchain Tx..."}
                   </>
                 ) : (
                   <>
                     <span>🔗</span>
-                    Anchor Batch on Blockchain
+                    {isHindi ? "ब्लॉकचेन पर बैच सुरक्षित करें (Anchor on Blockchain)" : "Anchor Batch on Blockchain"}
                   </>
                 )}
               </button>
@@ -344,9 +361,11 @@ export default function CreateBatchPage() {
               </div>
 
               <div>
-                <span className="badge badge-verified mb-2">BLOCKCHAIN TRANSACTION CONFIRMED</span>
+                <span className="badge badge-verified mb-2">
+                  {isHindi ? "ब्लॉकचेन लेनदेन पुष्ट" : "BLOCKCHAIN TRANSACTION CONFIRMED"}
+                </span>
                 <h2 className="text-2xl font-bold text-gray-900 mt-1">
-                  Honey Batch Created Successfully!
+                  {isHindi ? "शहद का बैच सफलतापूर्वक दर्ज हुआ!" : "Honey Batch Created Successfully!"}
                 </h2>
                 <p className="text-xs text-gray-500 font-mono mt-1">{createdBatch.batchId}</p>
               </div>
@@ -378,12 +397,18 @@ export default function CreateBatchPage() {
 
               <div className="text-left text-xs space-y-1 bg-white p-3 rounded-lg border border-amber-100">
                 <p className="font-bold text-gray-800">{createdBatch.honeyType}</p>
-                <p className="text-gray-500">Qty: {createdBatch.quantity} KG • Hive: {createdBatch.hive?.hiveCode || formData.hiveCode}</p>
-                <p className="text-gray-400 text-[10px] truncate">Hash: {createdBatch.blockchainTx}</p>
+                <p className="text-gray-500">
+                  {isHindi ? "मात्रा: " : "Qty: "}{createdBatch.quantity} KG • {isHindi ? "छत्ता: " : "Hive: "}{createdBatch.hive?.hiveCode || formData.hiveCode}
+                </p>
+                <p className="text-gray-400 text-[10px] truncate">
+                  {isHindi ? "हैश: " : "Hash: "}{createdBatch.blockchainTx}
+                </p>
               </div>
 
               <p className="text-[11px] text-amber-800 font-semibold text-center">
-                Scan with any phone camera to verify authenticity
+                {isHindi
+                  ? "प्रामाणिकता की जांच के लिए किसी भी फोन कैमरे से स्कैन करें"
+                  : "Scan with any phone camera to verify authenticity"}
               </p>
             </div>
 
@@ -393,14 +418,14 @@ export default function CreateBatchPage() {
                 href={`/verify/${createdBatch.batchId}`}
                 className="btn-primary py-2.5 px-5 text-xs font-semibold"
               >
-                View Public Consumer Page →
+                {isHindi ? "उपभोक्ता सत्यापन पेज देखें →" : "View Public Consumer Page →"}
               </Link>
 
               <button
                 onClick={() => window.print()}
                 className="btn-outline py-2.5 px-5 text-xs font-semibold"
               >
-                🖨️ Print QR Label
+                {isHindi ? "🖨️ क्यूआर लेबल प्रिंट करें" : "🖨️ Print QR Label"}
               </button>
 
               <button
@@ -413,7 +438,7 @@ export default function CreateBatchPage() {
                 }}
                 className="px-4 py-2 text-xs text-gray-500 hover:text-gray-800"
               >
-                + Create Another
+                {isHindi ? "+ एक और नया बैच बनाएं" : "+ Create Another"}
               </button>
             </div>
           </div>

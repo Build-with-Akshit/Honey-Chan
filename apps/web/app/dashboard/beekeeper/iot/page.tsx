@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { honeyApi } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   AreaChart,
   Area,
@@ -39,6 +40,8 @@ interface PacketLog {
 }
 
 export default function BeekeeperIoTPage() {
+  const { language } = useLanguage();
+  const isHindi = language === "hi";
   const [hives, setHives] = useState<any[]>([]);
   const [selectedHiveCode, setSelectedHiveCode] = useState("H001");
   const [loading, setLoading] = useState(true);
@@ -271,23 +274,25 @@ export default function BeekeeperIoTPage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl lg:text-3xl font-black text-amber-950 tracking-tight">
-                IoT Hive Climate & Telemetry
+                {isHindi ? "आईओटी छत्ता जलवायु एवं टेलीमेट्री" : "IoT Hive Climate & Telemetry"}
               </h1>
               {isPaused ? (
                 <span className="flex items-center gap-2 bg-amber-500/15 text-amber-900 border border-amber-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  STREAM PAUSED
+                  {isHindi ? "डेटा प्रवाह स्थगित" : "STREAM PAUSED"}
                 </span>
               ) : (
                 <span className="flex items-center gap-2 bg-emerald-500/15 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
-                  LIVE TELEMETRY STREAM
+                  {isHindi ? "लाइव टेलीमेट्री प्रवाह सक्रिय" : "LIVE TELEMETRY STREAM"}
                 </span>
               )}
             </div>
 
             <p className="text-xs text-amber-900/70 mt-2 flex flex-wrap items-center gap-2 font-medium">
-              <span className="font-semibold text-amber-950">KVIC Honey Mission Smart Apiary</span>
+              <span className="font-semibold text-amber-950">
+                {isHindi ? "केवीआईसी हनी मिशन स्मार्ट मधुमक्खी शाला" : "KVIC Honey Mission Smart Apiary"}
+              </span>
               <span className="text-amber-300">•</span>
               <span className="font-mono text-amber-900 bg-amber-200/60 px-2.5 py-0.5 rounded-md border border-amber-300/80 font-bold">
                 Gateway Node: ESP32-WROOM-32D
@@ -300,7 +305,7 @@ export default function BeekeeperIoTPage() {
           {/* Controls: Hive Selector & Pause Stream */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2.5 bg-white/95 px-4 py-2.5 rounded-2xl border border-amber-200 shadow-xs hover:border-amber-400 transition-colors">
-              <span className="text-xs font-bold text-amber-900/60">Active Hive:</span>
+              <span className="text-xs font-bold text-amber-900/60">{isHindi ? "सक्रिय छत्ता:" : "Active Hive:"}</span>
               <select
                 value={selectedHiveCode}
                 onChange={(e) => setSelectedHiveCode(e.target.value)}
@@ -309,11 +314,11 @@ export default function BeekeeperIoTPage() {
                 {hives.length > 0 ? (
                   hives.map((h) => (
                     <option key={h.id} value={h.hiveCode}>
-                      {h.hiveCode} • {h.flowerSource || "Mustard Flower"}
+                      {h.hiveCode} • {h.flowerSource || (isHindi ? "सरसों का फूल" : "Mustard Flower")}
                     </option>
                   ))
                 ) : (
-                  <option value="H001">H001 • Mustard Flower</option>
+                  <option value="H001">H001 • {isHindi ? "सरसों का फूल" : "Mustard Flower"}</option>
                 )}
               </select>
             </div>
@@ -326,7 +331,11 @@ export default function BeekeeperIoTPage() {
                   : "bg-white/95 text-amber-900 border-amber-200 hover:bg-amber-50 hover:border-amber-300"
               }`}
             >
-              <span>{isPaused ? "▶ Resume Stream" : "⏸ Pause Stream"}</span>
+              <span>
+                {isPaused
+                  ? (isHindi ? "▶ डेटा पुनः शुरू करें" : "▶ Resume Stream")
+                  : (isHindi ? "⏸ डेटा रोकें" : "⏸ Pause Stream")}
+              </span>
             </button>
           </div>
         </div>
@@ -339,13 +348,15 @@ export default function BeekeeperIoTPage() {
             <span className="text-xl">🧪</span>
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-2">
-                <span>Smart Hive Anomaly Injection & AI Stress Simulator</span>
+                <span>{isHindi ? "स्मार्ट छत्ता विसंगति परीक्षण एवं एआई तनाव सिम्युलेटर" : "Smart Hive Anomaly Injection & AI Stress Simulator"}</span>
                 <span className="text-[9px] bg-amber-200/60 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-mono">
                   SIH 2026 Judge Tool
                 </span>
               </h2>
               <p className="text-[11px] text-amber-700 mt-0.5">
-                Inject real-world microclimate anomalies to demonstrate instant XGBoost AI detection and early risk alerts:
+                {isHindi
+                  ? "वास्तविक माइक्रो-क्लाइमेट विसंगतियां प्रविष्ट कर XGBoost AI पहचान और चेतावनी का तुरंत परीक्षण करें:"
+                  : "Inject real-world microclimate anomalies to demonstrate instant XGBoost AI detection and early risk alerts:"}
               </p>
             </div>
           </div>
@@ -360,7 +371,7 @@ export default function BeekeeperIoTPage() {
               ? "bg-amber-100 text-amber-950 border-amber-300"
               : "bg-amber-100 text-amber-950 border-amber-300"
           }`}>
-            Active Mode: <strong>{anomalyMode}</strong>
+            {isHindi ? "सक्रिय मोड: " : "Active Mode: "}<strong>{anomalyMode}</strong>
           </span>
         </div>
 
@@ -376,7 +387,7 @@ export default function BeekeeperIoTPage() {
           >
             <span className="text-lg">🟢</span>
             <span className={anomalyMode === "NORMAL" ? "text-white font-black" : "text-amber-950 font-bold"}>
-              Optimal Climate
+              {isHindi ? "आदर्श जलवायु" : "Optimal Climate"}
             </span>
             <span className={`text-[10px] font-semibold ${anomalyMode === "NORMAL" ? "text-emerald-100" : "text-emerald-700"}`}>
               34.2°C • 65% RH
@@ -394,10 +405,10 @@ export default function BeekeeperIoTPage() {
           >
             <span className="text-lg">❄️</span>
             <span className={anomalyMode === "CHILLING" ? "text-white font-black" : "text-amber-950 font-bold"}>
-              Brood Chilling
+              {isHindi ? "शिशु शीतलन (ठंड)" : "Brood Chilling"}
             </span>
             <span className={`text-[10px] font-semibold ${anomalyMode === "CHILLING" ? "text-sky-100" : "text-sky-700"}`}>
-              &lt; 30°C • Fungal Risk
+              &lt; 30°C • {isHindi ? "फफूंद जोखिम" : "Fungal Risk"}
             </span>
           </button>
 
@@ -412,10 +423,10 @@ export default function BeekeeperIoTPage() {
           >
             <span className="text-lg">🔥</span>
             <span className={anomalyMode === "HEAT" ? "text-white font-black" : "text-amber-950 font-bold"}>
-              Heat Stress
+              {isHindi ? "अत्यधिक गर्मी (हीट)" : "Heat Stress"}
             </span>
             <span className={`text-[10px] font-semibold ${anomalyMode === "HEAT" ? "text-rose-100" : "text-rose-700"}`}>
-              &gt; 38.5°C • Comb Melt
+              &gt; 38.5°C • {isHindi ? "मोम पिघलने का खतरा" : "Comb Melt"}
             </span>
           </button>
 
@@ -430,10 +441,10 @@ export default function BeekeeperIoTPage() {
           >
             <span className="text-lg">⚠️</span>
             <span className={anomalyMode === "ABSCONDING" ? "text-white font-black" : "text-amber-950 font-bold"}>
-              Absconding Loss
+              {isHindi ? "पलायन / वजन गिरावट" : "Absconding Loss"}
             </span>
             <span className={`text-[10px] font-semibold ${anomalyMode === "ABSCONDING" ? "text-orange-100" : "text-orange-800"}`}>
-              Weight Drop -6kg
+              {isHindi ? "वजन में कमी -6kg" : "Weight Drop -6kg"}
             </span>
           </button>
 
@@ -448,10 +459,10 @@ export default function BeekeeperIoTPage() {
           >
             <span className="text-lg">🍯</span>
             <span className={anomalyMode === "NECTAR_PEAK" ? "text-amber-950 font-black" : "text-amber-950 font-bold"}>
-              Peak Nectar Flow
+              {isHindi ? "शहद संचयन पीक" : "Peak Nectar Flow"}
             </span>
             <span className={`text-[10px] font-semibold ${anomalyMode === "NECTAR_PEAK" ? "text-amber-900 font-bold" : "text-amber-700 font-medium"}`}>
-              Harvest: 3-5 days
+              {isHindi ? "कटाई: 3-5 दिन" : "Harvest: 3-5 days"}
             </span>
           </button>
         </div>
@@ -472,22 +483,46 @@ export default function BeekeeperIoTPage() {
           <div className="flex-1 space-y-1.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-black text-amber-950 text-sm">
-                {anomalyMode === "NORMAL" && "AI Diagnostic: Optimal Colony Homeostasis (Risk: LOW • Health: 95/100)"}
-                {anomalyMode === "CHILLING" && "AI Diagnostic: Brood Chilling Hazard Detected (Risk: HIGH • Health: 52/100)"}
-                {anomalyMode === "HEAT" && "AI Diagnostic: Severe Hyperthermia / Wax Melt Hazard (Risk: CRITICAL • Health: 38/100)"}
-                {anomalyMode === "ABSCONDING" && "AI Diagnostic: Colony Depletion / Swarming Suspected (Risk: HIGH • Health: 48/100)"}
-                {anomalyMode === "NECTAR_PEAK" && "AI Diagnostic: High Surplus Accumulation (Productivity: 14.8 KG • Harvest Ready)"}
+                {isHindi ? (
+                  <>
+                    {anomalyMode === "NORMAL" && "एआई निदान: अनुकूल छत्ता जैविक संतुलन (जोखिम: कम • स्वास्थ्य: 95/100)"}
+                    {anomalyMode === "CHILLING" && "एआई निदान: ब्रूड शीतलन (ठंड) का खतरा पाया गया (जोखिम: अधिक • स्वास्थ्य: 52/100)"}
+                    {anomalyMode === "HEAT" && "एआई निदान: अत्यधिक गर्मी / मोम पिघलने का गंभीर खतरा (जोखिम: अत्यंत गंभीर • स्वास्थ्य: 38/100)"}
+                    {anomalyMode === "ABSCONDING" && "एआई निदान: छत्ता खाली होना / पलायन की आशंका (जोखिम: अधिक • स्वास्थ्य: 48/100)"}
+                    {anomalyMode === "NECTAR_PEAK" && "एआई निदान: तीव्र शहद संचयन (उत्पादकता: 14.8 KG • कटाई के लिए तैयार)"}
+                  </>
+                ) : (
+                  <>
+                    {anomalyMode === "NORMAL" && "AI Diagnostic: Optimal Colony Homeostasis (Risk: LOW • Health: 95/100)"}
+                    {anomalyMode === "CHILLING" && "AI Diagnostic: Brood Chilling Hazard Detected (Risk: HIGH • Health: 52/100)"}
+                    {anomalyMode === "HEAT" && "AI Diagnostic: Severe Hyperthermia / Wax Melt Hazard (Risk: CRITICAL • Health: 38/100)"}
+                    {anomalyMode === "ABSCONDING" && "AI Diagnostic: Colony Depletion / Swarming Suspected (Risk: HIGH • Health: 48/100)"}
+                    {anomalyMode === "NECTAR_PEAK" && "AI Diagnostic: High Surplus Accumulation (Productivity: 14.8 KG • Harvest Ready)"}
+                  </>
+                )}
               </p>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-900 shadow-2xs">
                 FastAPI XGBoost Engine
               </span>
             </div>
             <p className="text-amber-950/85 text-xs leading-relaxed font-medium">
-              {anomalyMode === "NORMAL" && "Colony thermoregulation and foraging traffic are steady within biological optima. Standard inspection routine maintained."}
-              {anomalyMode === "CHILLING" && "Internal temperature dropped below 30°C with elevated humidity (81.4%). Extreme risk of chalkbrood fungal infection. Recommended action: Check hive bottom entrance, reduce airflow, and verify brood cluster density within 24 hours."}
-              {anomalyMode === "HEAT" && "Internal core temperature exceeding 38.5°C with heavy fanning vibration. Extreme danger of honey comb structural melting. Recommended action: Erect reflective shade canopy and replenish apiary water source immediately."}
-              {anomalyMode === "ABSCONDING" && "Sudden 6.6 kg weight loss correlated with suppressed entrance traffic indicates colony absconding, robbing event, or recent swarming. Urgent physical inspection recommended."}
-              {anomalyMode === "NECTAR_PEAK" && "Consistent daily nectar weight accumulation (+0.85 kg/day). Supers are 85% capped with ripened honey. Favourable harvest window estimated within the next 3–5 days."}
+              {isHindi ? (
+                <>
+                  {anomalyMode === "NORMAL" && "कॉलोनी का आंतरिक तापमान व चारा लाने की गतिविधि जैविक मानकों के अनुकूल है। सामान्य निरीक्षण दिनचर्या जारी रखें।"}
+                  {anomalyMode === "CHILLING" && "आंतरिक तापमान 30°C से नीचे गिर गया है तथा आर्द्रता (81.4%) अधिक है। चाकब्रूड फंगल संक्रमण का भारी खतरा। सलाह: छत्ते का निचला द्वार छोटा करें व 24 घंटे में ब्रूड की जांच करें।"}
+                  {anomalyMode === "HEAT" && "आंतरिक तापमान 38.5°C से अधिक हो गया है और पंखे चलाने की तीव्र कंपन है। मोम के छत्ते पिघलने का भारी खतरा। सलाह: तुरंत छायादार जाल लगाएं और पानी की व्यवस्था करें।"}
+                  {anomalyMode === "ABSCONDING" && "अचानक 6.6 किग्रा वजन घटना छत्ते के पलायन, डकैती या झुंड भागने का संकेत देता है। तुरंत प्रत्यक्ष निरीक्षण की सिफारिश की जाती है।"}
+                  {anomalyMode === "NECTAR_PEAK" && "प्रतिदिन शहद का वजन निरंतर बढ़ रहा है (+0.85 किग्रा/दिन)। सुपर बक्सों में 85% शहद पक कर सील हो चुका है। अगले 3–5 दिनों में कटाई अनुकूल है।"}
+                </>
+              ) : (
+                <>
+                  {anomalyMode === "NORMAL" && "Colony thermoregulation and foraging traffic are steady within biological optima. Standard inspection routine maintained."}
+                  {anomalyMode === "CHILLING" && "Internal temperature dropped below 30°C with elevated humidity (81.4%). Extreme risk of chalkbrood fungal infection. Recommended action: Check hive bottom entrance, reduce airflow, and verify brood cluster density within 24 hours."}
+                  {anomalyMode === "HEAT" && "Internal core temperature exceeding 38.5°C with heavy fanning vibration. Extreme danger of honey comb structural melting. Recommended action: Erect reflective shade canopy and replenish apiary water source immediately."}
+                  {anomalyMode === "ABSCONDING" && "Sudden 6.6 kg weight loss correlated with suppressed entrance traffic indicates colony absconding, robbing event, or recent swarming. Urgent physical inspection recommended."}
+                  {anomalyMode === "NECTAR_PEAK" && "Consistent daily nectar weight accumulation (+0.85 kg/day). Supers are 85% capped with ripened honey. Favourable harvest window estimated within the next 3–5 days."}
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -496,58 +531,74 @@ export default function BeekeeperIoTPage() {
       {/* ─── Hardware Gateway Health Strip (Light Theme) ─────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/50 text-amber-950 p-4.5 rounded-2xl shadow-sm border border-amber-200 text-xs">
         <div className="border-r border-amber-200/80 pr-2">
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Hardware Status</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "हार्डवेयर स्थिति" : "Hardware Status"}
+          </span>
           <div className={`flex items-center gap-2 mt-1.5 font-bold ${isPaused ? "text-amber-800" : "text-emerald-700"}`}>
             <span className={`w-2 h-2 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 pulse-dot"}`} />
-            <span>{isPaused ? "PAUSED (Standby)" : "ONLINE (Streaming)"}</span>
+            <span>
+              {isPaused
+                ? (isHindi ? "स्थगित (Standby)" : "PAUSED (Standby)")
+                : (isHindi ? "ऑनलाइन (सक्रिय)" : "ONLINE (Streaming)")}
+            </span>
           </div>
         </div>
 
         <div className="border-r border-amber-200/80 pr-2">
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">WiFi Signal (RSSI)</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "वाईफाई सिग्नल" : "WiFi Signal (RSSI)"}
+          </span>
           <p className="font-mono font-bold text-amber-950 mt-1.5 flex items-center gap-1">
             <span className="text-emerald-600">📶</span> {latest.rssi} dBm (98%)
           </p>
         </div>
 
         <div className="border-r border-amber-200/80 pr-2">
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Battery & Solar MPPT</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "बैटरी व सोलर" : "Battery & Solar MPPT"}
+          </span>
           <p className="font-mono font-bold text-amber-800 mt-1.5 flex items-center gap-1">
             <span>⚡</span> 4.12V ({latest.battery}%)
           </p>
         </div>
 
         <div className="border-r border-amber-200/80 pr-2">
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Transmission Protocol</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "प्रोटोकॉल" : "Transmission Protocol"}
+          </span>
           <p className="font-mono font-bold text-blue-700 mt-1.5">
             MQTT / TLS 1.3
           </p>
         </div>
 
         <div className="border-r border-amber-200/80 pr-2">
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Packet Rate / Loss</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "पैकेट दर / हानि" : "Packet Rate / Loss"}
+          </span>
           <p className="font-mono font-bold text-amber-950 mt-1.5">
             {isPaused ? (
               <span className="text-amber-800 font-bold bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded text-[11px]">
-                ⏸ Stream Paused
+                {isHindi ? "⏸ स्ट्रीम रुकी है" : "⏸ Stream Paused"}
               </span>
             ) : (
-              <>4.0s • <span className="text-emerald-700">0.0% loss</span></>
+              <>4.0s • <span className="text-emerald-700">{isHindi ? "0.0% हानि" : "0.0% loss"}</span></>
             )}
           </p>
         </div>
 
         <div>
-          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">Last Packet Sync</span>
+          <span className="text-amber-800/70 block text-[10px] uppercase font-bold tracking-wider">
+            {isHindi ? "अंतिम सिंक" : "Last Packet Sync"}
+          </span>
           <p className="font-mono font-bold text-amber-900 mt-1.5">
             {isPaused ? (
               <span className="text-amber-800 font-bold bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded text-[11px]">
-                ⏸ Stream Paused
+                {isHindi ? "⏸ स्ट्रीम रुकी है" : "⏸ Stream Paused"}
               </span>
             ) : lastSyncSeconds === 0 ? (
-              <span className="text-emerald-700 font-bold">Just now</span>
+              <span className="text-emerald-700 font-bold">{isHindi ? "अभी-अभी" : "Just now"}</span>
             ) : (
-              `${lastSyncSeconds}s ago`
+              `${lastSyncSeconds}${isHindi ? " सेकंड पहले" : "s ago"}`
             )}
           </p>
         </div>
@@ -560,7 +611,7 @@ export default function BeekeeperIoTPage() {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider">
-                Brood Chamber Temperature
+                {isHindi ? "ब्रूड कक्ष का तापमान" : "Brood Chamber Temperature"}
               </span>
               <div className="flex items-baseline gap-1.5 pt-1">
                 <span className="text-4xl font-black text-amber-900 tracking-tight font-mono">
@@ -576,14 +627,14 @@ export default function BeekeeperIoTPage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between text-xs text-amber-900/70 border-t border-amber-100 pt-3">
-            <span>Ambient: <b className="text-amber-950 font-bold">{latest.ambientTemp}°C</b></span>
+            <span>{isHindi ? "परिवेश: " : "Ambient: "}<b className="text-amber-950 font-bold">{latest.ambientTemp}°C</b></span>
             <span className="font-mono bg-amber-100/70 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">
               SHT31-D
             </span>
           </div>
 
           <div className="mt-3.5 bg-emerald-50 text-emerald-800 border border-emerald-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
-            ✓ Optimal Brood (33.8°C - 34.5°C)
+            {isHindi ? "✓ आदर्श ब्रूड तापमान (33.8°C - 34.5°C)" : "✓ Optimal Brood (33.8°C - 34.5°C)"}
           </div>
         </div>
 
@@ -592,7 +643,7 @@ export default function BeekeeperIoTPage() {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-bold text-blue-900/70 uppercase tracking-wider">
-                Relative Humidity
+                {isHindi ? "आंतरिक सापेक्षिक आर्द्रता" : "Relative Humidity"}
               </span>
               <div className="flex items-baseline gap-1.5 pt-1">
                 <span className="text-4xl font-black text-blue-900 tracking-tight font-mono">
@@ -608,14 +659,14 @@ export default function BeekeeperIoTPage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between text-xs text-blue-900/70 border-t border-blue-100 pt-3">
-            <span>Ambient: <b className="text-blue-950 font-bold">{latest.ambientHum}%</b></span>
+            <span>{isHindi ? "परिवेश: " : "Ambient: "}<b className="text-blue-950 font-bold">{latest.ambientHum}%</b></span>
             <span className="font-mono bg-blue-100/70 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200">
               SHT31-D
             </span>
           </div>
 
           <div className="mt-3.5 bg-blue-50 text-blue-800 border border-blue-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
-            ✓ Honey Curing Range (55-70%)
+            {isHindi ? "✓ शहद पकाने की अनुकूल नमी (55-70%)" : "✓ Honey Curing Range (55-70%)"}
           </div>
         </div>
 
@@ -624,7 +675,7 @@ export default function BeekeeperIoTPage() {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-bold text-emerald-900/70 uppercase tracking-wider">
-                Net Hive Mass (4-Cell)
+                {isHindi ? "छत्ते का कुल वजन (4-सेल)" : "Net Hive Mass (4-Cell)"}
               </span>
               <div className="flex items-baseline gap-1.5 pt-1">
                 <span className="text-4xl font-black text-emerald-900 tracking-tight font-mono">
@@ -640,14 +691,16 @@ export default function BeekeeperIoTPage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between text-xs text-emerald-900/70 border-t border-emerald-100 pt-3">
-            <span>Tare: <b className="text-emerald-950 font-bold">18.20 kg</b></span>
+            <span>{isHindi ? "खाली बक्सा: " : "Tare: "}<b className="text-emerald-950 font-bold">18.20 kg</b></span>
             <span className="font-mono bg-emerald-100/70 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
               HX711 24b
             </span>
           </div>
 
           <div className="mt-3.5 bg-emerald-50 text-emerald-800 border border-emerald-300/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-center">
-            +{(latest.weight - 18.2).toFixed(2)} kg Honey Accumulation
+            {isHindi
+              ? `+${(latest.weight - 18.2).toFixed(2)} किग्रा शहद संचयन`
+              : `+${(latest.weight - 18.2).toFixed(2)} kg Honey Accumulation`}
           </div>
         </div>
       </div>
@@ -660,12 +713,14 @@ export default function BeekeeperIoTPage() {
             <div>
               <h3 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 pulse-dot" />
-                Brood Temperature Waveform (Live Stream)
+                {isHindi ? "ब्रूड तापमान तरंगरूप (लाइव प्रवाह)" : "Brood Temperature Waveform (Live Stream)"}
               </h3>
-              <p className="text-[11px] text-amber-900/60 mt-0.5">High-frequency SHT31-D thermistor probe readings</p>
+              <p className="text-[11px] text-amber-900/60 mt-0.5">
+                {isHindi ? "उच्च आवृत्ति SHT31-D थर्मिस्टर जांच डेटा" : "High-frequency SHT31-D thermistor probe readings"}
+              </p>
             </div>
             <span className="text-[11px] font-mono bg-amber-100/90 text-amber-900 border border-amber-300/80 px-2.5 py-1 rounded-lg font-bold">
-              Target: 34.0°C
+              {isHindi ? "लक्ष्य: 34.0°C" : "Target: 34.0°C"}
             </span>
           </div>
 
@@ -729,12 +784,14 @@ export default function BeekeeperIoTPage() {
             <div>
               <h3 className="text-sm font-extrabold text-emerald-950 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot" />
-                Net Hive Mass Accumulation (HX711 24-Bit ADC)
+                {isHindi ? "शुद्ध छत्ता वजन संचयन (HX711 24-बिट लोड सेल)" : "Net Hive Mass Accumulation (HX711 24-Bit ADC)"}
               </h3>
-              <p className="text-[11px] text-emerald-900/60 mt-0.5">Real-time honey accumulation & nectar weight delta</p>
+              <p className="text-[11px] text-emerald-900/60 mt-0.5">
+                {isHindi ? "वास्तविक समय में शहद संचय एवं दैनिक वजन वृद्धि" : "Real-time honey accumulation & nectar weight delta"}
+              </p>
             </div>
             <span className="text-[11px] font-mono bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 px-2.5 py-1 rounded-lg font-bold">
-              +0.65 kg Today
+              {isHindi ? "+0.65 किग्रा आज" : "+0.65 kg Today"}
             </span>
           </div>
 
@@ -794,10 +851,10 @@ export default function BeekeeperIoTPage() {
             <div className={`w-3 h-3 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 pulse-dot"}`} />
             <div>
               <h3 className="text-sm font-extrabold text-amber-950 font-mono flex items-center gap-2">
-                <span>ESP32 Hardware Telemetry Ingestion Console</span>
+                <span>{isHindi ? "ईएसपी32 हार्डवेयर टेलीमेट्री अंतर्ग्रहण कंसोल" : "ESP32 Hardware Telemetry Ingestion Console"}</span>
                 {isPaused && (
                   <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-sans font-bold border border-amber-300">
-                    PAUSED
+                    {isHindi ? "स्थगित" : "PAUSED"}
                   </span>
                 )}
                 <span className="text-[10px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/80 font-sans font-bold">
@@ -805,7 +862,9 @@ export default function BeekeeperIoTPage() {
                 </span>
               </h3>
               <p className="text-[11px] text-amber-900/60 font-sans mt-0.5 font-medium">
-                Real-time hex & JSON telemetry packets received from ESP32-WROOM node
+                {isHindi
+                  ? "ESP32-WROOM नोड से प्राप्त लाइव Hex एवं JSON टेलीमेट्री पैकेट्स"
+                  : "Real-time hex & JSON telemetry packets received from ESP32-WROOM node"}
               </p>
             </div>
           </div>
@@ -829,14 +888,14 @@ export default function BeekeeperIoTPage() {
           {isPaused && (
             <div className="sticky top-0 z-10 mb-2 py-1.5 px-3 bg-amber-100/95 border border-amber-300 rounded-xl text-amber-900 text-[11px] font-bold flex items-center justify-between shadow-xs">
               <span className="flex items-center gap-1.5">
-                <span>⏸</span> Telemetry stream is paused. No new packets are being synced.
+                <span>⏸</span> {isHindi ? "टेलीमेट्री स्ट्रीम रुकी हुई है। कोई नया पैकेट सिंक नहीं हो रहा है।" : "Telemetry stream is paused. No new packets are being synced."}
               </span>
               <button
                 type="button"
                 onClick={() => setIsPaused(false)}
                 className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded-lg cursor-pointer transition-colors font-sans"
               >
-                Resume Stream
+                {isHindi ? "डेटा पुनः शुरू करें" : "Resume Stream"}
               </button>
             </div>
           )}
@@ -875,7 +934,7 @@ export default function BeekeeperIoTPage() {
       {/* ─── Hardware Sensor Diagnostics & Calibration Matrix ─────────────── */}
       <div className="bg-gradient-to-r from-amber-50/50 via-white to-amber-50/40 p-6 rounded-3xl border border-amber-200/90 shadow-sm">
         <h3 className="text-sm font-extrabold text-amber-950 mb-4 flex items-center gap-2">
-          <span>🔧</span> Sensor Hardware Diagnostics & Calibration Matrix
+          <span>🔧</span> {isHindi ? "सेंसर हार्डवेयर निदान एवं अंशांकन मैट्रिक्स" : "Sensor Hardware Diagnostics & Calibration Matrix"}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs hover:border-amber-400 transition-colors">
