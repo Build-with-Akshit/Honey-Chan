@@ -5,13 +5,10 @@ import { honeyApi } from "@/lib/api";
 import Link from "next/link";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useLanguage } from "@/context/LanguageContext";
 import { getDisplayStatus } from "@/app/dashboard/supply-chain/[...slug]/page";
 
 export default function BeekeeperBatchesPage() {
   const { user } = useAuth();
-  const { language } = useLanguage();
-  const isHindi = language === "hi";
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -199,40 +196,30 @@ export default function BeekeeperBatchesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isHindi ? "मेरे शहद बैच" : "My Honey Batches"}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Honey Batches</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            {isHindi
-              ? "अपरिवर्तनीय ब्लॉकचेन रिकॉर्ड एवं क्यूआर सत्यापन पासपोर्ट"
-              : "Immutable blockchain records and QR verification passports"}
+            Immutable blockchain records and QR verification passports
           </p>
         </div>
         <Link href="/batches/create" className="btn-primary text-xs py-2 px-4 shadow-sm">
-          {isHindi ? "+ नया बैच बनाएं" : "+ Create New Batch"}
+          + Create New Batch
         </Link>
       </div>
 
       {loading ? (
         <div className="p-12 text-center text-gray-500">
           <div className="animate-spin h-7 w-7 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-xs">
-            {isHindi ? "लेजर से बैच लोड हो रहे हैं..." : "Loading Batches from Ledger..."}
-          </p>
+          <p className="text-xs">Loading Batches from Ledger...</p>
         </div>
       ) : batches.length === 0 ? (
         <div className="card p-12 text-center bg-white border border-dashed border-amber-300 flex flex-col items-center justify-center">
           <span className="text-4xl mb-3">🍯</span>
-          <h3 className="text-lg font-bold text-gray-800 mb-1">
-            {isHindi ? "कोई शहद बैच नहीं मिला" : "No Honey Batches Found"}
-          </h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-1">No Honey Batches Found</h3>
           <p className="text-xs text-gray-500 mb-4 max-w-sm mx-auto">
-            {isHindi
-              ? "आपने अभी तक ब्लॉकचेन पर कोई शहद बैच दर्ज नहीं किया है।"
-              : "You haven't harvested or registered any honey batches on the blockchain yet."}
+            You haven't harvested or registered any honey batches on the blockchain yet.
           </p>
           <Link href="/batches/create" className="btn-primary text-xs py-2 px-5 shadow-sm">
-            {isHindi ? "+ पहला बैच बनाएं" : "+ Create New Batch"}
+            + Create New Batch
           </Link>
         </div>
       ) : (
@@ -261,7 +248,7 @@ export default function BeekeeperBatchesPage() {
                         className="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                         disabled={loading}
                       >
-                        {loading ? (isHindi ? "सिंक हो रहा है..." : "Syncing...") : (isHindi ? "लेजर से सिंक करें 🔄" : "Sync to Ledger 🔄")}
+                        {loading ? "Syncing..." : "Sync to Ledger 🔄"}
                       </button>
                     )}
                     {batch.qualityTests && batch.qualityTests.length > 0 && (
@@ -271,7 +258,7 @@ export default function BeekeeperBatchesPage() {
                         rel="noreferrer"
                         className="px-3 py-1 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
                       >
-                        {isHindi ? "प्रमाणपत्र 📝" : "Certificate 📝"}
+                        Certificate 📝
                       </a>
                     )}
                     {batch.status === "CREATED" || batch.status === "HARVESTED" ? (
@@ -281,16 +268,14 @@ export default function BeekeeperBatchesPage() {
                           title={`Awaiting acceptance from ${lastEvent?.actor?.name || 'User'} (${lastEvent?.actor?.role || 'Unknown'})`}
                         >
                           <span className="shrink-0">⏳</span>
-                          <span className="truncate">
-                            {isHindi ? "स्वीकृति प्रतीक्षित:" : "Awaiting:"} {lastEvent?.actor?.name || "Recipient"}
-                          </span>
+                          <span className="truncate">Awaiting: {lastEvent?.actor?.name || "Recipient"}</span>
                         </span>
                       ) : (
                         <button
                           onClick={() => openTransferModal(batch)}
                           className="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
                         >
-                          {isHindi ? "ट्रांसफर शुरू करें 📤" : "Initiate Transfer 📤"}
+                          Initiate Transfer 📤
                         </button>
                       )
                     ) : null}
@@ -298,40 +283,32 @@ export default function BeekeeperBatchesPage() {
                       href={`/verify/${batch.batchId || batch.id}`}
                       className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
                     >
-                      {isHindi ? "क्यूआर जांचें 📱" : "Verify QR 📱"}
+                      Verify QR 📱
                     </Link>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-600 mt-3">
                   <div>
-                    <span className="text-gray-400">
-                      {isHindi ? "वानस्पतिक स्रोत:" : "Honey Flora:"}
-                    </span>
+                    <span className="text-gray-400">Honey Flora:</span>
                     <p className="font-semibold text-gray-800 mt-0.5">
-                      {batch.honeyType || (isHindi ? "मिश्रित वनस्पति" : "Mixed Flora")}
+                      {batch.honeyType || "Mixed Flora"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-400">
-                      {isHindi ? "कटाई मात्रा:" : "Harvest Quantity:"}
-                    </span>
+                    <span className="text-gray-400">Harvest Quantity:</span>
                     <p className="font-semibold text-gray-800 mt-0.5">
                       {batch.quantityKg || batch.quantity} KG
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-400">
-                      {isHindi ? "स्रोत बी-बॉक्स:" : "Source Hive:"}
-                    </span>
+                    <span className="text-gray-400">Source Hive:</span>
                     <p className="font-semibold text-gray-800 mt-0.5">
-                      {batch.hive?.hiveCode || batch.hiveCode || (isHindi ? "हटाया गया बॉक्स" : "Deleted Hive")}
+                      {batch.hive?.hiveCode || batch.hiveCode || "Deleted Hive"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-400">
-                      {isHindi ? "विश्वास स्कोर:" : "Trust Score:"}
-                    </span>
+                    <span className="text-gray-400">Trust Score:</span>
                     <p className="font-bold text-amber-700 mt-0.5">
                       {batch.trustScore || 95}/100
                     </p>
@@ -364,11 +341,9 @@ export default function BeekeeperBatchesPage() {
             <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">
-                    {isHindi ? "📤 बैच ट्रांसफर करें" : "📤 Transfer Batch"}
-                  </h2>
+                  <h2 className="text-lg font-bold text-gray-900">📤 Transfer Batch</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {isHindi ? "प्राप्तकर्ता चुनें: " : "Select recipient for "}
+                    Select recipient for{" "}
                     <span className="font-mono font-bold text-amber-700">
                       {transferModal.batch?.batchId}
                     </span>
@@ -388,24 +363,18 @@ export default function BeekeeperBatchesPage() {
               {/* Recipient Selection */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-2">
-                  {isHindi ? "खरीदार / अगला संरक्षक चुनें" : "Select Buyer / Next Custodian"}
+                  Select Buyer / Next Custodian
                 </label>
                 {usersLoading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">
-                      {isHindi ? "पंजीकृत उपयोगकर्ता लोड हो रहे हैं..." : "Loading registered users..."}
-                    </p>
+                    <p className="text-xs text-gray-400">Loading registered users...</p>
                   </div>
                 ) : users.length === 0 ? (
                   <div className="p-6 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                    <p className="text-sm text-gray-500">
-                      {isHindi ? "वॉलेट वाले कोई पंजीकृत उपयोगकर्ता नहीं मिले।" : "No registered users with wallets found."}
-                    </p>
+                    <p className="text-sm text-gray-500">No registered users with wallets found.</p>
                     <p className="text-[10px] text-gray-400 mt-1">
-                      {isHindi
-                        ? "खरीदार से कहें कि वे हनी-चेन पर पंजीकरण करें और मेटामास्क कनेक्ट करें।"
-                        : "Ask the buyer to register on Honey-Chan and connect their MetaMask wallet."}
+                      Ask the buyer to register on Honey-Chan and connect their MetaMask wallet.
                     </p>
                   </div>
                 ) : (
@@ -450,17 +419,17 @@ export default function BeekeeperBatchesPage() {
               {/* Stage Selection */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-2">
-                  {isHindi ? "चरण में ट्रांसफर करें" : "Transfer to Stage"}
+                  Transfer to Stage
                 </label>
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
                 >
-                  <option value="1">🏭 {isHindi ? "प्रोसेसिंग" : "Processing"}</option>
-                  <option value="2">🧪 {isHindi ? "गुणवत्ता परीक्षण" : "Quality Testing"}</option>
-                  <option value="3">🚚 {isHindi ? "वितरण" : "Distribution"}</option>
-                  <option value="4">🏪 {isHindi ? "खुदरा बिक्री" : "Retail"}</option>
+                  <option value="1">🏭 Processing</option>
+                  <option value="2">🧪 Quality Testing</option>
+                  <option value="3">🚚 Distribution</option>
+                  <option value="4">🏪 Retail</option>
                 </select>
               </div>
 
@@ -468,7 +437,7 @@ export default function BeekeeperBatchesPage() {
               {selectedUser && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-xs">
                   <p className="font-semibold text-green-800">
-                    {isHindi ? "हस्तांतरित किया जा रहा है: " : "Transferring to: "} {selectedUser.name} ({selectedUser.role})
+                    Transferring to: {selectedUser.name} ({selectedUser.role})
                   </p>
                   <p className="font-mono text-green-600 mt-0.5 text-[10px]">
                     Wallet: {selectedUser.walletAddress}
@@ -483,16 +452,14 @@ export default function BeekeeperBatchesPage() {
                 onClick={() => setTransferModal({ open: false, batch: null })}
                 className="flex-1 py-2.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {isHindi ? "रद्द करें" : "Cancel"}
+                Cancel
               </button>
               <button
                 onClick={handleTransfer}
                 disabled={!selectedUser || transferring}
                 className="flex-1 py-2.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {transferring
-                  ? (isHindi ? "⏳ ब्लॉकचेन पर प्रोसेस हो रहा है..." : "⏳ Processing on Blockchain...")
-                  : (isHindi ? "🔗 ट्रांसफर शुरू करें" : "🔗 Initiate Transfer")}
+                {transferring ? "⏳ Processing on Blockchain..." : "🔗 Initiate Transfer"}
               </button>
             </div>
           </div>
