@@ -258,7 +258,7 @@ describe("HoneyChain", function () {
     });
   });
 
-  describe("Batch Transfer", function () {
+  describe("Batch Transfer (two-step escrow)", function () {
     const batchId = "HC-2026-000001";
 
     beforeEach(async function () {
@@ -268,10 +268,11 @@ describe("HoneyChain", function () {
       );
     });
 
-    it("should transfer batch to processor", async function () {
-      const tx = await honeyChain.connect(beekeeper).transferBatch(
+    it("should transfer batch to processor via initiate + accept", async function () {
+      await honeyChain.connect(beekeeper).initiateTransfer(
         batchId, processor.address, 2 // Processing
       );
+      const tx = await honeyChain.connect(processor).acceptTransfer(batchId);
       await expect(tx).to.emit(honeyChain, "BatchTransferred");
 
       const batch = await honeyChain.getBatch(batchId);
@@ -281,46 +282,55 @@ describe("HoneyChain", function () {
 
     it("should allow chain of transfers", async function () {
       // Beekeeper → Processor
-      await honeyChain.connect(beekeeper).transferBatch(
-        batchId, processor.address, 2
-      );
+      await honeyChain.connect(beekeeper).initiateTransfer(batchId, processor.address, 2);
+      await honeyChain.connect(processor).acceptTransfer(batchId);
       // Processor → Distributor
-      await honeyChain.connect(processor).transferBatch(
-        batchId, distributor.address, 4 // Distribution
-      );
+      await honeyChain.connect(processor).initiateTransfer(batchId, distributor.address, 4);
+      await honeyChain.connect(distributor).acceptTransfer(batchId);
       // Distributor → Retailer
-      await honeyChain.connect(distributor).transferBatch(
-        batchId, retailer.address, 5 // Retail
-      );
+      await honeyChain.connect(distributor).initiateTransfer(batchId, retailer.address, 5);
+      await honeyChain.connect(retailer).acceptTransfer(batchId);
 
       const batch = await honeyChain.getBatch(batchId);
       expect(batch.currentOwner).to.equal(retailer.address);
       expect(batch.status).to.equal(5); // Retail
     });
 
-    it("should reject transfer from non-owner", async function () {
+    it("should reject transfer initiated by non-owner", async function () {
       await expect(
-        honeyChain.connect(processor).transferBatch(
+        honeyChain.connect(processor).initiateTransfer(
           batchId, distributor.address, 4
         )
       ).to.be.revertedWithCustomError(honeyChain, "NotBatchOwner");
     });
 
+    it("should reject acceptance by address other than pending owner", async function () {
+      await honeyChain.connect(beekeeper).initiateTransfer(batchId, processor.address, 2);
+      await expect(
+        honeyChain.connect(distributor).acceptTransfer(batchId)
+      ).to.be.revertedWithCustomError(honeyChain, "NotPendingOwner");
+    });
+
+    it("should block a second transfer while one is pending", async function () {
+      await honeyChain.connect(beekeeper).initiateTransfer(batchId, processor.address, 2);
+      await expect(
+        honeyChain.connect(beekeeper).initiateTransfer(batchId, distributor.address, 4)
+      ).to.be.revertedWithCustomError(honeyChain, "TransferAlreadyPending");
+    });
+
     it("should reject transfer for nonexistent batch", async function () {
       await expect(
-        honeyChain.connect(beekeeper).transferBatch(
+        honeyChain.connect(beekeeper).initiateTransfer(
           "FAKE-001", processor.address, 2
         )
       ).to.be.revertedWithCustomError(honeyChain, "BatchNotFound");
     });
 
     it("should record supply chain events for transfers", async function () {
-      await honeyChain.connect(beekeeper).transferBatch(
-        batchId, processor.address, 2
-      );
-      await honeyChain.connect(processor).transferBatch(
-        batchId, distributor.address, 4
-      );
+      await honeyChain.connect(beekeeper).initiateTransfer(batchId, processor.address, 2);
+      await honeyChain.connect(processor).acceptTransfer(batchId);
+      await honeyChain.connect(processor).initiateTransfer(batchId, distributor.address, 4);
+      await honeyChain.connect(distributor).acceptTransfer(batchId);
 
       const history = await honeyChain.getBatchHistory(batchId);
       expect(history.length).to.equal(3); // Harvest + Processing + Distribution
@@ -410,10 +420,11 @@ describe("HoneyChain", function () {
         batchId, 3420, 6700, 38400, iotHash
       );
 
-      // 3. Transfer to processor
-      await honeyChain.connect(beekeeper).transferBatch(
+      // 3. Transfer to processor (two-step escrow)
+      await honeyChain.connect(beekeeper).initiateTransfer(
         batchId, processor.address, 2 // Processing
       );
+      await honeyChain.connect(processor).acceptTransfer(batchId);
 
       // 4. Lab verifies quality
       await honeyChain.connect(lab).submitQualityTest(
@@ -421,14 +432,16 @@ describe("HoneyChain", function () {
       );
 
       // 5. Processor transfers to distributor
-      await honeyChain.connect(processor).transferBatch(
+      await honeyChain.connect(processor).initiateTransfer(
         batchId, distributor.address, 4 // Distribution
       );
+      await honeyChain.connect(distributor).acceptTransfer(batchId);
 
       // 6. Distributor transfers to retailer
-      await honeyChain.connect(distributor).transferBatch(
+      await honeyChain.connect(distributor).initiateTransfer(
         batchId, retailer.address, 5 // Retail
       );
+      await honeyChain.connect(retailer).acceptTransfer(batchId);
 
       // Verify final state
       const batch = await honeyChain.getBatch(batchId);
