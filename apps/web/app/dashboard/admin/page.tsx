@@ -142,8 +142,7 @@ export default function AdminDashboard() {
   ];
 
   const activitiesToDisplay = recentActivities.length > 0 ? recentActivities : [
-    {
-      action: isHindi ? "बैच HC-2026-000127 सत्यापित हुआ" : "Batch HC-2026-000127 verified",
+    {        action: isHindi ? "बैच HC-2026-963790 सत्यापित हुआ" : "Batch HC-2026-963790 verified",
       actor: isHindi ? "गुणवत्ता लैब" : "Quality Lab",
       time: isHindi ? "5 मिनट पहले" : "5 min ago",
       icon: <CheckCircle2 size={14} className="text-[var(--color-success)]" />

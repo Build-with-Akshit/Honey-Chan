@@ -134,7 +134,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="reg-name" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Full Name / Organization
               </label>
               <div className="relative">
@@ -143,6 +143,7 @@ export default function Register() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="reg-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -154,7 +155,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="reg-email" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Email Address
               </label>
               <div className="relative">
@@ -163,6 +164,7 @@ export default function Register() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="reg-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -174,7 +176,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="reg-phone" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Phone Number <span className="text-[var(--text-muted)] font-normal">(optional)</span>
               </label>
               <div className="relative">
@@ -183,6 +185,7 @@ export default function Register() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="reg-phone"
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -193,7 +196,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="reg-password" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -202,6 +205,7 @@ export default function Register() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="reg-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -213,6 +217,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

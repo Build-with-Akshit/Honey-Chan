@@ -28,8 +28,18 @@ export async function GET(
   try {
     const params = await props.params;
 
+    // BUG-03 fix: reject control characters / oversized IDs (e.g. %00) with a
+    // clean 400 instead of an unhandled Prisma 500.
+    const rawId = params.batchId || "";
+    if (!rawId || rawId.length > 100 || /[\x00-\x1f\x7f]/.test(rawId)) {
+      return NextResponse.json(
+        { error: "Invalid batch ID." },
+        { status: 400 }
+      );
+    }
+
     const batch = await prisma.honeyBatch.findFirst({
-      where: { batchId: params.batchId },
+      where: { batchId: rawId },
       include: {
         beekeeper: true,
         hive: true,

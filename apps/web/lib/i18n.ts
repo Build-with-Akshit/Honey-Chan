@@ -88,7 +88,7 @@ export const translations = {
     /* ── v2 scanner ── */
     "scan.hint": "Bring the code into the frame",
     "scan.manual": "Type the code",
-    "scan.manualPlaceholder": "Enter batch ID (e.g. HC-2026-000127)",
+    "scan.manualPlaceholder": "Enter batch ID (e.g. HC-2026-963790)",
     "scan.manualSubmit": "Search",
     "scan.notFound": "This code is not in our records",
     "scan.notFoundSub": "Check the code again or ask the seller",
@@ -282,7 +282,7 @@ export const translations = {
     /* ── v2 scanner ── */
     "scan.hint": "कोड को फ्रेम में लाएँ",
     "scan.manual": "कोड टाइप करें",
-    "scan.manualPlaceholder": "बैच नंबर लिखें (जैसे HC-2026-000127)",
+    "scan.manualPlaceholder": "बैच नंबर लिखें (जैसे HC-2026-963790)",
     "scan.manualSubmit": "खोजें",
     "scan.notFound": "यह कोड हमारे यहाँ दर्ज नहीं है",
     "scan.notFoundSub": "कोड फिर से देखें या दुकानदार से पूछें",

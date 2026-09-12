@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import AppIcon from "@/components/icons/AppIcon";
 
 export default function TracePage() {
   const params = useParams();
@@ -90,12 +91,11 @@ export default function TracePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/50 via-white to-amber-50/30 flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--page)] p-4">
         <div className="text-center">
-          <div className="text-5xl mb-3 animate-bounce">🔍</div>
-          <div className="animate-spin h-8 w-8 border-3 border-amber-500 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-sm font-bold text-gray-800">Reading Blockchain State...</p>
-          <p className="text-xs text-gray-500 font-mono mt-1">{batchId}</p>
+          <div className="skeleton mx-auto mb-4 h-12 w-12 rounded-full" aria-hidden />
+          <p className="text-[15px] font-bold text-[var(--ink)]">Reading Blockchain State...</p>
+          <p className="mt-1 font-mono text-xs text-[var(--ink-mute)]">{batchId}</p>
         </div>
       </div>
     );
@@ -103,21 +103,29 @@ export default function TracePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/50 via-white to-amber-50/30 flex items-center justify-center p-4">
-        <div className="card p-8 bg-white border-red-200 max-w-md w-full text-center space-y-4 shadow-lg">
-          <span className="text-5xl">⚠️</span>
-          <h2 className="text-lg font-bold text-gray-900">Blockchain Record Not Found</h2>
-          <p className="text-xs text-red-600 font-mono">{error}</p>
-          <div className="pt-2 flex justify-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="px-4 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 rounded-lg"
-            >
+      <div className="flex min-h-screen items-center justify-center bg-[var(--page)] p-4">
+        <div className="card w-full max-w-md space-y-4 p-8 text-center">
+          <span
+            className="mx-auto flex h-14 w-14 items-center justify-center"
+            style={{ background: "var(--page)", borderRadius: "var(--radius-full)" }}
+            aria-hidden
+          >
+            <AppIcon name="warn" size={28} ariaLabel="" />
+          </span>
+          <h1 className="heading-3">Blockchain Record Not Found</h1>
+          <p className="font-mono text-[13px]" style={{ color: "var(--danger)" }}>
+            {error}
+          </p>
+          <p className="text-[14px]" style={{ color: "var(--ink-soft)" }}>
+            This QR code may be old or damaged. Try the consumer verification page instead.
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button onClick={() => router.back()} className="btn-secondary !min-h-[48px]">
               ← Go Back
             </button>
             <Link
               href={`/verify/${encodeURIComponent(batchId)}`}
-              className="px-4 py-2 text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 rounded-lg"
+              className="btn-primary !min-h-[48px]"
             >
               Open Consumer Verification
             </Link>

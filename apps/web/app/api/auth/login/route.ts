@@ -5,7 +5,20 @@ import { ethers } from "ethers";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    // BUG-03 fix: validate types — malformed bodies must 400, not 500.
+    if (
+      !body ||
+      typeof body !== "object" ||
+      Array.isArray(body) ||
+      (body.email !== undefined && typeof body.email !== "string") ||
+      (body.password !== undefined && typeof body.password !== "string")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid request body." },
+        { status: 400 }
+      );
+    }
     const { email, password, walletAddress, signature, message } = body;
 
     let user;
@@ -41,17 +54,11 @@ export async function POST(request: Request) {
         where: { email },
       });
 
-      if (!user) {
+      // BUG-03 fix: unknown user and wrong password return the SAME 401 +
+      // message so the endpoint can't be used to enumerate registered emails.
+      if (!user || user.password !== password) {
         return NextResponse.json(
-          { error: "User not found. Please register first." },
-          { status: 404 }
-        );
-      }
-
-      // In a real app, hash and compare. Plaintext used here for demo seeding.
-      if (user.password !== password) {
-        return NextResponse.json(
-          { error: "Invalid credentials." },
+          { error: "Invalid email or password." },
           { status: 401 }
         );
       }

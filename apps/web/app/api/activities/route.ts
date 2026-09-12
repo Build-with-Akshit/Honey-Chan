@@ -15,7 +15,9 @@ function timeAgo(date: Date): string {
 
 export async function GET() {
   try {
-    const { user, errorResponse } = await requireAuth(["ADMIN"]);
+    // BUG-01 fix: this feed is rendered on dashboards of every role —
+    // any authenticated user may read it (rows carry no sensitive fields).
+    const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
     const events = await prisma.supplyChainEvent.findMany({

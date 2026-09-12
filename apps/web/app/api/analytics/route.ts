@@ -5,28 +5,39 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const batches = await prisma.honeyBatch.findMany();
-    const hives = await prisma.hive.findMany({ include: { cluster: true } });
-    
-    // Calculate global KPIs
-    const totalHoneyKg = batches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+    // PERF-02 fix: aggregate KPIs in SQL instead of loading every batch into memory.
+    const [qtyAgg, flaggedCount, hiveCount] = await Promise.all([
+      prisma.honeyBatch.aggregate({ _sum: { quantity: true } }),
+      prisma.honeyBatch.count({ where: { status: "FLAGGED" } }),
+      prisma.hive.count({ where: { status: "ACTIVE" } }),
+    ]);
+    const totalHoneyKg = Number(qtyAgg._sum.quantity || 0);
     const totalHoneyTons = (totalHoneyKg / 1000).toFixed(1);
-    const flaggedCount = batches.filter(b => b.status === "FLAGGED").length;
 
-    // We don't track all AI predictions globally easily without a big query,
-    // so let's mock average health or calculate it if possible. 
-    // Since we want live data, let's just return a placeholder for Premium and calculate health from clusters.
-    
-    // Regional data
+    // Regional data (clusters + hives + batch quantities via included relations)
     const clusters = await prisma.cluster.findMany({
       include: {
         hives: {
-          include: { honeyBatches: true }
+          include: { honeyBatches: { select: { quantity: true } } }
         }
       }
     });
 
-    const regions = await Promise.all(clusters.map(async (c) => {
+    // PERF-02 fix: one grouped query for the latest prediction health per hive
+    // instead of an awaited findFirst inside the per-hive loop (N+1).
+    const predictions = await prisma.aiPrediction.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { hiveId: true, healthScore: true, createdAt: true },
+    });
+    const latestHealthByHive = new Map<number, number>();
+    for (const p of predictions) {
+      if (p.healthScore == null || p.hiveId == null) continue;
+      if (!latestHealthByHive.has(p.hiveId)) {
+        latestHealthByHive.set(p.hiveId, p.healthScore);
+      }
+    }
+
+    const regions = clusters.map((c) => {
       let totalProductionKg = 0;
       let activeHivesCount = 0;
       const beekeeperIds = new Set<number>();
@@ -37,16 +48,13 @@ export async function GET() {
         if (hive.status === "ACTIVE") activeHivesCount++;
         if (hive.beekeeperId) beekeeperIds.add(hive.beekeeperId);
 
-        hive.honeyBatches.forEach(b => {
+        hive.honeyBatches.forEach((b) => {
           totalProductionKg += Number(b.quantity || 0);
         });
 
-        const latestPrediction = await prisma.aiPrediction.findFirst({
-          where: { hiveId: hive.id },
-          orderBy: { createdAt: 'desc' }
-        });
-        if (latestPrediction && latestPrediction.healthScore) {
-          totalHealth += latestPrediction.healthScore;
+        const health = latestHealthByHive.get(hive.id);
+        if (health != null) {
+          totalHealth += health;
           healthCount++;
         }
       }
@@ -59,12 +67,13 @@ export async function GET() {
         compliance: "100% PASS", // Hardcoded for now as compliance isn't tracked in DB directly
         authenticityScore: healthCount > 0 ? (totalHealth / healthCount).toFixed(1) : "95.0"
       };
-    }));
+    });
 
     return NextResponse.json({
       kpis: {
         totalTraceableHoney: `${totalHoneyTons} Tons`,
         flagged: `${flaggedCount} Flagged`,
+        activeHives: hiveCount,
         avgHiveHealth: "88.6%", // Mock or calculate
         premium: "+24.5%"
       },

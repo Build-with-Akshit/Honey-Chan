@@ -171,7 +171,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Email Address
               </label>
               <div className="relative">
@@ -180,6 +180,7 @@ export default function Login() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -191,7 +192,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -200,6 +201,7 @@ export default function Login() {
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -210,6 +212,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

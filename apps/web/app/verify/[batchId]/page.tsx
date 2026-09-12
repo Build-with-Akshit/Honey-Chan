@@ -101,7 +101,7 @@ function useSpeak() {
 export default function VerifyPage() {
   const params = useParams();
   const rawBatchId = params.batchId as string;
-  const batchId = rawBatchId || "HC-2026-000127";
+  const batchId = rawBatchId || "HC-2026-963790";
   const router = useRouter();
 
   const { language, setLanguage, t } = useLanguage();

@@ -53,8 +53,8 @@ export default function AdminBatchesPage() {
       // Default known demo batches if smart contract has none or as fallback
       const uniqueBatchIds = Array.from(new Set([
         ...batchIds,
-        "HC-2026-000127",
-        "HC-2026-000128",
+        "HC-2026-963790",
+        "HC-2026-315441",
       ]));
 
       const batchRecords: BatchBlockchainRecord[] = [];

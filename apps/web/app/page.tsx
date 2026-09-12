@@ -260,7 +260,7 @@ export default function Home() {
   const demoEntry = !isLoading &&
     !user && (
       <section className="mt-8 lg:hidden">
-        <Link href="/verify/HC-2026-000127" className="btn-secondary w-full">
+        <Link href="/verify/HC-2026-963790" className="btn-secondary w-full">
           <AppIcon name="scan" size={22} ariaLabel="" />
           {t("land.tile.verifySub")}
         </Link>

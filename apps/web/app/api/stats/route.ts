@@ -14,10 +14,11 @@ export async function GET() {
       const verifiedBatches = await prisma.honeyBatch.count({ where: { status: "COMPLETED" } });
       const flaggedBatches = await prisma.honeyBatch.count({ where: { status: "FLAGGED" } });
 
-      const allBatches = await prisma.honeyBatch.findMany({
-        select: { quantity: true }
+      // SQL aggregate (PERF-02 fix): sum in the database, not in JS memory.
+      const qtyAgg = await prisma.honeyBatch.aggregate({
+        _sum: { quantity: true },
       });
-      const totalHoneyKg = allBatches.reduce((acc, batch) => acc + Number(batch.quantity || 0), 0);
+      const totalHoneyKg = Number(qtyAgg._sum.quantity || 0);
       const totalHoneyTons = (totalHoneyKg / 1000).toFixed(1);
 
       return NextResponse.json({
