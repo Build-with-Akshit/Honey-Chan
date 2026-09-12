@@ -12,7 +12,8 @@ export default async function MarketplacePage() {
     },
     include: {
       beekeeper: true,
-      hive: true
+      hive: true,
+      qualityTests: true
     },
     orderBy: { createdAt: "desc" }
   });
@@ -84,12 +85,12 @@ export default async function MarketplacePage() {
                   <div className="grid grid-cols-2 gap-4 py-3 border-y border-gray-100">
                     <div>
                       <div className="text-xs text-gray-400 mb-0.5">Quantity</div>
-                      <div className="font-bold text-gray-800">{batch.quantity} KG</div>
+                      <div className="font-bold text-gray-800">{batch.quantity ? batch.quantity.toString() : "0"} KG</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-0.5">Quality Test</div>
                       <div className="font-bold text-gray-800 flex items-center gap-1">
-                        {batch.qualityPassed ? (
+                        {batch.qualityPassed || batch.qualityTests?.some((t: any) => t.result === "PASSED") ? (
                            <span className="text-green-600">✅ Passed</span>
                         ) : batch.status === "HARVESTED" || batch.status === "PROCESSING" ? (
                            <span className="text-amber-600">⏳ Pending</span>

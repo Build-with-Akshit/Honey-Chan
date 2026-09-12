@@ -6,33 +6,44 @@ import { translations, type Language } from "@/lib/i18n";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof typeof translations.en) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  language: "en",
+  language: "hi", // Hindi-first (plan.md decision #1)
   setLanguage: () => {},
-  t: (key) => translations.en[key] || key,
+  t: (key) => String(key),
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
+  // Hindi is the default; saved preference wins after first visit.
+  const [language, setLanguageState] = useState<Language>("hi");
 
   useEffect(() => {
     const saved = localStorage.getItem("honeychain_lang") as Language;
     if (saved === "en" || saved === "hi") {
       setLanguageState(saved);
     }
+    document.documentElement.lang = saved === "en" ? "en" : "hi";
   }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("honeychain_lang", lang);
+    document.documentElement.lang = lang === "en" ? "en" : "hi";
   };
 
-  const t = (key: keyof typeof translations.en): string => {
-    const dict = translations[language] || translations.en;
-    return dict[key] || translations.en[key] || key;
+  // v2 t(): dotted keys + {var} interpolation; falls back to en, then key.
+  const t = (key: string, vars?: Record<string, string | number>): string => {
+    const dict = translations[language] as Record<string, string>;
+    const en = translations.en as Record<string, string>;
+    let value = dict[key] ?? en[key] ?? key;
+    if (vars) {
+      for (const [k, v] of Object.entries(vars)) {
+        value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+      }
+    }
+    return value;
   };
 
   return (

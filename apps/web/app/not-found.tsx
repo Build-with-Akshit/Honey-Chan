@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Home, ArrowLeft, Search } from "lucide-react";
 
 export default function NotFound() {
@@ -45,8 +46,8 @@ export default function NotFound() {
         {/* Branding */}
         <div className="mt-12 pt-6 border-t border-[var(--border-default)]">
           <div className="flex items-center justify-center gap-2">
-            <div className="w-7 h-7 rounded-[var(--radius-sm)] bg-gradient-to-br from-[var(--honey-500)] to-[var(--orange-600)] flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-[9px]">HC</span>
+            <div className="w-7 h-7 rounded-[var(--radius-sm)] overflow-hidden shadow-sm border border-amber-500/30">
+              <Image src="/favicon.png" alt="HoneyChain" width={28} height={28} className="w-full h-full object-cover" />
             </div>
             <span className="text-sm font-semibold text-[var(--text-secondary)] font-[family-name:var(--font-outfit)]">
               HoneyChain

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Hexagon, Sparkles } from "lucide-react";
@@ -89,8 +90,8 @@ export default function Login() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm">
-              <span className="text-white font-bold text-sm">HC</span>
+            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20">
+              <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg font-[family-name:var(--font-outfit)]">
               HoneyChain
@@ -127,8 +128,8 @@ export default function Login() {
         <div className="w-full max-w-md animate-slide-up">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-gradient-to-br from-[var(--honey-500)] to-[var(--orange-600)] flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">HC</span>
+            <div className="w-10 h-10 rounded-[var(--radius-md)] overflow-hidden shadow-md border border-amber-500/30">
+              <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
               HoneyChain

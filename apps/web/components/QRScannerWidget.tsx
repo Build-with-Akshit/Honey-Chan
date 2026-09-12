@@ -1,29 +1,48 @@
 "use client";
 
+/**
+ * QRScannerWidget — v2 restyle (design.md §5.6, content.md §4.1).
+ * Icon-first monochrome scanner: no emoji, localized labels,
+ * 56px+ targets, manual batch-ID fallback for damaged labels.
+ * Scanning logic unchanged (html5-qrcode + jsQR image fallback).
+ */
+
 import { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import jsQR from "jsqr";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import AppIcon from "@/components/icons/AppIcon";
 
 export default function QRScannerWidget() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualId, setManualId] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const handleSuccess = (decodedText: string) => {
     stopCamera();
     setScanning(false);
-    
+
     let batchId = decodedText;
-    if (decodedText.includes('/verify/')) {
-      batchId = decodedText.split('/verify/')[1];
-    } else if (decodedText.includes('/trace/')) {
-      batchId = decodedText.split('/trace/')[1];
+    if (decodedText.includes("/verify/")) {
+      batchId = decodedText.split("/verify/")[1];
+    } else if (decodedText.includes("/trace/")) {
+      batchId = decodedText.split("/trace/")[1];
     }
-    
+
     router.push(`/verify/${batchId}`);
+  };
+
+  const submitManual = (e: React.FormEvent) => {
+    e.preventDefault();
+    const id = manualId.trim();
+    if (!id) return;
+    router.push(`/verify/${encodeURIComponent(id)}`);
   };
 
   const startCamera = async () => {
@@ -39,9 +58,9 @@ export default function QRScannerWidget() {
         handleSuccess,
         () => {} // ignore stream errors
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg("Camera access denied or unavailable.");
+      setErrorMsg(t("verdict.unverified.body"));
       setCameraActive(false);
     }
   };
@@ -51,7 +70,9 @@ export default function QRScannerWidget() {
       try {
         await scannerRef.current.stop();
         scannerRef.current.clear();
-      } catch (err) {}
+      } catch {
+        /* noop */
+      }
     }
     setCameraActive(false);
   };
@@ -60,16 +81,15 @@ export default function QRScannerWidget() {
     if (!e.target.files || e.target.files.length === 0) return;
     setErrorMsg("");
     const file = e.target.files[0];
-    
+
     try {
       const img = new Image();
       const objectUrl = URL.createObjectURL(file);
-      
+
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d", { willReadFrequently: true });
-        
-        // Scale down if image is too large
+
         const MAX_WIDTH = 1000;
         let width = img.width;
         let height = img.height;
@@ -83,13 +103,11 @@ export default function QRScannerWidget() {
         if (context) {
           context.drawImage(img, 0, 0, width, height);
           const imageData = context.getImageData(0, 0, width, height);
-          
+
           let code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
           });
-
           if (!code) {
-            // Try with inversion for better contrast support
             code = jsQR(imageData.data, imageData.width, imageData.height, {
               inversionAttempts: "invertFirst",
             });
@@ -98,28 +116,26 @@ export default function QRScannerWidget() {
           if (code) {
             handleSuccess(code.data);
           } else {
-            setErrorMsg("No valid QR code found in the image. Please try another clear image.");
+            setErrorMsg(t("scan.notFound"));
           }
         }
         URL.revokeObjectURL(objectUrl);
       };
-      
+
       img.onerror = () => {
-        setErrorMsg("Failed to load image. Please try a different file.");
+        setErrorMsg(t("scan.notFound"));
         URL.revokeObjectURL(objectUrl);
       };
-      
+
       img.src = objectUrl;
     } catch (err) {
       console.error(err);
-      setErrorMsg("Error processing image.");
+      setErrorMsg(t("scan.notFound"));
     }
-    
-    // reset input
+
     e.target.value = "";
   };
 
-  // cleanup on unmount
   useEffect(() => {
     return () => {
       if (scannerRef.current && scannerRef.current.isScanning) {
@@ -128,77 +144,136 @@ export default function QRScannerWidget() {
     };
   }, []);
 
+  /* ── Entry: single primary 64px button (design.md §5.1) ── */
   if (!scanning) {
     return (
       <button
         onClick={() => setScanning(true)}
-        className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 w-full"
+        className="btn-primary w-full"
+        aria-label={t("land.cta.scan")}
       >
-        <span>📷</span> Scan QR / Upload Image
+        <AppIcon name="scan" size={24} ariaLabel="" />
+        {t("land.cta.scan")}
       </button>
     );
   }
 
+  /* ── Open scanner panel ── */
   return (
-    <div className="w-full mt-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="p-4 space-y-4">
+    <div className="card w-full mt-4 overflow-hidden p-0">
+      <div className="space-y-4 p-4">
         {errorMsg && (
-          <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg border border-red-200 font-medium">
-            ⚠️ {errorMsg}
+          <div
+            role="alert"
+            className="flex items-start gap-2 p-3 text-[15px] font-medium"
+            style={{
+              border: "1px solid var(--danger)",
+              borderRadius: "var(--radius-md)",
+              color: "var(--danger)",
+              background: "var(--paper)",
+            }}
+          >
+            <AppIcon name="warn" size={20} ariaLabel="" />
+            {errorMsg}
           </div>
         )}
 
-        <div id="qr-reader-custom" className={`w-full overflow-hidden rounded-lg bg-black ${cameraActive ? 'block' : 'hidden'}`}></div>
+        <div
+          id="qr-reader-custom"
+          className={`w-full overflow-hidden ${cameraActive ? "block" : "hidden"}`}
+          style={{ borderRadius: "var(--radius-lg)", background: "#111111" }}
+        ></div>
 
         {!cameraActive ? (
-          <div className="space-y-4">
+          <>
             <button
               onClick={startCamera}
-              className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors border border-amber-300"
+              className="btn-secondary w-full"
             >
-              <span>📹</span> Open Camera to Scan
+              <AppIcon name="camera" size={24} ariaLabel="" />
+              {t("scan.hint")}
             </button>
-            
-            <div className="relative">
+
+            {/* Manual batch-ID fallback (design.md §5.6) */}
+            {manualOpen ? (
+              <form onSubmit={submitManual} className="space-y-2">
+                <input
+                  type="text"
+                  value={manualId}
+                  onChange={(e) => setManualId(e.target.value)}
+                  placeholder={t("scan.manualPlaceholder")}
+                  className="input"
+                  aria-label={t("scan.manual")}
+                  autoFocus
+                />
+                <button type="submit" className="btn-primary w-full">
+                  <AppIcon name="keyboard" size={20} ariaLabel="" />
+                  {t("scan.manualSubmit")}
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={() => setManualOpen(true)}
+                className="btn-ghost w-full"
+              >
+                <AppIcon name="keyboard" size={20} ariaLabel="" />
+                {t("scan.manual")}
+              </button>
+            )}
+
+            <div className="relative py-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full" style={{ borderTop: "1px solid var(--line)" }} />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-400 font-semibold text-xs uppercase">OR</span>
+              <div className="relative flex justify-center">
+                <span
+                  className="px-2 text-[14px] font-semibold"
+                  style={{ background: "var(--paper)", color: "var(--ink-mute)" }}
+                >
+                  {t("scan.manual")}
+                </span>
               </div>
             </div>
 
-            <label className="w-full cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 hover:border-amber-400 text-gray-700 font-bold py-4 rounded-lg flex flex-col items-center justify-center gap-1 transition-all">
-              <span className="text-xl">📁</span>
-              <span>Upload QR Image</span>
-              <span className="text-[10px] text-gray-400 font-normal">JPG, PNG supported</span>
-              <input 
-                type="file" 
-                accept="image/png, image/jpeg, image/webp" 
-                className="hidden" 
-                onChange={handleFileUpload} 
+            <label
+              className="flex w-full cursor-pointer flex-col items-center justify-center gap-1 py-4"
+              style={{
+                border: "1px dashed var(--line-strong)",
+                borderRadius: "var(--radius-md)",
+                color: "var(--ink-soft)",
+                minHeight: "var(--tap-comfort)",
+              }}
+            >
+              <AppIcon name="folder" size={24} ariaLabel="" />
+              <span className="text-[15px] font-semibold">{t("scan.manualSubmit")}</span>
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
+                onChange={handleFileUpload}
               />
             </label>
-          </div>
+          </>
         ) : (
           <button
             onClick={stopCamera}
-            className="w-full bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 rounded-lg flex items-center justify-center gap-2 border border-red-200 transition-colors"
+            className="btn-secondary w-full"
           >
-            Stop Camera
+            <AppIcon name="cross" size={20} ariaLabel="" />
+            {t("action.close")}
           </button>
         )}
       </div>
-      
-      <div className="p-3 bg-gray-50 border-t border-gray-100">
+
+      <div style={{ borderTop: "1px solid var(--line)" }} className="p-3">
         <button
           onClick={() => {
             stopCamera();
             setScanning(false);
           }}
-          className="w-full px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
+          className="btn-ghost w-full"
         >
-          Cancel
+          {t("action.close")}
         </button>
       </div>
     </div>
