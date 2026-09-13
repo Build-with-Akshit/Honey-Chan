@@ -149,7 +149,7 @@ export default function Home() {
           {t("land.tile.verifySub")}
         </p>
       </div>
-      <QRScannerWidget />
+      <QRScannerWidget showDemoBatches={false} />
     </section>
   );
 
