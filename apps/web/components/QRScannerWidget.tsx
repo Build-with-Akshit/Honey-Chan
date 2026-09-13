@@ -35,6 +35,7 @@ export default function QRScannerWidget({
 
   const [scanning, setScanning] = useState(defaultOpen);
   const [activeTab, setActiveTab] = useState<"camera" | "upload" | "manual">(activeTabDefault);
+  const [canFlipCamera, setCanFlipCamera] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
@@ -45,6 +46,27 @@ export default function QRScannerWidget({
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Detect whether the device has multiple cameras (or is mobile)
+  useEffect(() => {
+    const detectCameras = async () => {
+      try {
+        if (typeof navigator !== "undefined" && navigator.mediaDevices?.enumerateDevices) {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoInputs = devices.filter((d) => d.kind === "videoinput");
+          const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+          // Only show Flip Camera if device actually has >1 camera or is a mobile device
+          setCanFlipCamera(videoInputs.length > 1 || (isMobileDevice && videoInputs.length > 0));
+        }
+      } catch {
+        const isMobileDevice = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        setCanFlipCamera(isMobileDevice);
+      }
+    };
+
+    detectCameras();
+  }, []);
 
   const handleSuccess = (decodedText: string) => {
     stopCamera();
@@ -103,7 +125,7 @@ export default function QRScannerWidget({
       try {
         await scannerRef.current.start(
           { facingMode: targetFacing },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { fps: 15 },
           handleSuccess,
           () => {} // ignore stream read misses
         );
@@ -118,7 +140,7 @@ export default function QRScannerWidget({
         if (!isPermission && scannerRef.current) {
           await scannerRef.current.start(
             {},
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            { fps: 15 },
             handleSuccess,
             () => {}
           );
@@ -446,14 +468,16 @@ export default function QRScannerWidget({
           {/* Camera controls bar */}
           {cameraActive && (
             <div className="flex items-center justify-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={flipCamera}
-                className="btn-secondary !min-h-[42px] !py-2 !px-4 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <AppIcon name="refresh" size={16} />
-                <span>{t("scan.flipCamera")}</span>
-              </button>
+              {canFlipCamera && (
+                <button
+                  type="button"
+                  onClick={flipCamera}
+                  className="btn-secondary !min-h-[42px] !py-2 !px-4 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <AppIcon name="refresh" size={16} />
+                  <span>{t("scan.flipCamera")}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={stopCamera}

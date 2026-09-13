@@ -948,3 +948,38 @@ textarea:focus {
   background-blend-mode: soft-light;
 }
 
+/* ── Full-Bleed QR Scanner Video & Overlay Cleanup ── */
+#qr-reader-custom {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  position: absolute !important;
+  inset: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+#qr-reader-custom video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 16px !important;
+  display: block !important;
+}
+
+/* Hide Html5Qrcode default ugly internal overlay, white corner brackets, and shaded regions */
+#qr-reader-custom #qr-shaded-region,
+#qr-reader-custom svg,
+#qr-reader-custom [style*="border-style"] {
+  display: none !important;
+}
+
+/* Hide Html5Qrcode zoom text and extra injected status elements */
+#qr-reader-custom span,
+#qr-reader-custom > div > span {
+  display: none !important;
+}
+
+
