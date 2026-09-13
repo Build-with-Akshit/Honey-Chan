@@ -92,7 +92,7 @@ export default function SupplyChainDashboard() {
         {user.role === "PROCESSOR" && (
           <>
             <Widget title="Total Batches" value={stats.totalBatches.toString()} icon="📦" subtitle="Inward & processing inventory" color="amber" />
-            <Widget title="Pending Actions" value={stats.pendingAction.toString()} icon="⚡" subtitle="Awaiting custody acceptance" color="orange" highlight={stats.pendingAction > 0} />
+            <Widget title="Pending Actions" value={stats.pendingAction.toString()} icon="⚡" subtitle="Awaiting custody acceptance" color="orange" />
             <Widget title="Processed" value={stats.completed.toString()} icon="🍯" subtitle="Batches ready for dispatch" color="emerald" />
             <Widget title="Total Volume" value={`${stats.totalKg} kg`} icon="⚖️" subtitle="Total verified honey mass" color="blue" />
           </>
@@ -100,7 +100,7 @@ export default function SupplyChainDashboard() {
         {user.role === "LAB" && (
           <>
             <Widget title="Total Tests" value={stats.totalBatches.toString()} icon="🧪" subtitle="All sample submissions" color="purple" />
-            <Widget title="Pending Lab Review" value={stats.pendingAction.toString()} icon="🔬" subtitle="Awaiting spectrum test" color="amber" highlight={stats.pendingAction > 0} />
+            <Widget title="Pending Lab Review" value={stats.pendingAction.toString()} icon="🔬" subtitle="Awaiting spectrum test" color="amber" />
             <Widget title="Tests Completed" value={stats.completed.toString()} icon="✅" subtitle="Certified reports issued" color="emerald" />
             <Widget title="Volume Tested" value={`${stats.totalKg} kg`} icon="⚖️" subtitle="Certified volume" color="blue" />
           </>
@@ -212,14 +212,12 @@ function Widget({
   icon,
   subtitle,
   color = "amber",
-  highlight = false,
 }: {
   title: string;
   value: string;
   icon: string;
   subtitle?: string;
   color?: string;
-  highlight?: boolean;
 }) {
   const colorMap: Record<string, { bg: string; text: string }> = {
     amber: { bg: "bg-amber-50", text: "text-amber-700" },
@@ -232,7 +230,7 @@ function Widget({
   const c = colorMap[color] || colorMap.amber;
 
   return (
-    <div className={`bg-white p-5 rounded-2xl border transition-all shadow-xs hover:shadow-md ${highlight ? "border-amber-300 ring-2 ring-amber-400/20" : "border-gray-200/80"}`}>
+    <div className="bg-white p-5 rounded-2xl border border-gray-200/80 transition-all shadow-xs hover:shadow-md">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider">{title}</h3>
         <div className={`w-8 h-8 rounded-lg ${c.bg} ${c.text} flex items-center justify-center text-sm`}>
