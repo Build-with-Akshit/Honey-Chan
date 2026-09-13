@@ -195,7 +195,7 @@ export default function CreateBatchPage() {
           <p className="text-xs text-gray-500">
             आपकी फ़सल फ़ोन में सहेज ली गई है। इंटरनेट आने पर यह अपने आप भेज दी जाएगी।
           </p>
-          <Link href="/dashboard/beekeeper" className="inline-block rounded-lg bg-gray-900 text-white px-5 py-3 text-sm font-bold">
+          <Link href="/dashboard/beekeeper" className="inline-block rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-5 py-3 text-sm font-bold shadow-sm transition-all">
             Go to Portal
           </Link>
         </div>
@@ -268,10 +268,10 @@ export default function CreateBatchPage() {
                             type="button"
                             onClick={() => toggleHive(hive.hiveCode)}
                             aria-pressed={selected}
-                            className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                            className={`px-3 py-2 text-xs font-bold rounded-lg border transition-colors cursor-pointer ${
                               selected
-                                ? "bg-gray-900 text-white border-gray-900"
-                                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400"
+                                ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 shadow-xs"
+                                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-amber-400 hover:bg-amber-50/50"
                             }`}
                           >
                             {selected && idx === 0 ? "★ " : ""}{hive.hiveCode}

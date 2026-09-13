@@ -1010,7 +1010,7 @@ function FilteredListPage({
                 if (filtered[0]) setModalBatchId(filtered[0].batchId);
                 setShowIntakeModal(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl shadow-xs hover:shadow-md border border-amber-600/30 transition-all active:scale-[0.98] cursor-pointer"
             >
               <span>⚙️</span>
               <span>Log Processing Step</span>
@@ -1123,30 +1123,30 @@ function FilteredListPage({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setActiveFilter("ALL")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeFilter === "ALL"
-                ? "bg-gray-900 text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-2xs border border-amber-600/30"
+                : "text-gray-600 hover:bg-amber-50 hover:text-amber-900"
             }`}
           >
             All ({baseBatches.length})
           </button>
           <button
             onClick={() => setActiveFilter("PENDING")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeFilter === "PENDING"
-                ? "bg-amber-600 text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-2xs border border-amber-700/30"
+                : "text-gray-600 hover:bg-amber-50 hover:text-amber-900"
             }`}
           >
             Pending Actions ({pendingActionsCount})
           </button>
           <button
             onClick={() => setActiveFilter("HIGH_VOLUME")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeFilter === "HIGH_VOLUME"
-                ? "bg-blue-600 text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-2xs border border-amber-600/30"
+                : "text-gray-600 hover:bg-amber-50 hover:text-amber-900"
             }`}
           >
             High Volume (&ge;5 KG)
@@ -1267,7 +1267,7 @@ function FilteredListPage({
                   <button
                     type="submit"
                     disabled={modalSubmitting}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl transition-all shadow-xs hover:shadow-md border border-amber-600/30 disabled:opacity-50 cursor-pointer"
                   >
                     {modalSubmitting ? (
                       <>

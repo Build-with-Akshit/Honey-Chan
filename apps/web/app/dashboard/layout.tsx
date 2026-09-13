@@ -215,7 +215,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="flex items-center gap-3 border-b p-4" style={{ borderColor: "var(--line)" }}>
           <div
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg shadow-sm border border-amber-500/30 bg-gray-900"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg shadow-sm border border-amber-500/30 bg-amber-500/10"
             title={!sidebarOpen ? "Home (Alt + `)" : undefined}
             onClick={() => router.push("/")}
           >
@@ -428,7 +428,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     }
                   }}
                   disabled={wallet.isConnecting}
-                  className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 text-xs font-semibold text-white shadow-sm hover:bg-black active:scale-[0.98] transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-4 text-xs font-bold text-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer border border-amber-600/30"
                 >
                   <AppIcon name="wallet" size={15} ariaLabel="" />
                   <span>{wallet.isConnecting ? "Connecting..." : "Connect Wallet"}</span>
