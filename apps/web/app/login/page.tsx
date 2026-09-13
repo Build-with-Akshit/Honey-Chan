@@ -80,42 +80,42 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row">
       {/* Left — Branded Hero (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-8 xl:p-12 flex-col justify-center">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-8 xl:p-12 flex-col justify-center h-full">
         {/* Decorative shapes */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
         <div className="absolute top-1/3 right-[-40px] w-48 h-48 border border-white/10 rounded-full pointer-events-none" />
 
-        <div className="relative z-10 max-w-md mx-auto w-full space-y-8">
+        <div className="relative z-10 max-w-md mx-auto w-full space-y-6 my-auto">
           <div>
-            <Link href="/" className="inline-flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20 shadow-sm">
+            <Link href="/" className="inline-flex items-center gap-3 mb-6 group">
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20 shadow-sm group-hover:scale-105 transition-transform">
                 <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold text-lg font-[family-name:var(--font-outfit)]">
+              <span className="font-bold text-xl font-[family-name:var(--font-outfit)] tracking-tight">
                 HoneyChain
               </span>
             </Link>
 
-            <h1 className="font-[family-name:var(--font-outfit)] text-4xl font-bold leading-tight">
+            <h1 className="font-[family-name:var(--font-outfit)] text-3xl xl:text-4xl font-bold leading-tight">
               Welcome back to the future of honey traceability.
             </h1>
-            <p className="text-white/80 mt-4 text-sm leading-relaxed">
+            <p className="text-white/80 mt-3 text-sm leading-relaxed">
               Log in to manage your hives, track batches on blockchain, and
               monitor IoT sensor data in real-time.
             </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-white/10">
+          <div className="space-y-3.5 pt-5 border-t border-white/15">
             {[
-              { icon: <Shield size={18} />, text: "Blockchain-secured records" },
-              { icon: <Hexagon size={18} />, text: "Real-time IoT monitoring" },
-              { icon: <Sparkles size={18} />, text: "AI-powered hive intelligence" },
+              { icon: <Shield size={17} />, text: "Blockchain-secured records" },
+              { icon: <Hexagon size={17} />, text: "Real-time IoT monitoring" },
+              { icon: <Sparkles size={17} />, text: "AI-powered hive intelligence" },
             ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3 text-sm text-white/85">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+              <div key={item.text} className="flex items-center gap-3 text-sm text-white/90">
+                <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center shrink-0">
                   {item.icon}
                 </div>
                 <span>{item.text}</span>
@@ -126,29 +126,29 @@ export default function Login() {
       </div>
 
       {/* Right — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-[var(--bg-base)]">
-        <div className="w-full max-w-md animate-slide-up">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[var(--bg-base)] h-full overflow-y-auto">
+        <div className="w-full max-w-md my-auto animate-slide-up py-2">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] overflow-hidden shadow-md border border-amber-500/30">
-              <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
+          <div className="lg:hidden flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-[var(--radius-md)] overflow-hidden shadow-md border border-amber-500/30">
+              <Image src="/favicon.png" alt="HoneyChain" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg text-[var(--text-primary)] font-[family-name:var(--font-outfit)]">
               HoneyChain
             </span>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-4">
             <h1 className="font-[family-name:var(--font-outfit)] text-2xl font-bold text-[var(--text-primary)]">
               Sign In
             </h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1.5">
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
               Enter your credentials or authenticate via MetaMask
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-3 bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-sm rounded-[var(--radius-md)] border border-[var(--color-danger-border)] font-medium">
+            <div className="mb-4 p-2.5 bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs rounded-[var(--radius-md)] border border-[var(--color-danger-border)] font-medium">
               {error}
             </div>
           )}
@@ -158,35 +158,35 @@ export default function Login() {
             type="button"
             onClick={handleWeb3Login}
             disabled={web3Loading || loading}
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-[var(--radius-md)] flex justify-center items-center gap-2 transition-all mb-4 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-2.5 px-4 rounded-[var(--radius-md)] flex justify-center items-center gap-2 transition-all mb-3 text-xs cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
           >
             {web3Loading ? "Connecting to MetaMask..." : "🦊 Login with MetaMask"}
           </button>
 
-          <div className="relative flex py-2 items-center mb-5">
+          <div className="relative flex py-1 items-center mb-3">
             <div className="flex-grow border-t border-[var(--border-default)]"></div>
-            <span className="flex-shrink-0 mx-4 text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">
+            <span className="flex-shrink-0 mx-3 text-[var(--text-muted)] text-[11px] uppercase tracking-wider font-semibold">
               Or continue with Email
             </span>
             <div className="flex-grow border-t border-[var(--border-default)]"></div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="login-email" className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
                 Email Address
               </label>
               <div className="relative">
                 <Mail
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
                   id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input !pl-10 pr-4"
+                  className="input !h-10 !min-h-[40px] !py-2 !pl-9 pr-3 text-xs"
                   placeholder="you@example.com"
                   required
                 />
@@ -194,20 +194,20 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              <label htmlFor="login-password" className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
                 Password
               </label>
               <div className="relative">
                 <Lock
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                 />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input !pl-10 !pr-10"
+                  className="input !h-10 !min-h-[40px] !py-2 !pl-9 !pr-9 text-xs"
                   placeholder="Enter password"
                   required
                 />
@@ -215,9 +215,9 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3 mt-2 text-sm cursor-pointer"
+              className="btn-primary w-full !h-10 !min-h-[40px] !py-2 mt-1 text-xs cursor-pointer"
             >
               {loading ? (
                 <span className="flex items-center gap-2 justify-center">
@@ -236,7 +236,7 @@ export default function Login() {
                   Signing in...
                 </span>
               ) : (
-                <span className="flex items-center gap-2 justify-center">
+                <span className="flex items-center gap-1.5 justify-center font-bold">
                   Sign In
                   <ArrowRight size={14} />
                 </span>
@@ -244,7 +244,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-[var(--text-secondary)]">
+          <div className="mt-3 text-center text-xs text-[var(--text-secondary)]">
             Don&apos;t have an account?{" "}
             <Link
               href="/register"
@@ -254,12 +254,12 @@ export default function Login() {
             </Link>
           </div>
 
-          {/* Test Accounts */}
-          <div className="mt-8 p-4 bg-[var(--bg-muted)] rounded-[var(--radius-lg)] border border-[var(--border-default)]">
-            <p className="text-xs font-semibold text-[var(--text-secondary)] mb-3">
+          {/* Test Accounts — 3-col compact layout */}
+          <div className="mt-3.5 p-3 bg-[var(--bg-muted)] rounded-xl border border-[var(--border-default)]">
+            <p className="text-[11px] font-bold text-[var(--text-secondary)] mb-2">
               Quick Access — Demo Accounts
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               {[
                 { label: "Beekeeper", email: "ramesh.sonipat@gmail.com", icon: "🐝" },
                 { label: "Processor", email: "contact@abchoney.in", icon: "🏭" },
@@ -270,28 +270,30 @@ export default function Login() {
               ].map((account) => (
                 <button
                   key={account.email}
+                  type="button"
                   onClick={() => {
                     setEmail(account.email);
                     setPassword("password123");
                   }}
-                  className="text-left p-2.5 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-white hover:border-[var(--honey-300)] hover:bg-[var(--honey-50)] transition-all text-xs cursor-pointer group"
+                  className="text-left p-1.5 rounded-lg border border-[var(--border-default)] bg-white hover:border-[var(--honey-400)] hover:bg-[var(--honey-50)] transition-all text-xs cursor-pointer group shadow-2xs"
                 >
-                  <span className="text-sm mr-1.5">{account.icon}</span>
-                  <span className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--honey-700)] transition-colors">
+                  <span className="text-xs mr-1">{account.icon}</span>
+                  <span className="font-semibold text-[11px] text-[var(--text-primary)] group-hover:text-[var(--honey-700)] transition-colors truncate">
                     {account.label}
                   </span>
                 </button>
               ))}
             </div>
             <button
+              type="button"
               onClick={() => {
                 setEmail("admin@honeychain.gov.in");
                 setPassword("password123");
               }}
-              className="w-full mt-2 text-left p-2.5 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-white hover:border-[var(--honey-300)] hover:bg-[var(--honey-50)] transition-all text-xs cursor-pointer group"
+              className="w-full mt-1.5 text-center py-1.5 px-2 rounded-lg border border-[var(--border-default)] bg-white hover:border-[var(--honey-400)] hover:bg-[var(--honey-50)] transition-all text-xs cursor-pointer group flex items-center justify-center gap-1.5 shadow-2xs"
             >
-              <span className="text-sm mr-1.5">🏛️</span>
-              <span className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--honey-700)] transition-colors">
+              <span className="text-xs">🏛️</span>
+              <span className="font-semibold text-[11px] text-[var(--text-primary)] group-hover:text-[var(--honey-700)] transition-colors">
                 Admin Console
               </span>
             </button>
