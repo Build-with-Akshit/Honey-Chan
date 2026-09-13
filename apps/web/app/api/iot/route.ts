@@ -3,15 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 
 // Secret key to verify the request is coming from a real ESP32 device
-// Device key from env. No hardcoded fallback in production; dev falls back
-// to a stable local value (with a warning) so simulators keep working.
-const IOT_DEVICE_KEY =
-  process.env.IOT_DEVICE_KEY ||
-  (process.env.NODE_ENV === "production"
-    ? (() => { throw new Error("IOT_DEVICE_KEY env var is required in production."); })()
-    : "dev-only-iot-device-key");
-if (!process.env.IOT_DEVICE_KEY && process.env.NODE_ENV !== "production") {
-  console.warn("[iot] IOT_DEVICE_KEY not set — using insecure dev fallback.");
+// Evaluated at request time so Next.js build-time page data collection doesn't crash.
+function getExpectedDeviceKey(): string | null {
+  if (process.env.IOT_DEVICE_KEY) return process.env.IOT_DEVICE_KEY;
+  if (process.env.NODE_ENV !== "production") {
+    return "dev-only-iot-device-key";
+  }
+  return null;
 }
 
 // Ensure AI API URL is properly set, fallback to Render URL
@@ -20,8 +18,14 @@ const AI_API_URL = process.env.AI_API_URL || "https://honey-chan.onrender.com";
 export async function POST(req: Request) {
   try {
     // 1. Verify Device Key
+    const expectedKey = getExpectedDeviceKey();
+    if (!expectedKey && process.env.NODE_ENV === "production") {
+      console.error("[iot] IOT_DEVICE_KEY environment variable is not configured.");
+      return NextResponse.json({ error: "Server configuration error: IOT_DEVICE_KEY missing" }, { status: 500 });
+    }
+
     const deviceKey = req.headers.get("x-device-key");
-    if (deviceKey !== IOT_DEVICE_KEY) {
+    if (!deviceKey || (expectedKey && deviceKey !== expectedKey)) {
       return NextResponse.json({ error: "Unauthorized device" }, { status: 401 });
     }
 

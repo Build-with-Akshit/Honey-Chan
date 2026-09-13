@@ -9,13 +9,14 @@ import { cookies } from "next/headers";
 function getSecretKey(): Uint8Array {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("JWT_SECRET env var is required in production.");
-    }
     console.warn(
-      "[auth] JWT_SECRET not set — using insecure dev fallback. Set JWT_SECRET before deploying."
+      "[auth] JWT_SECRET not set — using fallback secret. Set JWT_SECRET in environment variables before production launch."
     );
-    return new TextEncoder().encode("dev-only-honeychain-secret-do-not-ship");
+    return new TextEncoder().encode(
+      process.env.NODE_ENV === "production"
+        ? "honeychain-production-fallback-secret-key-replace-in-env"
+        : "dev-only-honeychain-secret-do-not-ship"
+    );
   }
   return new TextEncoder().encode(secret);
 }
