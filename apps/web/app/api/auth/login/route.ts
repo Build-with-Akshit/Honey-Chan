@@ -2,6 +2,7 @@ import { login } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ethers } from "ethers";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
@@ -56,11 +57,33 @@ export async function POST(request: Request) {
 
       // BUG-03 fix: unknown user and wrong password return the SAME 401 +
       // message so the endpoint can't be used to enumerate registered emails.
-      if (!user || user.password !== password) {
+      if (!user) {
         return NextResponse.json(
           { error: "Invalid email or password." },
           { status: 401 }
         );
+      }
+
+      // Password check: bcrypt hash (current) with transparent plaintext
+      // migration for rows not yet re-hashed (legacy demo rows).
+      const isBcryptHash = user.password.startsWith("$2");
+      const passwordMatches = isBcryptHash
+        ? await bcrypt.compare(password, user.password)
+        : user.password === password;
+
+      if (!passwordMatches) {
+        return NextResponse.json(
+          { error: "Invalid email or password." },
+          { status: 401 }
+        );
+      }
+
+      // Opportunistic upgrade: re-hash legacy plaintext on successful login.
+      if (!isBcryptHash) {
+        const upgradedHash = await bcrypt.hash(password, 12);
+        await prisma.user
+          .update({ where: { id: user.id }, data: { password: upgradedHash } })
+          .catch((e) => console.error("Password upgrade failed:", e));
       }
     } else {
       return NextResponse.json(

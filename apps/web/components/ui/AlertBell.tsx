@@ -16,6 +16,8 @@ interface Alert {
   riskLevel?: string;
   acknowledged: boolean;
   createdAt: string;
+  /** Latest training label recorded for this alert (post-feedback). */
+  feedbackOutcome?: "CONFIRMED" | "FALSE_ALARM" | "TREATED" | null;
 }
 
 const SEVERITY_CONFIG = {
@@ -75,6 +77,26 @@ export function AlertBell() {
       console.error("Failed to acknowledge all:", err);
     }
     setLoading(false);
+  };
+
+  // Training-data capture: was this alert real or noise? (two-thumb labeling)
+  const sendFeedback = async (alert: Alert, outcome: "CONFIRMED" | "FALSE_ALARM" | "TREATED") => {
+    setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, feedbackOutcome: outcome } : a)));
+    try {
+      await fetch("/api/alerts/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          alertKey: `${alert.hiveCode}:${alert.type}:${alert.createdAt}`,
+          hiveId: alert.hiveId,
+          outcome,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to record feedback:", err);
+      // revert on failure
+      setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, feedbackOutcome: null } : a)));
+    }
   };
 
   const timeAgo = (dateStr: string) => {
@@ -168,10 +190,9 @@ export function AlertBell() {
                               <span className={`text-[10px] font-bold ${alert.healthScore >= 88 ? "text-[var(--color-success)]" : alert.healthScore >= 72 ? "text-[var(--color-warning)]" : "text-[var(--color-danger)]"}`}>
                                 Score: {alert.healthScore}
                               </span>
-                            )}
-                            {!alert.acknowledged && (
+                            )}                            {!alert.acknowledged && (
                               <button
-                    
+
                                 onClick={() => acknowledgeAlert(alert.id)}
                                 className="text-[10px] text-[var(--color-success)] hover:underline ml-auto cursor-pointer"
                               >
@@ -180,6 +201,35 @@ export function AlertBell() {
                               </button>
                             )}
                           </div>
+                          {/* Training feedback: two-thumb real/noise labeling */}
+                          {alert.feedbackOutcome ? (
+                            <p className="mt-1.5 text-[10px] font-semibold text-[var(--text-muted)]">
+                              {alert.feedbackOutcome === "CONFIRMED" && "✓ लक्षण सही है (recorded)"}
+                              {alert.feedbackOutcome === "FALSE_ALARM" && "✕ झूला अलर्ट था (recorded)"}
+                              {alert.feedbackOutcome === "TREATED" && "🛠 इलाज हो गया (recorded)"}
+                            </p>
+                          ) : (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <button
+                                onClick={() => sendFeedback(alert, "CONFIRMED")}
+                                className="text-[10px] font-semibold px-2 py-1 rounded border border-[var(--border-default)] hover:bg-[var(--bg-muted)] cursor-pointer transition-colors"
+                              >
+                                ✓ सही है
+                              </button>
+                              <button
+                                onClick={() => sendFeedback(alert, "FALSE_ALARM")}
+                                className="text-[10px] font-semibold px-2 py-1 rounded border border-[var(--border-default)] hover:bg-[var(--bg-muted)] cursor-pointer transition-colors"
+                              >
+                                ✕ गलत था
+                              </button>
+                              <button
+                                onClick={() => sendFeedback(alert, "TREATED")}
+                                className="text-[10px] font-semibold px-2 py-1 rounded border border-[var(--border-default)] hover:bg-[var(--bg-muted)] cursor-pointer transition-colors"
+                              >
+                                इलाज हुआ
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

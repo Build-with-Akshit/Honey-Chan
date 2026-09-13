@@ -3,7 +3,16 @@ import { prisma } from "@/lib/prisma";
 
 
 // Secret key to verify the request is coming from a real ESP32 device
-const IOT_DEVICE_KEY = process.env.IOT_DEVICE_KEY || "secret_device_key_123";
+// Device key from env. No hardcoded fallback in production; dev falls back
+// to a stable local value (with a warning) so simulators keep working.
+const IOT_DEVICE_KEY =
+  process.env.IOT_DEVICE_KEY ||
+  (process.env.NODE_ENV === "production"
+    ? (() => { throw new Error("IOT_DEVICE_KEY env var is required in production."); })()
+    : "dev-only-iot-device-key");
+if (!process.env.IOT_DEVICE_KEY && process.env.NODE_ENV !== "production") {
+  console.warn("[iot] IOT_DEVICE_KEY not set — using insecure dev fallback.");
+}
 
 // Ensure AI API URL is properly set, fallback to Render URL
 const AI_API_URL = process.env.AI_API_URL || "https://honey-chan.onrender.com";

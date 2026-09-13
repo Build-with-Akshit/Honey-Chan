@@ -48,31 +48,109 @@ export default function QRScannerWidget() {
   const startCamera = async () => {
     setErrorMsg("");
     setCameraActive(true);
+
+    // Suppress console.error from third-party library (html5-qrcode) when camera permission is denied/dismissed
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      const message = args.map((a) => (typeof a === "object" ? a?.message || String(a) : String(a))).join(" ");
+      if (
+        message.includes("Error getting userMedia") ||
+        message.includes("NotAllowedError") ||
+        message.includes("Permission dismissed") ||
+        message.includes("Permission denied") ||
+        message.includes("NotFoundError") ||
+        message.includes("DevicesNotFoundError")
+      ) {
+        return;
+      }
+      originalConsoleError.apply(console, args);
+    };
+
     try {
       if (!scannerRef.current) {
         scannerRef.current = new Html5Qrcode("qr-reader-custom");
       }
-      await scannerRef.current.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        handleSuccess,
-        () => {} // ignore stream errors
-      );
+      try {
+        await scannerRef.current.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          handleSuccess,
+          () => {} // ignore stream errors
+        );
+      } catch (firstErr) {
+        const firstErrStr = String(firstErr ?? "");
+        const isPermission =
+          firstErrStr.includes("NotAllowedError") ||
+          firstErrStr.includes("Permission dismissed") ||
+          firstErrStr.includes("Permission denied");
+        // If not a permission rejection and device has no environment camera, fallback to default facing
+        if (!isPermission && scannerRef.current) {
+          await scannerRef.current.start(
+            {},
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            handleSuccess,
+            () => {}
+          );
+        } else {
+          throw firstErr;
+        }
+      }
     } catch (err: unknown) {
-      console.error(err);
-      setErrorMsg(t("verdict.unverified.body"));
+      const errStr = String(err ?? "");
+      const isPermissionDenied =
+        errStr.includes("NotAllowedError") ||
+        errStr.includes("Permission dismissed") ||
+        errStr.includes("Permission denied") ||
+        (typeof err === "object" && err !== null && (err as any).name === "NotAllowedError");
+
+      const isNotFound =
+        errStr.includes("NotFoundError") ||
+        errStr.includes("DevicesNotFoundError") ||
+        (typeof err === "object" && err !== null && (err as any).name === "NotFoundError");
+
+      const isNotReadable =
+        errStr.includes("NotReadableError") ||
+        errStr.includes("TrackStartError") ||
+        (typeof err === "object" && err !== null && (err as any).name === "NotReadableError");
+
+      if (isPermissionDenied) {
+        setErrorMsg(t("scan.cameraDenied"));
+        setManualOpen(true);
+      } else if (isNotFound) {
+        setErrorMsg(t("scan.cameraNotFound"));
+        setManualOpen(true);
+      } else if (isNotReadable) {
+        setErrorMsg(t("scan.cameraInUse"));
+      } else {
+        setErrorMsg(t("scan.cameraError"));
+        console.warn("Camera start encountered an error:", err);
+      }
+
+      if (scannerRef.current) {
+        try {
+          scannerRef.current.clear();
+        } catch {
+          /* noop */
+        }
+        scannerRef.current = null;
+      }
       setCameraActive(false);
+    } finally {
+      console.error = originalConsoleError;
     }
   };
 
   const stopCamera = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
         scannerRef.current.clear();
       } catch {
         /* noop */
       }
+      scannerRef.current = null;
     }
     setCameraActive(false);
   };
@@ -138,8 +216,16 @@ export default function QRScannerWidget() {
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(() => {});
+      if (scannerRef.current) {
+        if (scannerRef.current.isScanning) {
+          scannerRef.current.stop().catch(() => {});
+        }
+        try {
+          scannerRef.current.clear();
+        } catch {
+          /* noop */
+        }
+        scannerRef.current = null;
       }
     };
   }, []);
@@ -165,7 +251,7 @@ export default function QRScannerWidget() {
         {errorMsg && (
           <div
             role="alert"
-            className="flex items-start gap-2 p-3 text-[15px] font-medium"
+            className="flex items-start gap-3 p-3.5 text-[15px] font-medium"
             style={{
               border: "1px solid var(--danger)",
               borderRadius: "var(--radius-md)",
@@ -173,8 +259,23 @@ export default function QRScannerWidget() {
               background: "var(--paper)",
             }}
           >
-            <AppIcon name="warn" size={20} ariaLabel="" />
-            {errorMsg}
+            <div className="shrink-0 mt-0.5">
+              <AppIcon name="warn" size={20} ariaLabel="" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <p className="leading-snug">{errorMsg}</p>
+              {!cameraActive && (
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="btn-secondary text-[13px] py-1.5 px-3 inline-flex items-center gap-1.5"
+                  style={{ minHeight: "36px" }}
+                >
+                  <AppIcon name="refresh" size={16} ariaLabel="" />
+                  {t("scan.cameraRetry")}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

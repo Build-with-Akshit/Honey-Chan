@@ -16,6 +16,10 @@ export const translations = {
     "action.back": "Back",
     "action.done": "Done",
     "action.details": "Details",
+    "jar.warn.title": "Code scanned multiple times",
+    "jar.warn.body": "This jar code has been scanned {count} times. {reason}",
+    "offline.cached": "Offline — showing the last saved result for this jar",
+    "offline.never": "No internet, and this jar was never checked on this phone. Find signal and re-scan.",
     "action.close": "Close",
     "state.loading": "One moment…",
     "state.empty": "Nothing here yet",
@@ -92,6 +96,15 @@ export const translations = {
     "scan.manualSubmit": "Search",
     "scan.notFound": "This code is not in our records",
     "scan.notFoundSub": "Check the code again or ask the seller",
+    "scan.cameraDenied":
+      "Camera access was denied or dismissed. Please enable camera access in your browser settings, or enter the batch ID manually below.",
+    "scan.cameraNotFound":
+      "No camera detected on this device. You can enter the batch ID manually below or upload an image.",
+    "scan.cameraInUse":
+      "Camera is currently in use by another application. Please close other apps and try again.",
+    "scan.cameraError":
+      "Could not start the camera. Please check camera permissions or enter the batch ID manually.",
+    "scan.cameraRetry": "Try camera again",
 
     /* ── v2 verdict ── */
     "verdict.ok.title": "Genuine honey ✓",
@@ -210,6 +223,10 @@ export const translations = {
     "action.back": "पीछे",
     "action.done": "हो गया",
     "action.details": "विवरण",
+    "jar.warn.title": "यह कोड कई बार स्कैन हुआ है",
+    "jar.warn.body": "यह जार कोड {count} बार स्कैन किया गया है। {reason}",
+    "offline.cached": "ऑफ़लाइन — इस जार का पिछला सहेजा हुआ रिज़ल्ट दिखा रहे हैं",
+    "offline.never": "इंटरनेट नहीं है और यह जार इस फ़ोन पर पहले जाँचा नहीं गया। नेटवर्क मिलने पर दोबारा स्कैन करें।",
     "action.close": "बंद करें",
     "state.loading": "एक पल…",
     "state.empty": "अभी कुछ नहीं है",
@@ -286,6 +303,15 @@ export const translations = {
     "scan.manualSubmit": "खोजें",
     "scan.notFound": "यह कोड हमारे यहाँ दर्ज नहीं है",
     "scan.notFoundSub": "कोड फिर से देखें या दुकानदार से पूछें",
+    "scan.cameraDenied":
+      "कैमरा अनुमति अस्वीकार कर दी गई। कृपया ब्राउज़र सेटिंग में कैमरा चालू करें, या नीचे बैच नंबर लिखें।",
+    "scan.cameraNotFound":
+      "इस डिवाइस में कैमरा नहीं मिला। आप नीचे बैच नंबर लिख सकते हैं या फ़ोटो अपलोड कर सकते हैं।",
+    "scan.cameraInUse":
+      "कैमरा किसी अन्य ऐप द्वारा उपयोग में है। कृपया अन्य ऐप बंद कर फिर से कोशिश करें।",
+    "scan.cameraError":
+      "कैमरा शुरू नहीं हो सका। कृपया अनुमति जाँचें या नीचे बैच नंबर लिखें।",
+    "scan.cameraRetry": "कैमरा फिर से चलाएँ",
 
     /* ── v2 verdict ── */
     "verdict.ok.title": "असली शहद ✓",

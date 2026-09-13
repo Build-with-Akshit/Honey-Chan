@@ -3,66 +3,68 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
-  email          String    @unique @db.VarChar(255)
-  password       String    @db.VarChar(255)
-  name           String    @db.VarChar(255)
-  role           String    @db.VarChar(50)
-  phone          String?   @db.VarChar(20)
-  walletAddress  String?   @unique @map("wallet_address") @db.VarChar(42)
-  isVerified     Boolean   @default(false) @map("is_verified")
-  createdAt      DateTime? @default(now()) @map("created_at")
-  updatedAt      DateTime? @default(now()) @map("updated_at")
+  id            Int       @id @default(autoincrement())
+  email         String    @unique @db.VarChar(255)
+  password      String    @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  role          String    @db.VarChar(50)
+  phone         String?   @db.VarChar(20)
+  walletAddress String?   @unique @map("wallet_address") @db.VarChar(42)
+  isVerified    Boolean   @default(false) @map("is_verified")
+  createdAt     DateTime? @default(now()) @map("created_at")
+  updatedAt     DateTime? @default(now()) @map("updated_at")
 
-  hives          Hive[]
-  honeyBatches   HoneyBatch[]
-  qualityTests   QualityTest[]
-  supplyEvents   SupplyChainEvent[]
-  aiChats        AiEncryptedChat[]
-  aiSessions     AiChatSession[]
+  hives        Hive[]
+  honeyBatches HoneyBatch[]
+  qualityTests QualityTest[]
+  supplyEvents SupplyChainEvent[]
+  aiChats      AiEncryptedChat[]
+  aiSessions   AiChatSession[]
 
   @@map("users")
 }
 
 model Cluster {
-  id               Int       @id @default(autoincrement())
-  name             String    @db.VarChar(255)
-  district         String    @db.VarChar(255)
-  state            String    @db.VarChar(255)
-  totalBeekeepers  Int?      @default(0) @map("total_beekeepers")
-  totalHives       Int?      @default(0) @map("total_hives")
-  createdAt        DateTime? @default(now()) @map("created_at")
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  district        String    @db.VarChar(255)
+  state           String    @db.VarChar(255)
+  totalBeekeepers Int?      @default(0) @map("total_beekeepers")
+  totalHives      Int?      @default(0) @map("total_hives")
+  createdAt       DateTime? @default(now()) @map("created_at")
 
-  hives            Hive[]
+  hives Hive[]
 
   @@map("clusters")
 }
 
 model Hive {
-  id              Int       @id @default(autoincrement())
-  hiveCode        String    @unique @map("hive_code") @db.VarChar(50)
-  beekeeperId     Int?      @map("beekeeper_id")
-  clusterId       Int?      @map("cluster_id")
-  location        String?   @db.VarChar(255)
-  latitude        Decimal?  @db.Decimal(10, 8)
-  longitude       Decimal?  @db.Decimal(11, 8)
-  flowerSource    String?   @map("flower_source") @db.VarChar(255)
-  beeColonyType   String?   @default("Apis mellifera") @map("bee_colony_type") @db.VarChar(100)
+  id               Int       @id @default(autoincrement())
+  hiveCode         String    @unique @map("hive_code") @db.VarChar(50)
+  beekeeperId      Int?      @map("beekeeper_id")
+  clusterId        Int?      @map("cluster_id")
+  location         String?   @db.VarChar(255)
+  latitude         Decimal?  @db.Decimal(10, 8)
+  longitude        Decimal?  @db.Decimal(11, 8)
+  flowerSource     String?   @map("flower_source") @db.VarChar(255)
+  beeColonyType    String?   @default("Apis mellifera") @map("bee_colony_type") @db.VarChar(100)
   installationDate DateTime? @map("installation_date") @db.Date
-  status          String?   @default("ACTIVE") @db.VarChar(20)
-  createdAt       DateTime? @default(now()) @map("created_at")
+  status           String?   @default("ACTIVE") @db.VarChar(20)
+  createdAt        DateTime? @default(now()) @map("created_at")
 
-  beekeeper       User?     @relation(fields: [beekeeperId], references: [id])
-  cluster         Cluster?  @relation(fields: [clusterId], references: [id])
-  sensorReadings  SensorReading[]
-  honeyBatches    HoneyBatch[]
-  aiPredictions   AiPrediction[]
+  beekeeper      User?           @relation(fields: [beekeeperId], references: [id])
+  cluster        Cluster?        @relation(fields: [clusterId], references: [id])
+  sensorReadings SensorReading[]
+  honeyBatches   HoneyBatch[]
+  batchHives     BatchHive[]
+  aiPredictions  AiPrediction[]
+  AlertFeedback  AlertFeedback[]
 
   @@map("hives")
 }
@@ -77,33 +79,36 @@ model SensorReading {
   battery     Decimal?  @db.Decimal(5, 2)
   timestamp   DateTime? @default(now())
 
-  hive        Hive?     @relation(fields: [hiveId], references: [id])
+  hive Hive? @relation(fields: [hiveId], references: [id])
 
   @@index([hiveId, timestamp(sort: Desc)], map: "idx_sensor_readings_hive")
   @@map("sensor_readings")
 }
 
 model HoneyBatch {
-  id            Int       @id @default(autoincrement())
-  batchId       String    @unique @map("batch_id") @db.VarChar(50)
-  hiveId        Int?      @map("hive_id")
-  beekeeperId   Int?      @map("beekeeper_id")
-  honeyType     String?   @map("honey_type") @db.VarChar(100)
-  quantity      Decimal?  @db.Decimal(10, 2)
-  harvestDate   DateTime? @map("harvest_date") @db.Date
-  location      String?   @db.VarChar(255)
-  notes         String?
-  metadataHash  String?   @map("metadata_hash") @db.VarChar(66)
-  blockchainTx  String?   @map("blockchain_tx") @db.VarChar(66)
-  status        String?   @default("CREATED") @db.VarChar(20)
-  createdAt     DateTime? @default(now()) @map("created_at")
-  updatedAt     DateTime? @default(now()) @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  batchId      String    @unique @map("batch_id") @db.VarChar(50)
+  hiveId       Int?      @map("hive_id")
+  hashVersion  Int       @default(1) @map("hash_version")
+  beekeeperId  Int?      @map("beekeeper_id")
+  honeyType    String?   @map("honey_type") @db.VarChar(100)
+  quantity     Decimal?  @db.Decimal(10, 2)
+  harvestDate  DateTime? @map("harvest_date") @db.Date
+  location     String?   @db.VarChar(255)
+  notes        String?
+  metadataHash String?   @map("metadata_hash") @db.VarChar(66)
+  blockchainTx String?   @map("blockchain_tx") @db.VarChar(66)
+  status       String?   @default("CREATED") @db.VarChar(20)
+  createdAt    DateTime? @default(now()) @map("created_at")
+  updatedAt    DateTime? @default(now()) @map("updated_at")
 
-  hive          Hive?     @relation(fields: [hiveId], references: [id])
-  beekeeper     User?     @relation(fields: [beekeeperId], references: [id])
-  qualityTests  QualityTest[]
-  events        SupplyChainEvent[]
-  qrScans       QRScan[]
+  hive         Hive?              @relation(fields: [hiveId], references: [id])
+  hives        BatchHive[]
+  beekeeper    User?              @relation(fields: [beekeeperId], references: [id])
+  qualityTests QualityTest[]
+  events       SupplyChainEvent[]
+  qrScans      QRScan[]
+  jarUnits     JarUnit[]
 
   @@index([beekeeperId], map: "idx_honey_batches_beekeeper")
   @@index([batchId], map: "idx_honey_batches_batch_id")
@@ -111,21 +116,21 @@ model HoneyBatch {
 }
 
 model QualityTest {
-  id                Int       @id @default(autoincrement())
-  batchId           Int?      @map("batch_id")
-  labId             Int?      @map("lab_id")
-  moisture          Decimal?  @db.Decimal(5, 2)
-  sucrose           Decimal?  @db.Decimal(5, 2)
-  fructose          Decimal?  @db.Decimal(5, 2)
-  glucose           Decimal?  @db.Decimal(5, 2)
-  hfmContent        Decimal?  @map("hfm_content") @db.Decimal(5, 2)
-  result            String?   @db.VarChar(10)
-  reportHash        String?   @map("report_hash") @db.VarChar(66)
-  reportUrl         String?   @map("report_url")
-  testedAt          DateTime? @default(now()) @map("tested_at")
+  id         Int       @id @default(autoincrement())
+  batchId    Int?      @map("batch_id")
+  labId      Int?      @map("lab_id")
+  moisture   Decimal?  @db.Decimal(5, 2)
+  sucrose    Decimal?  @db.Decimal(5, 2)
+  fructose   Decimal?  @db.Decimal(5, 2)
+  glucose    Decimal?  @db.Decimal(5, 2)
+  hfmContent Decimal?  @map("hfm_content") @db.Decimal(5, 2)
+  result     String?   @db.VarChar(10)
+  reportHash String?   @map("report_hash") @db.VarChar(66)
+  reportUrl  String?   @map("report_url")
+  testedAt   DateTime? @default(now()) @map("tested_at")
 
-  batch             HoneyBatch? @relation(fields: [batchId], references: [id])
-  lab               User?       @relation(fields: [labId], references: [id])
+  batch HoneyBatch? @relation(fields: [batchId], references: [id])
+  lab   User?       @relation(fields: [labId], references: [id])
 
   @@map("quality_tests")
 }
@@ -140,8 +145,8 @@ model SupplyChainEvent {
   txHash    String?   @map("tx_hash") @db.VarChar(66)
   timestamp DateTime? @default(now())
 
-  batch     HoneyBatch? @relation(fields: [batchId], references: [id])
-  actor     User?       @relation(fields: [actorId], references: [id])
+  batch HoneyBatch? @relation(fields: [batchId], references: [id])
+  actor User?       @relation(fields: [actorId], references: [id])
 
   @@index([batchId, timestamp], map: "idx_supply_chain_batch")
   @@map("supply_chain_events")
@@ -159,7 +164,7 @@ model AiPrediction {
   recommendation         String?
   createdAt              DateTime? @default(now()) @map("created_at")
 
-  hive                   Hive?     @relation(fields: [hiveId], references: [id])
+  hive Hive? @relation(fields: [hiveId], references: [id])
 
   @@index([hiveId, createdAt(sort: Desc)], map: "idx_ai_predictions_hive")
   @@map("ai_predictions")
@@ -173,44 +178,91 @@ model QRScan {
   userAgent String?   @map("user_agent")
   scannedAt DateTime? @default(now()) @map("scanned_at")
 
-  batch     HoneyBatch? @relation(fields: [batchId], references: [id])
+  batch HoneyBatch? @relation(fields: [batchId], references: [id])
 
   @@index([batchId], map: "idx_qr_scans_batch")
   @@map("qr_scans")
 }
 
 model AiChatSession {
-  id          String             @id @default(uuid())
-  userId      Int                @map("user_id")
-  title       String             @default("New Agronomist Chat") @db.VarChar(255)
-  hiveCode    String             @default("H001") @map("hive_code") @db.VarChar(50)
-  createdAt   DateTime?          @default(now()) @map("created_at")
-  updatedAt   DateTime?          @default(now()) @updatedAt @map("updated_at")
+  id        String    @id @default(uuid())
+  userId    Int       @map("user_id")
+  title     String    @default("New Agronomist Chat") @db.VarChar(255)
+  hiveCode  String    @default("H001") @map("hive_code") @db.VarChar(50)
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
 
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages    AiEncryptedChat[]
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AiEncryptedChat[]
 
   @@index([userId, updatedAt(sort: Desc)], map: "idx_ai_chat_sessions_user")
   @@map("ai_chat_sessions")
 }
 
 model AiEncryptedChat {
-  id             Int            @id @default(autoincrement())
-  sessionId      String?        @map("session_id")
-  userId         Int            @map("user_id")
-  hiveCode       String         @default("H001") @map("hive_code") @db.VarChar(50)
-  role           String         @db.VarChar(20) // "user" | "assistant"
-  encryptedText  String         @map("encrypted_text") // AES-256-GCM encrypted payload
-  iv             String         @db.VarChar(64) // 12-byte IV (Base64)
-  tag            String         @db.VarChar(64) // 16-byte Auth Tag (Base64)
-  provider       String?        @db.VarChar(100)
-  createdAt      DateTime?      @default(now()) @map("created_at")
+  id            Int       @id @default(autoincrement())
+  sessionId     String?   @map("session_id")
+  userId        Int       @map("user_id")
+  hiveCode      String    @default("H001") @map("hive_code") @db.VarChar(50)
+  role          String    @db.VarChar(20) // "user" | "assistant"
+  encryptedText String    @map("encrypted_text") // AES-256-GCM encrypted payload
+  iv            String    @db.VarChar(64) // 12-byte IV (Base64)
+  tag           String    @db.VarChar(64) // 16-byte Auth Tag (Base64)
+  provider      String?   @db.VarChar(100)
+  createdAt     DateTime? @default(now()) @map("created_at")
 
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  session        AiChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session AiChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Asc)], map: "idx_ai_encrypted_chats_user")
   @@index([sessionId, createdAt(sort: Asc)], map: "idx_ai_encrypted_chats_session")
   @@map("ai_encrypted_chats")
 }
 
+model BatchHive {
+  batchId  Int      @map("batch_id")
+  hiveId   Int      @map("hive_id")
+  weightKg Decimal? @map("weight_kg") @db.Decimal(10, 2)
+
+  batch HoneyBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  hive  Hive       @relation(fields: [hiveId], references: [id], onDelete: Cascade)
+
+  @@id([batchId, hiveId])
+  @@index([hiveId], map: "idx_batch_hives_hive")
+  @@map("batch_hives")
+}
+
+/// One physical jar of a batch. Serialized QR codes point at a specific
+/// JarUnit via ?j=<serial>&s=<secret>; photocopies fail the secret check and
+/// accumulate scan counts that exceed the expected 1 purchase-scan.
+model JarUnit {
+  id            Int       @id @default(autoincrement())
+  batchId       Int       @map("batch_id")
+  serial        String    @map("serial") @db.VarChar(20) // e.g. "0001" within the batch
+  secret        String    @map("secret") @db.VarChar(16) // random code printed under scratch strip / cap
+  status        String    @default("MINTED") @db.VarChar(10) // MINTED | SOLD | FLAGGED
+  scannedCount  Int       @default(0) @map("scanned_count")
+  lastScannedAt DateTime? @map("last_scanned_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  batch HoneyBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, serial], map: "uq_jar_batch_serial")
+  @@index([secret], map: "idx_jar_units_secret")
+  @@map("jar_units")
+}
+
+model AlertFeedback {
+  id        Int      @id @default(autoincrement())
+  alertKey  String   @map("alert_key") @db.VarChar(100) // stable alert identifier
+  hiveId    Int?     @map("hive_id")
+  outcome   String   @db.VarChar(20) // CONFIRMED | FALSE_ALARM | TREATED
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  hive Hive? @relation(fields: [hiveId], references: [id])
+
+  @@index([hiveId], map: "idx_alert_feedback_hive")
+  @@index([alertKey], map: "idx_alert_feedback_alert")
+  @@map("alert_feedback")
+}

@@ -1,14 +1,40 @@
 import { login } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+
+/**
+ * Public registration: BEEKEEPER only (role whitelist).
+ * ADMIN/LAB/supply-chain accounts are created by an admin via seed/tooling,
+ * never through this public endpoint.
+ */
+const PUBLIC_ROLE = "BEEKEEPER" as const;
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, role, phone } = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
+    const { name, email, password, phone } = body as Record<string, unknown>;
+
+    // Type/shape validation — malformed bodies must 400, not 500.
+    if (
+      typeof name !== "string" || name.trim().length === 0 ||
+      typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      typeof password !== "string" || password.length < 6
+    ) {
+      return NextResponse.json(
+        { error: "Valid name, email and a password of at least 6 characters are required." },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -18,14 +44,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the new user
+    // Hash the password — plaintext is never stored.
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    // Create the new user (role forced to BEEKEEPER regardless of input)
     const newUser = await prisma.user.create({
       data: {
-        name,
-        email,
-        password, // Using plain text for prototype
-        role,
-        phone: phone || null,
+        name: name.trim(),
+        email: normalizedEmail,
+        password: passwordHash,
+        role: PUBLIC_ROLE,
+        phone: typeof phone === "string" && phone.length > 0 ? phone : null,
         isVerified: false, // New users start as unverified
       },
     });

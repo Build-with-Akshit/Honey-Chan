@@ -16,6 +16,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { honeyApi } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
+import { cacheVerdict, getCachedVerdict, useOnline } from "@/lib/offline";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import AppIcon, { type IconKey } from "@/components/icons/AppIcon";
@@ -110,13 +111,24 @@ export default function VerifyPage() {
   const [data, setData] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [dangerAcked, setDangerAcked] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
+  const online = useOnline();
   const speak = useSpeak();
 
   const loadVerification = async () => {
     try {
       const res = await honeyApi.verifyBatch(batchId);
       setData(res);
+      setFromCache(false);
+      // Verdicts are immutable after minting — safe to keep for offline reuse.
+      if (res?.batchId) cacheVerdict(batchId, res);
     } catch (err: unknown) {
+      // Offline path: show last cached verdict for this batch, honestly labeled.
+      const cached = getCachedVerdict(batchId);
+      if (cached?.data) {
+        setData(cached.data);
+        setFromCache(true);
+      }
       console.error("Verification fetch error:", err);
     } finally {
       setLoading(false);
@@ -204,6 +216,13 @@ export default function VerifyPage() {
   const mode = data?.verificationMode || "unverified";
   const dangerKind: "tamper" | "recall" = isTampered ? "tamper" : "recall";
 
+  /* Serialized jar status (anti-photocopy, API field jarCheck) */
+  const jar = (data as any)?.jarCheck as
+    | { serial: string; status: "OK" | "RESCAN" | "CLONE_SUSPECTED" | "INVALID" | "UNKNOWN"; scannedCount: number; message: string }
+    | null
+    | undefined;
+  const jarWarn = !!jar && (jar.status === "CLONE_SUSPECTED" || jar.status === "INVALID" || jar.status === "RESCAN");
+
   /* Journey grouping (transfer + outcome pairs) — unchanged logic */
   const journey = data?.journey || [];
   const groupedJourney: any[] = [];
@@ -271,6 +290,45 @@ export default function VerifyPage() {
           <button onClick={() => setDangerAcked(false)} className="min-h-[44px] px-2 text-[13px] font-semibold underline" style={{ color: "var(--paper)" }}>
             {t("action.details")}
           </button>
+        </div>
+      )}
+
+      {/* ── Offline verdict banner (cached, honest) ── */}
+      {fromCache && (
+        <div
+          role="status"
+          className="mt-3 flex items-center gap-2 p-2.5 text-[13px] font-semibold"
+          style={{ border: "1.5px dashed var(--line-strong)", borderRadius: "var(--radius-md)" }}
+        >
+          <AppIcon name="refresh" size={16} ariaLabel="" />
+          <span>{t("offline.cached")}</span>
+        </div>
+      )}
+      {!online && !fromCache && !loading && (
+        <div
+          role="alert"
+          className="mt-3 flex items-center gap-2 p-2.5 text-[13px] font-semibold"
+          style={{ border: "1.5px dashed var(--line-strong)", borderRadius: "var(--radius-md)" }}
+        >
+          <AppIcon name="warn" size={16} ariaLabel="" />
+          <span>{t("offline.never")}</span>
+        </div>
+      )}
+
+      {/* ── Serialized jar warning band (photocopy/clone detection) ── */}
+      {jarWarn && !inDanger && (
+        <div
+          role="alert"
+          className="mt-3 flex items-center gap-3 p-3 animate-slide-up"
+          style={{ background: "var(--ink)", color: "var(--paper)", borderRadius: "var(--radius-md)" }}
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center" style={{ background: "var(--danger)", borderRadius: "22%" }} aria-hidden>
+            <AppIcon name="warn" size={22} ariaLabel="" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-bold">{t("jar.warn.title")}</p>
+            <p className="text-[13px] leading-snug text-white/70">{t("jar.warn.body", { count: String(jar!.scannedCount), reason: jar!.message })}</p>
+          </div>
         </div>
       )}
 

@@ -43,6 +43,7 @@ export async function GET(
       include: {
         beekeeper: true,
         hive: true,
+        hives: { include: { hive: true } },
         events: {
           include: { actor: true },
           orderBy: { timestamp: "asc" },
@@ -60,12 +61,95 @@ export async function GET(
       );
     }
 
+    // ── Serialized jar check (anti-photocopy) ────────────────────────
+    // QR encodes ?j=<serial>&s=<secret>. The secret is printed under a
+    // scratch strip; a photocopy carries the right serial but the SAME
+    // secret scanned from many phones → rising scannedCount exposes it.
+    let jarCheck: {
+      serial: string;
+      status: "OK" | "RESCAN" | "CLONE_SUSPECTED" | "INVALID" | "UNKNOWN";
+      scannedCount: number;
+      message: string;
+    } | null = null;
+
+    const url = new URL(_req.url);
+    const jarSerial = url.searchParams.get("j");
+    const jarSecretParam = url.searchParams.get("s");
+
+    if (jarSerial !== null || jarSecretParam !== null) {
+      if (
+        !jarSerial ||
+        !jarSecretParam ||
+        !/^[0-9]{1,6}$/.test(jarSerial) ||
+        !/^[A-Z0-9]{4,16}$/.test(jarSecretParam)
+      ) {
+        jarCheck = {
+          serial: jarSerial || "",
+          status: "INVALID",
+          scannedCount: 0,
+          message: "QR code is damaged or non-standard",
+        };
+      } else {
+        const jar = await prisma.jarUnit.findUnique({
+          where: { batchId_serial: { batchId: batch.id, serial: jarSerial.padStart(4, "0") } },
+        });
+        if (!jar) {
+          jarCheck = {
+            serial: jarSerial,
+            status: "INVALID",
+            scannedCount: 0,
+            message: "This jar serial was never issued for this batch",
+          };
+        } else if (jar.secret !== jarSecretParam) {
+          // Wrong secret on a valid serial = classic photocopy/clone signature
+          jarCheck = {
+            serial: jar.serial,
+            status: "CLONE_SUSPECTED",
+            scannedCount: jar.scannedCount,
+            message: "This code does not match the original printed code",
+          };
+        } else {
+          // Correct secret — record the scan.
+          const newCount = jar.scannedCount + 1;
+          const shouldFlag = newCount >= 6;
+          const suspicious = newCount >= 3 && !shouldFlag;
+          await prisma.jarUnit.update({
+            where: { id: jar.id },
+            data: {
+              scannedCount: newCount,
+              lastScannedAt: new Date(),
+              status: shouldFlag ? "FLAGGED" : newCount >= 1 && jar.status === "MINTED" ? "SOLD" : jar.status,
+            },
+          });
+          jarCheck = {
+            serial: jar.serial,
+            status: shouldFlag ? "RESCAN" : suspicious ? "RESCAN" : "OK",
+            scannedCount: newCount,
+            message:
+              shouldFlag
+                ? "This code has been scanned an unusual number of times — possible photocopy"
+                : suspicious
+                  ? "This code has been scanned before — re-verification is normal, but be alert"
+                  : "First scan — jar is genuine",
+          };
+        }
+      }
+    }
+
     // ── Compute current metadata hash from DB ────────────────────────
+    // v2 (multi-hive) batches hash the sorted hive-code array from BatchHive;
+    // v1 (legacy) batches hash the single hive code — must stay byte-identical
+    // with what was minted or every old batch would read "tampered".
+    const hiveCodes = batch.hives.map((bh) => bh.hive.hiveCode);
     const currentDataHash = computeMetadataHash({
       batchId: batch.batchId,
-      hiveCode: batch.hive?.hiveCode || "UNKNOWN",
+      hiveCode:
+        batch.hashVersion >= 2 && hiveCodes.length > 0
+          ? hiveCodes
+          : batch.hive?.hiveCode || hiveCodes[0] || "UNKNOWN",
       quantity: (batch.quantity || 0).toString(),
       honeyType: batch.honeyType || "Natural Honey",
+      hashVersion: batch.hashVersion,
     });
 
     // ── Honest blockchain verification ───────────────────────────────
@@ -211,6 +295,12 @@ export async function GET(
     if (isTampered) totalTrustScore = Math.min(32, totalTrustScore);
     if (isRecalled) totalTrustScore = 0; // Immediate disqualification
 
+    // Clone-suspected / invalid jar codes downgrade trust severely —
+    // the physical-digital link is broken even if the hash matches.
+    if (jarCheck && (jarCheck.status === "CLONE_SUSPECTED" || jarCheck.status === "INVALID")) {
+      totalTrustScore = Math.min(30, totalTrustScore);
+    }
+
     // ── Hive Health ──────────────────────────────────────────────────
     let hiveHealth = 92;
     if (batch.hive) {
@@ -249,6 +339,9 @@ export async function GET(
       originalDataBeforeTamper,
       isRecalled,
       recallDetails,
+
+      // Serialized jar (null when QR has no ?j=&s= params — legacy static codes)
+      jarCheck,
 
       // Blockchain context
       blockchainReachable,

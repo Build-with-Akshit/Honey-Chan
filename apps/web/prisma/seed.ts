@@ -1,16 +1,20 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Start seeding ...')
 
+  // Demo passwords are hashed (bcrypt, cost 12) — login route bcrypt.compares.
+  const demoPasswordHash = bcrypt.hashSync('password123', 12)
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@honeychain.gov.in' },
     update: {},
     create: {
       email: 'admin@honeychain.gov.in',
-      password: 'password123',
+      password: demoPasswordHash,
       walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
       name: 'Admin Officer (KVIC)',
       role: 'ADMIN',
@@ -24,7 +28,7 @@ async function main() {
     update: {},
     create: {
       email: 'ramesh.sonipat@gmail.com',
-      password: 'password123',
+      password: demoPasswordHash,
       walletAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
       name: 'Ramesh Kumar',
       role: 'BEEKEEPER',
@@ -38,7 +42,7 @@ async function main() {
     update: {},
     create: {
       email: 'contact@abchoney.in',
-      password: 'password123',
+      password: demoPasswordHash,
       walletAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
       name: 'ABC Honey Processing Unit',
       role: 'PROCESSOR',
@@ -52,7 +56,7 @@ async function main() {
     update: {},
     create: {
       email: 'lab.verify@fssai-approved.gov.in',
-      password: 'password123',
+      password: demoPasswordHash,
       walletAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
       name: 'National Quality Testing Lab',
       role: 'LAB',
@@ -66,7 +70,7 @@ async function main() {
     update: {},
     create: {
       email: 'store@freshmart.in',
-      password: 'password123',
+      password: demoPasswordHash,
       walletAddress: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4df',
       name: 'Fresh Mart Organics Retail',
       role: 'RETAILER',

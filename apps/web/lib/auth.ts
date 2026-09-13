@@ -1,8 +1,26 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
-const secretKey = "super-secret-honeychain-key";
-const key = new TextEncoder().encode(secretKey);
+/**
+ * JWT secret from env. Production MUST provide JWT_SECRET (throws at first
+ * use otherwise); dev falls back to a stable local value with a warning so
+ * the demo runs without extra setup.
+ */
+function getSecretKey(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET env var is required in production.");
+    }
+    console.warn(
+      "[auth] JWT_SECRET not set — using insecure dev fallback. Set JWT_SECRET before deploying."
+    );
+    return new TextEncoder().encode("dev-only-honeychain-secret-do-not-ship");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+const key = getSecretKey();
 
 export async function encrypt(payload: any) {
   return await new SignJWT(payload)

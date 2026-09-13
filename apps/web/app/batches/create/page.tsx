@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { honeyApi } from "@/lib/api";
+import { queueHarvest, flushOutbox } from "@/lib/offline";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
 
@@ -18,9 +19,13 @@ export default function CreateBatchPage() {
     notes: "Pure raw honey extracted using modern solar centrifugal extractor.",
   });
 
+  /** Multi-hive harvest: all hives whose honey went into this batch. */
+  const [selectedHiveCodes, setSelectedHiveCodes] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [createdBatch, setCreatedBatch] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [queuedOffline, setQueuedOffline] = useState(false);
   const [hives, setHives] = useState<any[]>([]);
   const [hivesLoading, setHivesLoading] = useState(true);
 
@@ -35,6 +40,7 @@ export default function CreateBatchPage() {
             honeyType: data[0].flowerSource || prev.honeyType,
             originLocation: data[0].location || prev.originLocation,
           }));
+          setSelectedHiveCodes([data[0].hiveCode]);
         } else {
           setFormData(prev => ({ ...prev, hiveCode: "" }));
         }
@@ -43,20 +49,26 @@ export default function CreateBatchPage() {
       .finally(() => setHivesLoading(false));
   }, []);
 
-  const handleHiveChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const code = e.target.value;
-    const selectedHive = hives.find(h => h.hiveCode === code);
-    setFormData(prev => ({
-      ...prev,
-      hiveCode: code,
-      honeyType: selectedHive?.flowerSource || prev.honeyType,
-      originLocation: selectedHive?.location || prev.originLocation,
-    }));
+  /** Toggle a hive chip; primary hive (first selected) drives honeyType/location defaults. */
+  const toggleHive = (code: string) => {
+    setSelectedHiveCodes(prev => {
+      const next = prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code];
+      if (next.length > 0) {
+        const primary = hives.find(h => h.hiveCode === next[0]);
+        setFormData(f => ({
+          ...f,
+          hiveCode: next[0],
+          honeyType: primary?.flowerSource || f.honeyType,
+          originLocation: primary?.location || f.originLocation,
+        }));
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.hiveCode) {
+    if (selectedHiveCodes.length === 0) {
       setError("Please register a hive first before creating a batch.");
       return;
     }
@@ -66,6 +78,11 @@ export default function CreateBatchPage() {
     try {
       let txHash = "";
       let metadataHash = "";
+
+      // Hash payload must match the server's computeMetadataHash for this
+      // hashVersion: v2 (multi-hive) = sorted hive-code array; v1 = single code.
+      const isMultiHive = selectedHiveCodes.length > 1;
+      const hiveField = isMultiHive ? [...selectedHiveCodes].sort() : selectedHiveCodes[0];
 
       // 1. Try to register on blockchain first
       if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -77,7 +94,7 @@ export default function CreateBatchPage() {
           // Generate a deterministic metadata hash for the blockchain
           const metadataPayload = JSON.stringify({
             batchId: formData.batchId,
-            hive: formData.hiveCode,
+            hive: hiveField,
             type: formData.honeyType,
             quantity: formData.quantityKg
           });
@@ -110,12 +127,23 @@ export default function CreateBatchPage() {
         }
       }
 
-      // 2. Create batch via API (DB storage)
-      const res = await honeyApi.createBatch({
+      // 2. Create batch via API (DB storage) — sends the full hive set.
+      const apiPayload = {
         ...formData,
+        hiveIds: selectedHiveCodes,
         blockchainTx: txHash || undefined, // API will generate a mock hash if undefined
         metadataHash
-      });
+      };
+
+      // Offline path: no network → queue the harvest for later sync instead
+      // of failing. The outbox id travels as an idempotency key on flush.
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        queueHarvest(apiPayload);
+        setQueuedOffline(true);
+        return;
+      }
+
+      const res = await honeyApi.createBatch(apiPayload);
       
       setCreatedBatch(res);
     } catch (err: any) {
@@ -130,6 +158,50 @@ export default function CreateBatchPage() {
       ? `${window.location.origin}/verify/${createdBatch.batchId}`
       : `http://localhost:3001/verify/${createdBatch.batchId}`
     : "";
+
+  /* Serialized jar label: when the API returned jar codes, the QR encodes
+     serial + secret (?j=&s=) so each printed label is unique per jar. */
+  const jars: { serial: string; secret: string }[] =
+    (createdBatch as any)?.jars || [];
+  const [selectedJarIdx, setSelectedJarIdx] = useState(0);
+  const selectedJar = jars[selectedJarIdx];
+  const jarUrl =
+    verificationUrl && selectedJar
+      ? `${verificationUrl}?j=${selectedJar.serial}&s=${selectedJar.secret}`
+      : "";
+
+  // Flush queued harvests when connectivity returns.
+  useEffect(() => {
+    const flush = () => {
+      flushOutbox((payload, key) =>
+        honeyApi.createBatch({ ...(payload as any), idempotencyKey: key })
+      );
+    };
+    window.addEventListener("online", flush);
+    flush(); // also flush leftovers on mount (iOS has no reliable sync event)
+    return () => window.removeEventListener("online", flush);
+  }, []);
+
+  if (queuedOffline) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center space-y-4 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/60 p-8">
+          <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-3xl">📶</div>
+          <h2 className="text-xl font-bold text-gray-900">Harvest saved on this phone</h2>
+          <p className="text-sm text-gray-600">
+            You are offline. The harvest is stored safely and will be submitted
+            automatically when internet returns. Keep this page open or come back later.
+          </p>
+          <p className="text-xs text-gray-500">
+            आपकी फ़सल फ़ोन में सहेज ली गई है। इंटरनेट आने पर यह अपने आप भेज दी जाएगी।
+          </p>
+          <Link href="/dashboard/beekeeper" className="inline-block rounded-lg bg-gray-900 text-white px-5 py-3 text-sm font-bold">
+            Go to Portal
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 py-8 px-4">
@@ -179,27 +251,40 @@ export default function CreateBatchPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">
-                    Source Hive Code
+                    Source Hives (tap all that contributed — first = primary)
                   </label>
-                  <select
-                    value={formData.hiveCode}
-                    onChange={handleHiveChange}
-                    required
-                    disabled={hivesLoading}
-                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400 disabled:opacity-60"
-                  >
-                    {hivesLoading ? (
-                      <option value="">Loading your hives...</option>
-                    ) : hives.length === 0 ? (
-                      <option value="">No hives found - Register a hive first</option>
-                    ) : (
-                      hives.map(hive => (
-                        <option key={hive.id} value={hive.hiveCode}>
-                          {hive.hiveCode} ({hive.location} • {hive.flowerSource} • Health {hive.healthScore || 85}%)
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  {hivesLoading ? (
+                    <p className="text-xs text-gray-500 py-2">Loading your hives...</p>
+                  ) : hives.length === 0 ? (
+                    <p className="text-xs text-gray-500 py-2">No hives found - Register a hive first</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Source hives">
+                      {hives.map(hive => {
+                        const idx = selectedHiveCodes.indexOf(hive.hiveCode);
+                        const selected = idx !== -1;
+                        return (
+                          <button
+                            key={hive.id}
+                            type="button"
+                            onClick={() => toggleHive(hive.hiveCode)}
+                            aria-pressed={selected}
+                            className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                              selected
+                                ? "bg-gray-900 text-white border-gray-900"
+                                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400"
+                            }`}
+                          >
+                            {selected && idx === 0 ? "★ " : ""}{hive.hiveCode}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {selectedHiveCodes.length > 1 && (
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      {selectedHiveCodes.length} hives — batch hash will include the sorted hive list (v2)
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -361,9 +446,33 @@ export default function CreateBatchPage() {
                 <p className="text-[10px] text-amber-700 uppercase tracking-widest font-bold mt-1">100% Pure • Blockchain Verified</p>
               </div>
 
+              {jars.length > 1 && (
+                <div className="no-print flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-white p-2">
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-xs font-bold rounded disabled:opacity-30"
+                    disabled={selectedJarIdx === 0}
+                    onClick={() => setSelectedJarIdx((i) => Math.max(0, i - 1))}
+                  >
+                    ← Prev
+                  </button>
+                  <span className="text-xs font-mono font-bold text-amber-900">
+                    Jar {selectedJarIdx + 1} / {jars.length}
+                  </span>
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-xs font-bold rounded disabled:opacity-30"
+                    disabled={selectedJarIdx === jars.length - 1}
+                    onClick={() => setSelectedJarIdx((i) => Math.min(jars.length - 1, i + 1))}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+
               <div className="flex justify-center bg-white p-4 rounded-xl shadow-sm border border-amber-100">
                 <QRCodeSVG
-                  value={verificationUrl}
+                  value={jarUrl || verificationUrl}
                   size={180}
                   level="H"
                   includeMargin={true}
@@ -375,6 +484,14 @@ export default function CreateBatchPage() {
                   }}
                 />
               </div>
+
+              {selectedJar && (
+                <div className="no-print rounded-lg bg-amber-100 border border-amber-300 p-2 text-center">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-amber-800">Scratch code (under cap)</p>
+                  <p className="text-lg font-mono font-bold tracking-[0.3em] text-amber-900">{selectedJar.secret}</p>
+                  <p className="text-[10px] text-amber-700">Print this code on the label — it proves the jar is original</p>
+                </div>
+              )}
 
               <div className="text-left text-xs space-y-1 bg-white p-3 rounded-lg border border-amber-100">
                 <p className="font-bold text-gray-800">{createdBatch.honeyType}</p>

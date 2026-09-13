@@ -138,16 +138,29 @@ export async function verifyBatchHash(
 /**
  * Compute a deterministic metadata hash from batch data.
  * This must match what was stored on-chain during createBatch().
+ *
+ * Hash versions (HoneyBatch.hashVersion):
+ *  - 1: legacy single-hive payload — hive is one hiveCode string.
+ *  - 2: multi-hive payload — hive is the SORTED array of hive codes
+ *       (sorted so hashing is independent of selection order).
+ * Verify always recomputes with the version stored on the batch row,
+ * so existing v1 batches keep verifying on-chain.
  */
 export function computeMetadataHash(data: {
   batchId: string;
-  hiveCode: string;
+  hiveCode: string | string[];
   quantity: string;
   honeyType: string;
+  hashVersion?: number;
 }): string {
+  const version = data.hashVersion ?? 1;
+  const hiveField =
+    Array.isArray(data.hiveCode) && version >= 2
+      ? [...data.hiveCode].sort()
+      : data.hiveCode;
   const payload = JSON.stringify({
     batchId: data.batchId,
-    hive: data.hiveCode,
+    hive: hiveField,
     type: data.honeyType,
     quantity: data.quantity
   });
