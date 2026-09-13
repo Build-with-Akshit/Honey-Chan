@@ -1,5 +1,12 @@
 export type Language = "hi" | "en";
 
+export const SUPPORTED_LANGUAGES: Language[] = ["hi", "en"];
+
+export const LANGUAGE_METADATA: Record<Language, { code: Language; name: string; nativeName: string }> = {
+  hi: { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
+  en: { code: "en", name: "English", nativeName: "English" },
+};
+
 /**
  * HoneyChain v2 dictionary — source of truth: /content.md.
  * Hindi is the DEFAULT language (plan.md decision #1).

@@ -105,7 +105,7 @@ export default function VerifyPage() {
   const batchId = rawBatchId || "HC-2026-963790";
   const router = useRouter();
 
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, cycleLanguage, t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
@@ -263,7 +263,7 @@ export default function VerifyPage() {
         </span>
         <button
           type="button"
-          onClick={() => setLanguage(language === "hi" ? "en" : "hi")}
+          onClick={() => cycleLanguage()}
           className="inline-flex min-h-[44px] items-center gap-1 rounded-md border px-2.5 text-[13px] font-semibold"
           style={{ borderColor: "var(--line-strong)" }}
           aria-label={t("language")}

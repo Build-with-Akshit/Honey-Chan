@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const wallet = useWallet();
   const router = useRouter();
   const pathname = usePathname();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, cycleLanguage, t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isBeekeeper = user?.role === "BEEKEEPER";
@@ -387,7 +387,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
-              onClick={() => setLanguage(language === "hi" ? "en" : "hi")}
+              onClick={() => cycleLanguage()}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-xs shrink-0"
               aria-label={t("language")}
             >

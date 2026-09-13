@@ -35,7 +35,7 @@ function dashboardFor(role?: string) {
 
 export default function Home() {
   const { user, isLoading, logout } = useAuth();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, cycleLanguage, t } = useLanguage();
 
   const header = (
     <>
@@ -55,7 +55,7 @@ export default function Home() {
       {/* Mobile: single toggle. Desktop (hidden lg:flex): full nav. */}
       <button
         type="button"
-        onClick={() => setLanguage(language === "hi" ? "en" : "hi")}
+        onClick={() => cycleLanguage()}
         className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border px-3 text-[14px] font-semibold lg:hidden"
         style={{ borderColor: "var(--line-strong)", color: "var(--ink)" }}
         aria-label={t("language")}
@@ -96,7 +96,7 @@ export default function Home() {
         )}
         <button
           type="button"
-          onClick={() => setLanguage(language === "hi" ? "en" : "hi")}
+          onClick={() => cycleLanguage()}
           className="nav-link !font-semibold"
           aria-label={t("language")}
         >
