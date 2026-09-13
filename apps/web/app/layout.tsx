@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/context/LanguageContext";
+import RouteTracker from "@/components/RouteTracker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,7 +50,10 @@ export default function RootLayout({
     <html lang="hi">
       <body suppressHydrationWarning className={`${inter.variable} ${devanagari.variable} font-sans antialiased min-h-screen`}>
         <LanguageProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <RouteTracker />
+            {children}
+          </AuthProvider>
         </LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
