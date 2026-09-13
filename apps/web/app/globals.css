@@ -892,3 +892,50 @@ html[lang="hi"] body {
     outline-offset: 2px;
   }
 }
+
+/* ============================================================
+   SCANNER VIEW-FINDER ANIMATIONS & HONEY GLOW
+   ============================================================ */
+
+@keyframes scanLaserSweep {
+  0% {
+    top: 6%;
+    opacity: 0.3;
+  }
+  50% {
+    top: 92%;
+    opacity: 1;
+  }
+  100% {
+    top: 6%;
+    opacity: 0.3;
+  }
+}
+
+.animate-scan-laser {
+  animation: scanLaserSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulseHoneyGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(245, 158, 11, 0.55);
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-honey {
+  animation: pulseHoneyGlow 2.4s ease-in-out infinite;
+}
+
+.bg-honey-pattern {
+  background-color: var(--page);
+  background-image: radial-gradient(#F59E0B 0.65px, transparent 0.65px), radial-gradient(#D97706 0.65px, var(--page) 0.65px);
+  background-size: 26px 26px;
+  background-position: 0 0, 13px 13px;
+  background-blend-mode: soft-light;
+}
+
