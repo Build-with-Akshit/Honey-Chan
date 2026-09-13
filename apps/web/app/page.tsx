@@ -137,25 +137,19 @@ export default function Home() {
 
   const scanCard = (
     <section className="card mt-8 lg:mt-0" aria-label={t("land.cta.scan")}>
-      <div className="mb-3 flex items-center gap-3">
+      <div className="mb-4 flex flex-col items-center text-center">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center"
-          style={{ background: "var(--page)", borderRadius: "var(--radius-full)" }}
+          className="mb-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-700 shadow-2xs"
           aria-hidden
         >
           <AppIcon name="verify" size={22} ariaLabel="" />
         </span>
-        <div>
-          <h2 className="text-[20px] font-semibold leading-[1.3]">{t("land.tile.verify")}</h2>
-          <p className="text-[15px]" style={{ color: "var(--ink-soft)" }}>
-            {t("land.tile.verifySub")}
-          </p>
-        </div>
+        <h2 className="text-[20px] font-bold leading-[1.3] text-gray-900">{t("land.tile.verify")}</h2>
+        <p className="text-[14px] text-gray-500 mt-0.5">
+          {t("land.tile.verifySub")}
+        </p>
       </div>
       <QRScannerWidget />
-      <p className="mt-3 hidden text-[13px] lg:block" style={{ color: "var(--ink-mute)" }}>
-        {t("land.cta.manual")}
-      </p>
     </section>
   );
 

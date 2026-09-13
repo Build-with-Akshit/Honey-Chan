@@ -434,6 +434,15 @@ export default function QRScannerWidget({
                   <AppIcon name="camera" size={20} />
                   <span>{cameraStarting ? t("state.loading") : t("scan.startCamera")}</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => handleTabSwitch("manual")}
+                  className="mt-3.5 text-xs font-semibold text-amber-300/80 hover:text-amber-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer hover:underline"
+                >
+                  <AppIcon name="keyboard" size={14} />
+                  <span>{t("land.cta.manual")}</span>
+                  <span>→</span>
+                </button>
               </div>
             )}
 
