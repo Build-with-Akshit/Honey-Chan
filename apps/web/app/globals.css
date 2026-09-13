@@ -245,8 +245,13 @@ html[lang="hi"] body {
 }
 
 ::selection {
-  background-color: var(--ink);
-  color: var(--paper);
+  background-color: #FBBF24; /* Warm golden honey nectar highlight */
+  color: #3A1700; /* Deep roasted honey espresso text */
+}
+
+::-moz-selection {
+  background-color: #FBBF24;
+  color: #3A1700;
 }
 
 /* ============================================================
@@ -487,8 +492,12 @@ html[lang="hi"] body {
 .input::placeholder {
   color: var(--ink-mute);
 }
-.input:focus {
-  border-color: var(--ink);
+.input:focus,
+select:focus,
+textarea:focus {
+  border-color: #D97706;
+  outline: 2px solid rgba(245, 158, 11, 0.35);
+  outline-offset: 1px;
 }
 .input:disabled {
   opacity: 0.5;
