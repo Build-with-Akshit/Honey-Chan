@@ -103,22 +103,6 @@ export default function Register() {
               </div>
             ))}
           </div>
-
-          {/* Feature Bullets */}
-          <div className="space-y-2.5 pt-1">
-            {[
-              { icon: <Shield size={16} />, text: "KVIC Honey Mission compliant on-chain records" },
-              { icon: <Package size={16} />, text: "Direct hive-to-bottle QR code generation" },
-              { icon: <Store size={16} />, text: "Fair pricing and direct marketplace access" },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-2.5 text-xs text-white/85">
-                <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                  {item.icon}
-                </div>
-                <span>{item.text}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
