@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Hexagon, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Hexagon, Sparkles, CheckCircle2 } from "lucide-react";
 
 export default function Login() {
   const { login, user, isLoading } = useAuth();
@@ -82,44 +82,109 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left — Branded Hero (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-8 xl:p-12 flex-col justify-center">
         {/* Decorative shapes */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
-        <div className="absolute top-1/3 right-[-40px] w-48 h-48 border border-white/10 rounded-full" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
+        <div className="absolute top-1/3 right-[-40px] w-48 h-48 border border-white/10 rounded-full pointer-events-none" />
 
-        <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20">
-              <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
-            </div>
-            <span className="font-bold text-lg font-[family-name:var(--font-outfit)]">
-              HoneyChain
-            </span>
-          </Link>
-
-          <h1 className="font-[family-name:var(--font-outfit)] text-4xl font-bold leading-tight max-w-md">
-            Welcome back to the future of honey traceability.
-          </h1>
-          <p className="text-white/70 mt-4 text-sm leading-relaxed max-w-md">
-            Log in to manage your hives, track batches on blockchain, and
-            monitor IoT sensor data in real-time.
-          </p>
-        </div>
-
-        <div className="relative z-10 space-y-4">
-          {[
-            { icon: <Shield size={18} />, text: "Blockchain-secured records" },
-            { icon: <Hexagon size={18} />, text: "Real-time IoT monitoring" },
-            { icon: <Sparkles size={18} />, text: "AI-powered hive intelligence" },
-          ].map((item) => (
-            <div key={item.text} className="flex items-center gap-3 text-sm text-white/80">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                {item.icon}
+        <div className="relative z-10 max-w-lg mx-auto w-full space-y-6">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20 shadow-sm">
+                <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
               </div>
-              {item.text}
+              <span className="font-bold text-xl font-[family-name:var(--font-outfit)] tracking-tight">
+                HoneyChain
+              </span>
+            </Link>
+
+            <h1 className="font-[family-name:var(--font-outfit)] text-3xl xl:text-4xl font-bold leading-tight">
+              Welcome back to the future of honey traceability.
+            </h1>
+            <p className="text-white/80 mt-2.5 text-sm leading-relaxed">
+              Log in to manage your hives, track batches on blockchain, and
+              monitor IoT sensor data in real-time.
+            </p>
+          </div>
+
+          {/* Live HoneyChain Blockchain Verification Card */}
+          <div className="p-4 rounded-2xl bg-white/12 backdrop-blur-md border border-white/20 shadow-xl space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/25 border border-amber-300/40 text-base">
+                  🍯
+                </span>
+                <div>
+                  <div className="text-xs font-mono font-bold text-amber-200 tracking-wider">
+                    BATCH HC-2026-963790
+                  </div>
+                  <div className="text-[11px] text-white/75">Kashmir Acacia Blossom</div>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+                <CheckCircle2 size={12} />
+                <span>On-Chain</span>
+              </span>
             </div>
-          ))}
+
+            {/* Test Metrics */}
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center">
+              <div className="p-2 rounded-xl bg-black/20">
+                <span className="block text-xs font-bold text-amber-300">98.4%</span>
+                <span className="text-[10px] text-white/70">Purity Score</span>
+              </div>
+              <div className="p-2 rounded-xl bg-black/20">
+                <span className="block text-xs font-bold text-amber-300">17.2%</span>
+                <span className="text-[10px] text-white/70">Moisture Pass</span>
+              </div>
+              <div className="p-2 rounded-xl bg-black/20">
+                <span className="block text-xs font-bold text-amber-300">0% C4</span>
+                <span className="text-[10px] text-white/70">No Adulteration</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-white/60 pt-0.5 font-mono">
+              <span>Tx: 0x7b2a…e491</span>
+              <span>Polygon Amoy</span>
+            </div>
+          </div>
+
+          {/* Network Metrics Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+              <p className="text-lg font-bold font-[family-name:var(--font-outfit)]">1,248+</p>
+              <p className="text-xs text-white/75">Active Beekeepers</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+              <p className="text-lg font-bold font-[family-name:var(--font-outfit)]">8,490</p>
+              <p className="text-xs text-white/75">Smart IoT Hives</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+              <p className="text-lg font-bold font-[family-name:var(--font-outfit)]">100%</p>
+              <p className="text-xs text-white/75">Immutable Proof</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+              <p className="text-lg font-bold font-[family-name:var(--font-outfit)]">KVIC</p>
+              <p className="text-xs text-white/75">Honey Mission Partner</p>
+            </div>
+          </div>
+
+          {/* Feature Bullets */}
+          <div className="space-y-2.5 pt-1">
+            {[
+              { icon: <Shield size={16} />, text: "Blockchain-secured cryptographic records" },
+              { icon: <Hexagon size={16} />, text: "Real-time IoT apiary sensor telemetry" },
+              { icon: <Sparkles size={16} />, text: "AI-powered hive disease & health intelligence" },
+            ].map((item) => (
+              <div key={item.text} className="flex items-center gap-2.5 text-xs text-white/85">
+                <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                  {item.icon}
+                </div>
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

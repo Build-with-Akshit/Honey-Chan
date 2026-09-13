@@ -66,41 +66,59 @@ export default function Register() {
   return (
     <div className="min-h-screen flex">
       {/* Left — Branded Hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-12 flex-col justify-between">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[var(--honey-600)] via-[var(--honey-700)] to-[var(--orange-700)] text-white p-8 xl:p-12 flex-col justify-center">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
-        <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20">
-              <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
-            </div>
-            <span className="font-bold text-lg font-[family-name:var(--font-outfit)]">
-              HoneyChain
-            </span>
-          </Link>
+        <div className="relative z-10 max-w-lg mx-auto w-full space-y-6">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-white/15 flex items-center justify-center backdrop-blur-sm overflow-hidden border border-white/20 shadow-sm">
+                <Image src="/favicon.png" alt="HoneyChain" width={40} height={40} className="w-full h-full object-cover" />
+              </div>
+              <span className="font-bold text-xl font-[family-name:var(--font-outfit)] tracking-tight">
+                HoneyChain
+              </span>
+            </Link>
 
-          <h1 className="font-[family-name:var(--font-outfit)] text-4xl font-bold leading-tight max-w-md">
-            Join India&apos;s largest blockchain-verified honey ecosystem.
-          </h1>
-          <p className="text-white/70 mt-4 text-sm leading-relaxed max-w-md">
-            Register as a beekeeper, processor, lab officer, or retailer to
-            participate in the transparent honey supply chain.
-          </p>
-        </div>
+            <h1 className="font-[family-name:var(--font-outfit)] text-3xl xl:text-4xl font-bold leading-tight">
+              Join India&apos;s largest blockchain-verified honey ecosystem.
+            </h1>
+            <p className="text-white/80 mt-2.5 text-sm leading-relaxed">
+              Register as a beekeeper, processor, lab officer, or retailer to
+              participate in the transparent honey supply chain.
+            </p>
+          </div>
 
-        <div className="relative z-10 grid grid-cols-2 gap-4">
-          {[
-            { value: "1,248+", label: "Beekeepers" },
-            { value: "8,492", label: "Smart Hives" },
-            { value: "182T", label: "Honey Tracked" },
-            { value: "99.8%", label: "FSSAI Pass Rate" },
-          ].map((stat) => (
-            <div key={stat.label} className="p-4 rounded-[var(--radius-lg)] bg-white/10 backdrop-blur-sm border border-white/10">
-              <p className="text-xl font-bold font-[family-name:var(--font-outfit)]">{stat.value}</p>
-              <p className="text-xs text-white/60 mt-0.5">{stat.label}</p>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: "1,248+", label: "Beekeepers" },
+              { value: "8,492", label: "Smart Hives" },
+              { value: "182T", label: "Honey Tracked" },
+              { value: "99.8%", label: "FSSAI Pass Rate" },
+            ].map((stat) => (
+              <div key={stat.label} className="p-4 rounded-[var(--radius-lg)] bg-white/10 backdrop-blur-sm border border-white/15 shadow-xs">
+                <p className="text-xl font-bold font-[family-name:var(--font-outfit)]">{stat.value}</p>
+                <p className="text-xs text-white/70 mt-0.5">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Feature Bullets */}
+          <div className="space-y-2.5 pt-1">
+            {[
+              { icon: <Shield size={16} />, text: "KVIC Honey Mission compliant on-chain records" },
+              { icon: <Package size={16} />, text: "Direct hive-to-bottle QR code generation" },
+              { icon: <Store size={16} />, text: "Fair pricing and direct marketplace access" },
+            ].map((item) => (
+              <div key={item.text} className="flex items-center gap-2.5 text-xs text-white/85">
+                <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                  {item.icon}
+                </div>
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
