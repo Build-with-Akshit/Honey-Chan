@@ -262,6 +262,8 @@ export default function Login() {
                 { label: "Beekeeper", email: "ramesh.sonipat@gmail.com", icon: "🐝" },
                 { label: "Processor", email: "contact@abchoney.in", icon: "🏭" },
                 { label: "Lab", email: "lab.verify@fssai-approved.gov.in", icon: "🧪" },
+                { label: "Distributor", email: "distributor@honeychain.in", icon: "🚚" },
+                { label: "Wholesaler", email: "wholesaler@honeychain.in", icon: "📦" },
                 { label: "Retailer", email: "store@freshmart.in", icon: "🏪" },
               ].map((account) => (
                 <button

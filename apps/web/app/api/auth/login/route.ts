@@ -4,6 +4,24 @@ import { NextResponse } from "next/server";
 import { ethers } from "ethers";
 import bcrypt from "bcryptjs";
 
+const DEMO_USERS_MAP: Record<
+  string,
+  { name: string; role: string; phone: string; walletAddress: string }
+> = {
+  "distributor@honeychain.in": {
+    name: "Apex Logistics & Honey Distribution",
+    role: "DISTRIBUTOR",
+    phone: "+91 98444 55667",
+    walletAddress: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+  },
+  "wholesaler@honeychain.in": {
+    name: "National Honey Wholesalers",
+    role: "WHOLESALER",
+    phone: "+91 98666 77889",
+    walletAddress: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
@@ -48,12 +66,34 @@ export async function POST(request: Request) {
           { status: 404 }
         );
       }
-    } 
+    }
     // --- Legacy Email/Password Flow (Demo Fallback) ---
     else if (email && password) {
+      const normalizedEmail = email.toLowerCase().trim();
       user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: normalizedEmail },
       });
+
+      // Auto-provision demo accounts on-demand if database hasn't been re-seeded
+      if (!user && DEMO_USERS_MAP[normalizedEmail] && password === "password123") {
+        const demoConfig = DEMO_USERS_MAP[normalizedEmail];
+        const passwordHash = await bcrypt.hash("password123", 12);
+        try {
+          user = await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              password: passwordHash,
+              name: demoConfig.name,
+              role: demoConfig.role,
+              phone: demoConfig.phone,
+              walletAddress: demoConfig.walletAddress,
+              isVerified: true,
+            },
+          });
+        } catch (createErr) {
+          console.error("Auto-provisioning demo user failed:", createErr);
+        }
+      }
 
       // BUG-03 fix: unknown user and wrong password return the SAME 401 +
       // message so the endpoint can't be used to enumerate registered emails.

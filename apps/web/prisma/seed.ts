@@ -79,6 +79,34 @@ async function main() {
     },
   })
 
+  const distributor = await prisma.user.upsert({
+    where: { email: 'distributor@honeychain.in' },
+    update: {},
+    create: {
+      email: 'distributor@honeychain.in',
+      password: demoPasswordHash,
+      walletAddress: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
+      name: 'Apex Logistics & Honey Distribution',
+      role: 'DISTRIBUTOR',
+      phone: '+91 98444 55667',
+      isVerified: true,
+    },
+  })
+
+  const wholesaler = await prisma.user.upsert({
+    where: { email: 'wholesaler@honeychain.in' },
+    update: {},
+    create: {
+      email: 'wholesaler@honeychain.in',
+      password: demoPasswordHash,
+      walletAddress: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
+      name: 'National Honey Wholesalers',
+      role: 'WHOLESALER',
+      phone: '+91 98666 77889',
+      isVerified: true,
+    },
+  })
+
   const cluster = await prisma.cluster.create({
     data: {
       name: 'Sonipat Honey Cluster',
